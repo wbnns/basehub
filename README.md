@@ -2,8 +2,6 @@
 
 # Welcome to BaseHub's Codebase
 
-Live site: [basehub.org](https://basehub.org)
-
 <!-- Badge Row 1 - Status -->
 
 [![GitHub contributors](https://img.shields.io/github/contributors/basefoss/basehub)](https://github.com/basefoss/basehub/graphs/contributors)
