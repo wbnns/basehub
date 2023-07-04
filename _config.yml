@@ -113,6 +113,8 @@ nav_sort: case_sensitive # Capital letters sorted before lowercase
 
 # External navigation links
 nav_external_links:
+  - title: BaseHub Analytics
+    url: https://simpleanalytics.com/basehub.org
   - title: BaseHub on GitHub
     url: https://github.com/basefoss/basehub
 
