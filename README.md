@@ -21,10 +21,10 @@ Report problems or help improve BaseHub by opening a [new issue](https://github.
 ## How to Participate
 The following quick guides will help you get started:
 
-+ [Becoming a Contributor](https://github.com/basefoss/basehub/blob/main/docs/become-a-contributor.md)
-+ [Working with GitHub](https://github.com/basefoss/basehub/blob/main/docs/working-with-github.md)
-+ [Setting Up Your Environment](https://github.com/basefoss/basehub/blob/main/docs/setting-up-your-environment.md)
-+ [Miscellaneous / Other](https://github.com/basefoss/basehub/blob/main/docs/miscellaneous.md)
++ [Becoming a Contributor](https://github.com/basefoss/basehub/blob/main/contributors/become-a-contributor.md)
++ [Working with GitHub](https://github.com/basefoss/basehub/blob/main/contributors/working-with-github.md)
++ [Setting Up Your Environment](https://github.com/basefoss/basehub/blob/main/contributors/setting-up-your-environment.md)
++ [Miscellaneous / Other](https://github.com/basefoss/basehub/blob/main/contributors/miscellaneous.md)
 
 ### Code of Conduct
 
