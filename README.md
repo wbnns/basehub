@@ -24,7 +24,7 @@ The following quick guides will help you get started:
 + [Becoming a Contributor](https://github.com/basefoss/basehub/blob/main/contributors/become-a-contributor.md)
 + [Working with GitHub](https://github.com/basefoss/basehub/blob/main/contributors/working-with-github.md)
 + [Setting Up Your Environment](https://github.com/basefoss/basehub/blob/main/contributors/setting-up-your-environment.md)
-+ [Miscellaneous / Other](https://github.com/basefoss/basehub/blob/main/contributors/miscellaneous.md)
++ [Miscellaneous / Other](https://github.com/basefoss/basehub/blob/main/contributors/misc.md)
 
 ### Code of Conduct
 
