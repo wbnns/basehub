@@ -17,9 +17,7 @@ site an unlimited number of times with no extra work.
 Before building the site, you need to install the following
 dependencies and tools, which are pretty easy on any modern Linux:
 
-#### Install binary libraries and tools
-
-**Install RVM**
+#### Install RVM
 
 Install RVM using either the [easy instructions](https://rvm.io/) or the
 [more secure instructions](https://rvm.io/rvm/security).
@@ -30,14 +28,14 @@ following command:
 
     source ~/.rvm/scripts/rvm
 
-**Install Bundle**
+#### Install Bundle
 
 When you used RVM to install Ruby, it also installed the `gem` program.
 Use that program to install bundle:
 
     gem install bundle
 
-**Install the Ruby dependencies**
+#### Install the Ruby dependencies
 
 Ensure you checked out the site repository as described in [Working with
 GitHub](https://github.com/basefoss/basehub/blob/main/contributors/working-with-github.md).
