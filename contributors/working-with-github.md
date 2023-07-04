@@ -1,4 +1,4 @@
-## Working With GitHub
+## Working with GitHub
 
 GitHub allows you to make changes to a project using git, and later submit them
 in a "pull request" so they can be reviewed and discussed. In order to use
