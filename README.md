@@ -1,3 +1,5 @@
+![BaseHub](basehub.png)
+
 # Welcome to BaseHub's Codebase
 
 Live site: [basehub.org](https://basehub.org)
