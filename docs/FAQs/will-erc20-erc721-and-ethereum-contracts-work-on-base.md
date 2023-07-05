@@ -2,7 +2,7 @@
 layout: default
 title: Will ERC-20, ERC-721 and Ethereum contracts work on Base?
 parent: FAQs
-nav_order: 5
+nav_order: 6
 ---
 
 # Will ERC-20, ERC-721 and Ethereum contracts work on Base?
