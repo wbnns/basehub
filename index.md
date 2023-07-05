@@ -12,7 +12,7 @@ BaseHub is a resource for learning more about and getting started with **[Base](
 an Ethereum Layer 2 (L2) network.
 {: .fs-6 .fw-300 }
 
-[Get started](#getting-started){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[Get started](/getting-started/){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
 [Contribute to BaseHub](https://github.com/basefoss/basehub){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 ---
