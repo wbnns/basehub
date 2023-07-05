@@ -5,7 +5,7 @@ parent: Getting Started
 nav_order: 1
 ---
 
-# Understanding the concept of Onchain
+# What does Onchain mean?
 
 Onchain refers to all transactions and actions that occur directly on a
 blockchain network, and Base is exactly this type of network. Activities are
