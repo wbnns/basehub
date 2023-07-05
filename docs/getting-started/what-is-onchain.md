@@ -1,8 +1,8 @@
 ---
 layout: default
 title: Understanding the concept of Onchain
+parent: Getting Started
 nav_order: 1
-parent: getting-started
 ---
 
 # Understanding the concept of Onchain
