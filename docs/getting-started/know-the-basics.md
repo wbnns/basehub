@@ -5,6 +5,8 @@ parent: Getting Started
 nav_order: 2
 ---
 
+# Know the Basics
+
 For anyone just beginning their journey with Base, there are a few critical
 pieces of information to be aware of. Base offers a unique way to exchange and
 transact with others, differing significantly from traditional offchain methods.
