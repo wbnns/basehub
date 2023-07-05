@@ -1,11 +1,11 @@
 ---
 layout: default
-title: Know the basics
+title: Things you should know
 parent: Getting Started
 nav_order: 2
 ---
 
-# Know the Basics
+# Things you should know
 
 For anyone just beginning their journey with Base, there are a few critical
 pieces of information to be aware of. Base offers a unique way to exchange and
