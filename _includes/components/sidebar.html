@@ -15,6 +15,7 @@
       {% include nav.html pages=site.html_pages key=nil %}
     {% endif %}
     {%- if site.nav_external_links -%}
+    <div class="nav-category">Base Official Links</div>
       <ul class="nav-list">
         {%- for node in site.nav_external_links -%}
           <li class="nav-list-item external">

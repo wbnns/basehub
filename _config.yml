@@ -113,12 +113,20 @@ nav_sort: case_sensitive # Capital letters sorted before lowercase
 
 # External navigation links
 nav_external_links:
-  - title: Base Official Website
+  - title: Base.org
     url: https://base.org
-  - title: Base Official Discord
+  - title: Blog
+    url: https://base.mirror.xyz
+  - title: Discord
     url: https://base.org/discord
-  - title: Base Official Docs
+  - title: Documentation
     url: https://docs.base.org
+  - title: GitHub
+    url: https://github.com/base-org/
+  - title: Network Status
+    url: https://status.base.org
+  - title: Twitter
+    url: https://twitter.com/buildonbase
 
 # Footer content
 # appears at the bottom of every page's main content
