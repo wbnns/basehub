@@ -8,7 +8,7 @@ permalink: /
 
 # Welcome to BaseHub
 {: .fs-9 }
-BaseHub is a resource for learning more about and getting started with **Base**,
+BaseHub is a resource for learning more about and getting started with **[Base](https://base.org/)**,
 an Ethereum Layer 2 (L2) network.
 {: .fs-6 .fw-300 }
 
