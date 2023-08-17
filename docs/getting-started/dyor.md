@@ -127,10 +127,7 @@ Understanding a project's market positioning is crucial.
   viability, ensure the project has a sustainable model that isn't merely riding
 the hype wave.
 
-## Conclusion
+# TLDR
 
-The onchain landscape, while teeming with opportunities, is also fraught with
-pitfalls. Equip yourself with the tools of research and skepticism. Dive deep,
-question everything, and always be open to learning. The decentralized future of
-onchain is burgeoning, and with informed decisions, you can be at the forefront
-of this revolution.
+Equip yourself with the tools of research and skepticism. Dive deep, question
+everything, and always be open to learning.
