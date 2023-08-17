@@ -5,7 +5,7 @@ parent: Getting Started
 nav_order: 1
 ---
 
-# Do Your Own Research
+# Do your own research
 
 The decentralized vision of the internet, brings forth a plethora of innovative
 projects and platforms, from decentralized finance (DeFi) to non-fungible tokens
@@ -14,7 +14,7 @@ come hand-in-hand with risks. This guide seeks to offer you a comprehensive map
 to navigate the complex landscape, ensuring you're armed with the tools to
 conduct your own research and due diligence effectively.
 
-## Understanding the Basics
+## Understanding the basics
 
 Before diving into specific projects, it's vital to grasp the fundamental
 concepts of onchain.
@@ -36,7 +36,7 @@ implications for censorship resistance and openness.
   to their own blockchain (like Bitcoin), while tokens are built on another
 blockchain (like ERC-20 tokens on Ethereum or an L2 like Base).
 
-## Start with the Project's Documentation
+## Start with the project's documentation
 
 A project's whitepaper or official documentation serves as its blueprint. Here,
 you should delve deep into:
@@ -54,7 +54,7 @@ you should delve deep into:
   utility. Assess how practical and sustainable these use cases are and whether
 they can achieve mass adoption.
 
-## Analyzing the Team and Advisors
+## Analyzing the team and advisors
 
 Behind every successful project is a robust and dedicated team. When evaluating:
 
@@ -70,7 +70,7 @@ onchain landscape.
   their level of involvement. Are they actively engaged or merely a name on the
 website?
 
-## Reviewing the Tokenomics
+## Reviewing the tokenomics
 
 A project's tokenomics can determine its sustainability and economic health.
 
@@ -85,7 +85,7 @@ accumulation.
   staked can give insights into the project's economic model and long-term
 viability.
 
-## Checking the Code: Audits and Open Source
+## Checking the code: Audits and open source
 
 Onchain thrives on transparency and trust.
 
@@ -99,7 +99,7 @@ and activity.
 - **Updates**: Regular updates can indicate an active development team. However,
   constant, unnecessary changes can be a sign of directionlessness.
 
-## Community Sentiment and Engagement
+## Community sentiment and engagement
 
 A project's community can be its strongest asset.
 
@@ -113,7 +113,7 @@ constructive discussions.
 - **Feedback Loop**: An engaged team that actively seeks and acts on feedback is
   a sign of a project committed to growth and its community.
 
-## Evaluating Market Dynamics and Competition
+## Evaluating market dynamics and competition
 
 Understanding a project's market positioning is crucial.
 
