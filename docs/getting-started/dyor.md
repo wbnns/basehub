@@ -1,8 +1,8 @@
 ---
 layout: default
-title: Do Your Own Research (DYOR)
+title: Do Your Own Research
 parent: Getting Started
-nav_order: 3
+nav_order: 1
 ---
 
 # Do Your Own Research
