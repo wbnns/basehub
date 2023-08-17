@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Do Your Own Research
+title: Do your own research
 parent: Getting Started
 nav_order: 1
 ---
