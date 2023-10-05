@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Ecosystem
-nav_order: 2
+nav_order: 3
 has_children: true
 permalink: /ecosystem/
 has_toc: false
