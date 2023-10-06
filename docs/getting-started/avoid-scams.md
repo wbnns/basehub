@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Avoid Scams
+title: Avoid scams
 parent: Getting Started
 nav_order: 3
 ---
@@ -110,5 +110,9 @@ Always be careful about the software you install.
 ### Scam Tokens
 
 Some tokens might be promoted heavily, only to be schemes designed to defraud
-people. [Always DYOR](https://basehub.org/docs/getting-started/dyor/).
+people.
+
+---
+
+🔵 [Always DYOR](https://basehub.org/docs/getting-started/dyor/)
 
