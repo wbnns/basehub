@@ -1,37 +1,49 @@
 /* ============================================================
-   BaseHub homepage — Stripe-style cards layout.
+   BaseHub homepage — Stripe-style hero, cards, feature row.
    Scoped under .home to prevent leakage into docs pages.
    ============================================================ */
 
 .home {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 0 1rem 4rem;
+  padding: 0 1.25rem 5rem;
   color: var(--sl-color-text);
 }
 
 /* -------------------- Hero -------------------- */
 .home .home-hero {
-  padding: 2.5rem 0 2rem;
+  padding: 3rem 0 2.5rem;
   border-bottom: 1px solid var(--sl-color-hairline-light);
   margin-bottom: 3rem;
 }
 
+.home .home-eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  margin-bottom: 1.25rem;
+}
+
 .home .home-hero h1 {
-  font-family: 'Inter Tight', 'Inter', system-ui, sans-serif;
-  font-size: 2.75rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4.5vw, 3rem);
   font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  margin: 0 0 0.75rem;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  margin: 0 0 1rem;
+  max-width: 36rem;
   color: var(--sl-color-text);
 }
 
 .home .home-hero p {
-  font-size: 1.125rem;
-  line-height: 1.5;
+  font-size: 1.1875rem;
+  line-height: 1.55;
   color: var(--sl-color-gray-2);
-  max-width: 40rem;
+  max-width: 38rem;
   margin: 0;
 }
 
@@ -39,7 +51,8 @@
   font-family: var(--sl-font-mono);
   font-size: 0.95em;
   background: var(--sl-color-bg-inline-code);
-  padding: 0.1em 0.35em;
+  border: 1px solid var(--code-border);
+  padding: 0.1em 0.4em;
   border-radius: 4px;
 }
 
@@ -48,24 +61,37 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
-  margin-bottom: 4rem;
+  margin-bottom: 1rem;
 }
 
 .home .home-card {
   display: block;
-  padding: 1.5rem 1.5rem 1.75rem;
+  position: relative;
+  padding: 1.625rem 1.625rem 1.75rem;
   background: var(--sl-color-bg);
   border: 1px solid var(--sl-color-hairline-light);
-  border-radius: 8px;
+  border-radius: 10px;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s var(--ease-out);
 }
 
 .home .home-card:hover {
   border-color: var(--sl-color-accent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+  background: var(--sl-color-bg);
+}
+
+.home .home-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  background: var(--sl-color-accent-tint);
+  color: var(--sl-color-accent);
+  margin-bottom: 1rem;
 }
 
 .home .home-card h3 {
@@ -73,70 +99,140 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.0625rem;
   font-weight: 700;
   line-height: 1.3;
   letter-spacing: -0.015em;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.4rem;
   color: var(--sl-color-text);
 }
 
 .home .home-card .home-arrow {
   font-weight: 400;
   color: var(--sl-color-accent);
-  transition: transform 0.15s ease;
+  transition: transform 0.2s var(--ease-out);
 }
 
 .home .home-card:hover .home-arrow {
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
 
 .home .home-card p {
   font-size: 0.9375rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--sl-color-gray-2);
   margin: 0;
 }
 
+/* -------------------- Feature row -------------------- */
+.home .home-feature {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 4rem;
+}
+
+.home .home-card--feature {
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.home .home-card--feature .home-card-eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-accent);
+  margin-bottom: 0.625rem;
+}
+
+.home .home-card--feature h3 {
+  font-size: 1.1875rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.home .home-card--feature p {
+  margin-bottom: 0;
+}
+
+.home .home-card-snippet {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 6px;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--sl-color-gray-1);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.home .home-card-snippet code {
+  font-family: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
 /* -------------------- Popular list -------------------- */
 .home .home-popular {
-  padding-top: 2rem;
+  padding-top: 2.5rem;
   border-top: 1px solid var(--sl-color-hairline-light);
 }
 
 .home .home-popular h2 {
-  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--sl-color-gray-2);
-  margin: 0 0 1rem;
+  margin: 0 0 1.25rem;
 }
 
 .home .home-popular ul {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem 2rem;
+  gap: 0.75rem 2rem;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
 .home .home-popular li {
-  padding: 0.25rem 0;
+  padding: 0;
 }
 
 .home .home-popular a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--sl-color-text-accent);
   text-decoration: none;
+  padding: 0.25rem 0;
 }
 
-.home .home-popular a:hover {
-  text-decoration: underline;
+.home .home-popular a span {
+  font-weight: 400;
+  transition: transform 0.2s var(--ease-out);
+  color: var(--sl-color-accent);
+  opacity: 0.7;
+}
+
+.home .home-popular a:hover span {
+  transform: translateX(3px);
+  opacity: 1;
 }
 
 /* -------------------- Responsive -------------------- */
@@ -144,14 +240,20 @@
   .home .home-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .home .home-feature {
+    grid-template-columns: 1fr;
+  }
   .home .home-popular ul {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 40rem) {
-  .home .home-hero h1 {
-    font-size: 2rem;
+  .home {
+    padding: 0 1rem 4rem;
+  }
+  .home .home-hero {
+    padding-top: 2rem;
   }
   .home .home-cards,
   .home .home-popular ul {

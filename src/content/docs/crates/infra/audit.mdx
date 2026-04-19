@@ -1,6 +1,6 @@
 ---
 title: "infra/audit"
-description: "Audit archiver — Kafka consumer with S3 archival of transaction data."
+description: "Consumes transaction events from Kafka and archives them to S3 for audit retention."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `infra/audit` sub-crate (`audit-archiver-lib`) is part of the [infra crate group](/crates/infra/overview/).
 
-Audit archiver — Kafka consumer with S3 archival of transaction data.
+It consumes transaction events from Kafka and archives them to S3, producing the audit trail used for operational review.
 
 ## Source
 

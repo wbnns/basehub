@@ -1,6 +1,6 @@
 ---
 title: "execution/consensus"
-description: "OP consensus validation — block validation and trie root verification."
+description: "Validates OP blocks and verifies trie roots inside the execution layer."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `execution/consensus` sub-crate (`reth-optimism-consensus`) is part of the [execution crate group](/crates/execution/overview/).
 
-OP consensus validation — block validation and trie root verification.
+It validates OP block headers and bodies and verifies state, transaction, and receipt trie roots before blocks enter the chain.
 
 ## Source
 

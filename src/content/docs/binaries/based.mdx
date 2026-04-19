@@ -5,7 +5,7 @@ description: Block-building sidecar service with health checks and StatsD metric
 
 import { LinkCard } from '@astrojs/starlight/components';
 
-`based` is a block-building sidecar service that provides health check endpoints and StatsD metrics reporting. It acts as a companion process to the block builder, monitoring its state and reporting metrics to external systems.
+`based` runs as a sidecar to the block builder, exposing HTTP health check endpoints and forwarding metrics over StatsD to Datadog or compatible backends.
 
 ## Package
 

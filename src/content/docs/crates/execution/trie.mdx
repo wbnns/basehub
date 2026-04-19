@@ -1,6 +1,6 @@
 ---
 title: "execution/trie"
-description: "Trie node storage for serving proofs efficiently within the fault proof window."
+description: "Stores trie nodes so the node can serve proofs across the fault proof window."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `execution/trie` sub-crate (`reth-optimism-trie`) is part of the [execution crate group](/crates/execution/overview/).
 
-Trie node storage for serving proofs efficiently within the fault proof window.
+It persists Merkle Patricia Trie nodes so the node can serve state and storage proofs throughout the fault proof window.
 
 ## Source
 

@@ -1,6 +1,6 @@
 ---
 title: "execution/reth"
-description: "Meta-crate re-exporting all OP reth components with feature gates (full, node, evm, rpc)."
+description: "Meta-crate that re-exports all OP reth components behind feature gates."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `execution/reth` sub-crate (`reth-op`) is part of the [execution crate group](/crates/execution/overview/).
 
-Meta-crate re-exporting all OP reth components with feature gates (full, node, evm, rpc).
+It re-exports the full OP reth surface behind `full`, `node`, `evm`, and `rpc` feature gates so downstream crates pull in only what they need.
 
 ## Source
 

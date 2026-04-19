@@ -1,11 +1,13 @@
 ---
 title: Connecting to Base
-description: How to connect to the Base network.
+description: Connect to Base mainnet or Sepolia using public endpoints, your own node, or a third-party provider.
 ---
 
-This guide covers how to connect to the Base network -- both mainnet and the Sepolia testnet -- using public endpoints, your own node, or third-party providers.
+import CodeColumns from '../../../components/CodeColumns.astro';
 
-## Network Parameters
+Connect to Base mainnet or the Sepolia testnet using public RPC endpoints, your own node, or a third-party provider.
+
+## Network parameters
 
 ### Base Mainnet
 
@@ -19,7 +21,7 @@ This guide covers how to connect to the Base network -- both mainnet and the Sep
 | L1 settlement | Ethereum Mainnet |
 | Explorer | [basescan.org](https://basescan.org) |
 
-### Base Sepolia (Testnet)
+### Base Sepolia (testnet)
 
 | Parameter | Value |
 |-----------|-------|
@@ -30,7 +32,7 @@ This guide covers how to connect to the Base network -- both mainnet and the Sep
 | L1 settlement | Ethereum Sepolia |
 | Explorer | [sepolia.basescan.org](https://sepolia.basescan.org) |
 
-## Public RPC Endpoints
+## Public RPC endpoints
 
 Base provides public RPC endpoints for general use:
 
@@ -40,15 +42,23 @@ Base provides public RPC endpoints for general use:
 | Sepolia | `https://sepolia.base.org` | `wss://sepolia.base.org` |
 
 :::note
-Public endpoints are rate-limited and intended for development and light usage. For production applications, run your own node or use a third-party provider.
+Public endpoints are rate-limited and intended for development and light usage. For production, run your own node or use a third-party provider.
 :::
 
-## Connecting with Common Tools
+## Connecting with common tools
 
 ### curl
 
+<CodeColumns>
+<div>
+
+A raw JSON-RPC `POST` request returns the latest block number as a hex string.
+
+This is the lowest-common-denominator way to talk to Base — useful for sanity-checking that an endpoint is alive.
+
+</div>
+
 ```bash
-# Check the latest block number on mainnet
 curl -X POST https://mainnet.base.org \
   -H "Content-Type: application/json" \
   -d '{
@@ -59,25 +69,39 @@ curl -X POST https://mainnet.base.org \
   }'
 ```
 
+</CodeColumns>
+
 ### cast (Foundry)
 
+<CodeColumns>
+<div>
+
+Foundry's `cast` wraps every standard JSON-RPC method behind a clean CLI. Point it at any Base endpoint with `--rpc-url`.
+
+</div>
+
 ```bash
-# Get the latest block number
 cast block-number --rpc-url https://mainnet.base.org
 
-# Get an account balance
 cast balance 0xYourAddress --rpc-url https://mainnet.base.org
 
-# Get the chain ID
 cast chain-id --rpc-url https://mainnet.base.org
 ```
 
+</CodeColumns>
+
 ### ethers.js
+
+<CodeColumns>
+<div>
+
+`JsonRpcProvider` is the standard ethers entry point. It works against any Base endpoint — public, your own node, or a provider.
+
+</div>
 
 ```javascript
 import { JsonRpcProvider } from "ethers";
 
-// Mainnet
 const provider = new JsonRpcProvider("https://mainnet.base.org");
 
 const blockNumber = await provider.getBlockNumber();
@@ -87,13 +111,21 @@ const balance = await provider.getBalance("0xYourAddress");
 console.log("Balance:", balance.toString(), "wei");
 ```
 
+</CodeColumns>
+
 ### viem
+
+<CodeColumns>
+<div>
+
+viem ships chain definitions for both Base networks. `createPublicClient` selects the right RPC defaults automatically.
+
+</div>
 
 ```typescript
 import { createPublicClient, http } from "viem";
 import { base, baseSepolia } from "viem/chains";
 
-// Mainnet
 const client = createPublicClient({
   chain: base,
   transport: http(),
@@ -102,14 +134,15 @@ const client = createPublicClient({
 const blockNumber = await client.getBlockNumber();
 console.log("Current block:", blockNumber);
 
-// Sepolia testnet
 const testnetClient = createPublicClient({
   chain: baseSepolia,
   transport: http(),
 });
 ```
 
-### MetaMask / Wallet Configuration
+</CodeColumns>
+
+### MetaMask / wallet configuration
 
 To add Base to a wallet manually:
 
@@ -121,13 +154,13 @@ To add Base to a wallet manually:
 | Currency Symbol | ETH | ETH |
 | Block Explorer URL | `https://basescan.org` | `https://sepolia.basescan.org` |
 
-## Running Your Own Node
+## Running your own node
 
-For production use, running your own Base node gives you full control over rate limits, latency, and data availability.
+For production, running your own Base node gives full control over rate limits, latency, and data availability.
 
-### Quick Start
+### Quick start
 
-The fastest path is to use the pre-built Docker image:
+The fastest path is the pre-built Docker image:
 
 ```bash
 docker pull ghcr.io/base/base-reth-node:latest
@@ -148,41 +181,41 @@ docker run -d \
   --ws.port 8546
 ```
 
-For complete instructions, see:
+For full instructions:
 
-- [Building from Source](/getting-started/building/) -- compile the node binary.
-- [Running the Node](/getting-started/running/) -- configuration and startup.
-- [Docker](/getting-started/docker/) -- containerized deployment.
-- [Node Deployment](/node-operations/deployment/) -- production deployment guide.
+- [Building from source](/getting-started/building/) — compile the node binary.
+- [Running the node](/getting-started/running/) — configuration and startup.
+- [Docker](/getting-started/docker/) — containerized deployment.
+- [Node deployment](/node-operations/deployment/) — production deployment guide.
 
-### Node Sync Modes
+### Node sync modes
 
-| Mode | Description | Disk Usage | Sync Time |
+| Mode | Description | Disk usage | Sync time |
 |------|-------------|------------|-----------|
 | Full | Executes all transactions from genesis. | High | Days |
 | Snap | Downloads state snapshots, then follows chain tip. | Moderate | Hours |
 
-## JSON-RPC Interface
+## JSON-RPC interface
 
 Base nodes expose the standard Ethereum JSON-RPC interface. The following namespaces are available:
 
-### Standard Namespaces
+### Standard namespaces
 
 | Namespace | Description |
 |-----------|-------------|
-| `eth` | Core Ethereum methods -- blocks, transactions, state queries, gas estimation. |
-| `net` | Network information -- peer count, version, listening status. |
-| `web3` | Utility methods -- client version, SHA3. |
+| `eth` | Core Ethereum methods — blocks, transactions, state queries, gas estimation. |
+| `net` | Network information — peer count, version, listening status. |
+| `web3` | Utility methods — client version, SHA3. |
 | `txpool` | Transaction pool inspection (see [Transaction Pool](/integration-guides/txpool/)). |
-| `debug` | Debug methods -- trace transactions, get raw block data (enable with `--http.api debug`). |
+| `debug` | Debug methods — trace transactions, get raw block data (enable with `--http.api debug`). |
 
-### Base-Specific Namespaces
+### Base-specific namespaces
 
 | Namespace | Description |
 |-----------|-------------|
 | `base` | Base-specific methods including metering (see [Metering RPC](/integration-guides/metering-rpc/)). |
 
-### Commonly Used Methods
+### Commonly used methods
 
 | Method | Description |
 |--------|-------------|
@@ -201,13 +234,13 @@ Base nodes expose the standard Ethereum JSON-RPC interface. The following namesp
 | `eth_getLogs` | Returns logs matching a filter. |
 | `eth_chainId` | Returns the chain ID. |
 
-### Flashblocks Support
+### Flashblocks support
 
 The `"pending"` block tag is supported across applicable methods when flashblocks are enabled. See [Flashblocks RPC](/integration-guides/flashblocks-rpc/) for details on querying preconfirmed state.
 
 ## Troubleshooting
 
-### Common Issues
+### Common issues
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
@@ -217,10 +250,10 @@ The `"pending"` block tag is supported across applicable methods when flashblock
 | Wrong chain ID | Connected to wrong network. | Verify the RPC URL matches the intended network. |
 | `nonce too low` | Transaction nonce already used. | Use `"pending"` tag with `eth_getTransactionCount` for the latest nonce. |
 
-## Further Reading
+## Further reading
 
-- [Flashblocks RPC](/integration-guides/flashblocks-rpc/) -- querying preconfirmed state with the `"pending"` tag.
-- [Transaction Pool](/integration-guides/txpool/) -- inspecting and managing the txpool.
-- [Metering RPC](/integration-guides/metering-rpc/) -- resource metering API.
-- [Node Configuration](/node-operations/configuration/) -- detailed node configuration options.
-- [Monitoring](/node-operations/monitoring/) -- observability and metrics.
+- [Flashblocks RPC](/integration-guides/flashblocks-rpc/) — query preconfirmed state with the `"pending"` tag.
+- [Transaction Pool](/integration-guides/txpool/) — inspect and manage the txpool.
+- [Metering RPC](/integration-guides/metering-rpc/) — resource metering API.
+- [Node configuration](/node-operations/configuration/) — detailed node configuration options.
+- [Monitoring](/node-operations/monitoring/) — observability and metrics.

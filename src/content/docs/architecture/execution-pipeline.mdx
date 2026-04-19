@@ -3,7 +3,7 @@ title: Execution Pipeline
 description: Transaction flow from RPC receipt through the transaction pool, payload building, EVM execution, state trie update, and block production.
 ---
 
-This page traces the life of a transaction through the Base node, from the moment it arrives at the RPC endpoint to when it is included in a sealed block and committed to the state trie. Each stage references the crate responsible for that step.
+A transaction enters the Base node through the RPC layer, lands in the pool, gets selected by the builder, executes against the EVM, and lands in a sealed block committed to the state trie. Each stage below names the crate that owns it.
 
 ## Pipeline overview
 

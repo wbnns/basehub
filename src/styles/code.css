@@ -1,0 +1,152 @@
+/* ============================================================
+   BaseHub code chrome — Stripe-style frame, label, copy button.
+   Targets Expressive Code (Starlight default) + inline code.
+   ============================================================ */
+
+/* -------------------- Code frame -------------------- */
+.expressive-code {
+  margin: 1.5rem 0 !important;
+}
+
+.expressive-code .frame {
+  border-radius: 8px !important;
+  border: 1px solid var(--code-border) !important;
+  box-shadow: none !important;
+  background: var(--code-frame-bg) !important;
+  overflow: hidden;
+}
+
+.expressive-code .frame.has-title:not(.is-terminal) .header {
+  background: var(--sl-color-gray-7) !important;
+  border-bottom: 1px solid var(--code-border) !important;
+  padding: 0.375rem 0.875rem !important;
+  min-height: 32px !important;
+  font-family: var(--sl-font-mono) !important;
+}
+
+.expressive-code .frame .title {
+  font-family: var(--sl-font-mono) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  color: var(--sl-color-gray-2) !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.expressive-code .frame.is-terminal .header {
+  background: var(--sl-color-gray-7) !important;
+  border-bottom: 1px solid var(--code-border) !important;
+  min-height: 32px !important;
+}
+
+/* Code body */
+.expressive-code pre {
+  background: var(--code-bg) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0.875rem 0 !important;
+  font-family: var(--sl-font-mono) !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.6 !important;
+}
+
+.expressive-code pre > code {
+  font-family: var(--sl-font-mono) !important;
+  padding: 0 1rem !important;
+  font-feature-settings: 'liga' 0, 'calt' 0;
+}
+
+/* Frames without title still look like a card */
+.expressive-code .frame:not(.has-title):not(.is-terminal) pre {
+  border-radius: 8px !important;
+}
+
+/* Copy button — small, top-right, subtle */
+.expressive-code .copy {
+  inset-block-start: 0.375rem !important;
+  inset-inline-end: 0.375rem !important;
+}
+
+.expressive-code .copy button {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 4px !important;
+  background: var(--sl-color-bg) !important;
+  border: 1px solid var(--code-border) !important;
+  opacity: 0;
+  transition: opacity 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+.expressive-code .frame:hover .copy button,
+.expressive-code .copy button:focus-visible {
+  opacity: 1;
+}
+
+.expressive-code .copy button:hover {
+  border-color: var(--sl-color-accent) !important;
+}
+
+.expressive-code .copy button div {
+  inset: 0 !important;
+}
+
+/* -------------------- Inline code (pill) -------------------- */
+.sl-markdown-content :not(pre) > code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.875em;
+  font-weight: 500;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  border: 1px solid var(--code-border);
+  background: var(--sl-color-bg-inline-code);
+  color: var(--sl-color-text);
+  letter-spacing: 0;
+}
+
+.sl-markdown-content a :not(pre) > code,
+.sl-markdown-content a > code {
+  color: var(--sl-color-accent);
+  border-color: color-mix(in srgb, var(--sl-color-accent) 25%, var(--code-border));
+  background: var(--sl-color-accent-tint);
+}
+
+/* Headings should not pill code */
+.sl-markdown-content :is(h1, h2, h3, h4) > code {
+  font-size: 0.9em;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-weight: inherit;
+  color: inherit;
+}
+
+/* -------------------- Tabs (Starlight <Tabs>) -------------------- */
+starlight-tabs {
+  margin: 1.5rem 0;
+}
+
+starlight-tabs .tablist-wrapper {
+  border-bottom: 1px solid var(--sl-color-hairline-light) !important;
+}
+
+starlight-tabs [role='tab'] {
+  font-family: var(--font-display) !important;
+  font-size: var(--text-sm) !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.875rem !important;
+  color: var(--sl-color-gray-2) !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
+  transition: color 0.15s var(--ease-out), border-color 0.15s var(--ease-out);
+}
+
+starlight-tabs [role='tab'][aria-selected='true'] {
+  color: var(--sl-color-accent) !important;
+  border-bottom-color: var(--sl-color-accent) !important;
+}
+
+starlight-tabs [role='tabpanel'] {
+  padding-top: 1rem !important;
+}

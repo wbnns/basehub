@@ -1,6 +1,6 @@
 ---
 title: "proof/executor"
-description: "A `no_std` stateless block builder for the OP Stack — EVM execution inside the FPVM."
+description: "no_std stateless OP Stack block builder that runs the EVM inside the FPVM."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `proof/executor` sub-crate (`kona-executor`) is part of the [proof crate group](/crates/proof/overview/).
 
-A `no_std` stateless block builder for the OP Stack — EVM execution inside the FPVM.
+It builds OP Stack blocks statelessly inside the FPVM, executing the EVM against witness data supplied through the preimage oracle.
 
 ## Source
 

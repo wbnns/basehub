@@ -1,6 +1,6 @@
 ---
 title: "proof/driver"
-description: "A `no_std` derivation pipeline driver — orchestrates derive and execute steps for fault proofs."
+description: "no_std driver that sequences derivation and execution steps inside the fault proof program."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `proof/driver` sub-crate (`kona-driver`) is part of the [proof crate group](/crates/proof/overview/).
 
-A `no_std` derivation pipeline driver — orchestrates derive and execute steps for fault proofs.
+It drives the `no_std` derivation pipeline, sequencing derive and execute steps so the fault proof program can advance the L2 chain step by step.
 
 ## Source
 

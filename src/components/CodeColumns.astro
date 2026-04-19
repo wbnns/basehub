@@ -20,10 +20,11 @@
 <style>
   .code-columns {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 2rem;
-    margin: 1.5rem 0;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 2.5rem;
+    margin: 2rem 0;
     align-items: start;
+    scroll-margin-top: 6rem;
   }
 
   .code-columns > :nth-child(2) {
@@ -32,7 +33,11 @@
     align-self: start;
   }
 
-  @media (max-width: 50rem) {
+  .code-columns > :nth-child(2) :global(.expressive-code) {
+    margin: 0 !important;
+  }
+
+  @media (max-width: 60rem) {
     .code-columns {
       grid-template-columns: 1fr;
       gap: 1rem;

@@ -1,6 +1,6 @@
 ---
 title: "execution/payload"
-description: "Optimistic payload builder for op-reth — constructs execution payloads from pending transactions."
+description: "Builds OP execution payloads from pending transactions for the engine API."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `execution/payload` sub-crate (`reth-optimism-payload-builder`) is part of the [execution crate group](/crates/execution/overview/).
 
-Optimistic payload builder for op-reth — constructs execution payloads from pending transactions.
+It builds OP execution payloads from the pending transaction set, returning blocks ready for the engine API to commit.
 
 ## Source
 

@@ -1,6 +1,6 @@
 ---
 title: "infra/ingress-rpc"
-description: "Ingress RPC server — receives transactions, routes to the builder, and maintains a Kafka audit trail."
+description: "Ingress JSON-RPC server that forwards transactions to the builder and writes a Kafka audit trail."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `infra/ingress-rpc` sub-crate (`ingress-rpc-lib`) is part of the [infra crate group](/crates/infra/overview/).
 
-Ingress RPC server — receives transactions, routes to the builder, and maintains a Kafka audit trail.
+It runs the ingress JSON-RPC server, forwarding incoming transactions to the builder and writing each one to Kafka for the audit trail.
 
 ## Source
 

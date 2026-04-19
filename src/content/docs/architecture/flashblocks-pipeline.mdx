@@ -3,9 +3,9 @@ title: Flashblocks Pipeline
 description: How the builder produces flashblocks at 200ms sub-block intervals, streams them over WebSockets, and reconciles state at block boundaries.
 ---
 
-Flashblocks are partial block updates produced every 200 milliseconds during a 2-second L2 block interval. They give users and applications sub-second confirmation of transaction inclusion without changing the final block structure or the consensus protocol.
+Flashblocks are partial block updates the builder emits every 200 milliseconds within a 2-second L2 block. They deliver sub-second inclusion confirmation without altering the sealed block or the consensus protocol.
 
-This page describes the internal pipeline: how the builder produces flashblocks, how they are streamed to consumers, and how state is reconciled when the full block is sealed.
+The sections below cover how the builder produces flashblocks, how they stream to consumers, and how state reconciles when the block seals.
 
 ## Motivation
 

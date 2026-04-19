@@ -1,11 +1,12 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { Icon } from '@astrojs/starlight/components';
 ---
 
 <StarlightPage
   frontmatter={{
     title: 'BaseHub',
-    description: 'Technical reference for the base/base codebase — the Rust-based L2 node powering Base.',
+    description: 'The Rust client powering Base. Architecture, crates, and integration guides — straight from the source.',
     template: 'splash',
     hero: { tagline: '' },
     pagefind: false,
@@ -13,54 +14,81 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 >
   <div class="home">
     <header class="home-hero">
-      <h1>BaseHub</h1>
+      <span class="home-eyebrow">Documentation</span>
+      <h1>The Rust client powering Base.</h1>
       <p>
-        Technical reference for the <code>base/base</code> Rust codebase —
-        the L2 node powering Base.
+        Architecture, crates, and integration guides for <code>base/base</code> —
+        straight from the source.
       </p>
     </header>
 
     <section class="home-cards" aria-label="Documentation sections">
       <a class="home-card" href="/architecture/overview/">
+        <span class="home-card-icon" aria-hidden="true"><Icon name="puzzle" size="1.125rem" /></span>
         <h3>Architecture <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>System design, crate map, and data flow from L1 to execution.</p>
+        <p>System design, crate map, and the path from L1 to execution.</p>
       </a>
 
       <a class="home-card" href="/getting-started/prerequisites/">
-        <h3>Getting Started <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>Prerequisites, building from source, running, and local devnet.</p>
+        <span class="home-card-icon" aria-hidden="true"><Icon name="rocket" size="1.125rem" /></span>
+        <h3>Getting started <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>Prerequisites, build from source, run a node, spin up a devnet.</p>
       </a>
 
       <a class="home-card" href="/crates/overview/">
-        <h3>Crate Reference <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>70+ crates across 8 groups — consensus, execution, builder, proof.</p>
+        <span class="home-card-icon" aria-hidden="true"><Icon name="list-format" size="1.125rem" /></span>
+        <h3>Crate reference <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>Seventy-plus crates across consensus, execution, builder, and proof.</p>
       </a>
 
       <a class="home-card" href="/specifications/flashblocks/">
+        <span class="home-card-icon" aria-hidden="true"><Icon name="document" size="1.125rem" /></span>
         <h3>Specifications <span class="home-arrow" aria-hidden="true">→</span></h3>
         <p>Flashblocks 200ms preconfirmation protocol and access lists.</p>
       </a>
 
       <a class="home-card" href="/integration-guides/connecting/">
-        <h3>Integration Guides <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>Connect to Base, stream Flashblocks, and interact with the txpool.</p>
+        <span class="home-card-icon" aria-hidden="true"><Icon name="random" size="1.125rem" /></span>
+        <h3>Integration guides <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>Connect to Base, stream Flashblocks, work with the txpool.</p>
       </a>
 
       <a class="home-card" href="/node-operations/deployment/">
-        <h3>Node Operations <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <span class="home-card-icon" aria-hidden="true"><Icon name="setting" size="1.125rem" /></span>
+        <h3>Node operations <span class="home-arrow" aria-hidden="true">→</span></h3>
         <p>Deployment, Docker, configuration, monitoring, and releases.</p>
       </a>
     </section>
 
+    <section class="home-feature" aria-label="Build with Base">
+      <a class="home-card home-card--feature" href="/getting-started/building/">
+        <div class="home-card-body">
+          <span class="home-card-eyebrow">Run a node</span>
+          <h3>Build base-reth-node from source <span class="home-arrow" aria-hidden="true">→</span></h3>
+          <p>Compile the full execution client with a single Cargo command.</p>
+        </div>
+        <pre class="home-card-snippet"><code>cargo install --path bin/base-reth-node</code></pre>
+      </a>
+
+      <a class="home-card home-card--feature" href="/integration-guides/flashblocks-rpc/">
+        <div class="home-card-body">
+          <span class="home-card-eyebrow">Stream Flashblocks</span>
+          <h3>Subscribe to 200ms preconfirmations <span class="home-arrow" aria-hidden="true">→</span></h3>
+          <p>WebSocket stream of mini-blocks delivered five times per slot.</p>
+        </div>
+        <pre class="home-card-snippet"><code>wscat -c wss://mainnet.base.org/flashblocks</code></pre>
+      </a>
+    </section>
+
     <section class="home-popular">
-      <h2>Popular</h2>
+      <h2>Get started fast</h2>
       <ul>
-        <li><a href="/getting-started/building/">Build from source</a></li>
-        <li><a href="/getting-started/docker/">Run with Docker</a></li>
-        <li><a href="/specifications/flashblocks/">Flashblocks spec</a></li>
-        <li><a href="/integration-guides/flashblocks-rpc/">Flashblocks RPC</a></li>
-        <li><a href="/node-operations/configuration/">Node configuration</a></li>
-        <li><a href="/architecture/execution-pipeline/">Execution pipeline</a></li>
+        <li><a href="/getting-started/building/">Build from source <span aria-hidden="true">→</span></a></li>
+        <li><a href="/getting-started/docker/">Run with Docker <span aria-hidden="true">→</span></a></li>
+        <li><a href="/specifications/flashblocks/">Flashblocks spec <span aria-hidden="true">→</span></a></li>
+        <li><a href="/integration-guides/flashblocks-rpc/">Flashblocks RPC <span aria-hidden="true">→</span></a></li>
+        <li><a href="/node-operations/configuration/">Node configuration <span aria-hidden="true">→</span></a></li>
+        <li><a href="/architecture/execution-pipeline/">Execution pipeline <span aria-hidden="true">→</span></a></li>
       </ul>
     </section>
   </div>

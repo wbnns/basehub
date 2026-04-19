@@ -3,7 +3,7 @@ title: Architecture Overview
 description: How the 8 crate groups in base/base fit together — from Reth integration to Flashblocks production.
 ---
 
-The `base/base` repository is a Rust workspace that implements the Base L2 node. It is built on top of [Reth](https://github.com/paradigmxyz/reth) v1.11.0, an Ethereum execution client, and extends it with Optimism rollup semantics, a custom block builder with Flashblocks support, and a fault proof pipeline derived from [Kona](https://github.com/op-rs/kona).
+`base/base` is a Rust workspace that implements the Base L2 node on top of [Reth](https://github.com/paradigmxyz/reth) v1.11.0. It layers Optimism rollup semantics, a Flashblocks-aware block builder, and a [Kona](https://github.com/op-rs/kona)-derived fault proof pipeline onto the Reth execution client.
 
 The workspace is organized into **8 top-level crate groups**, each in its own subdirectory under `crates/`. These groups map to the major subsystems of an L2 node: receiving transactions, building blocks, executing the EVM, reaching consensus with L1, generating fault proofs, and operating the infrastructure that ties it all together.
 

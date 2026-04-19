@@ -11,7 +11,32 @@ export default defineConfig({
 			logo: {
 				src: './src/assets/basehub-logo.png',
 			},
-			customCss: ['./src/styles/theme.css', './src/styles/homepage.css'],
+			customCss: [
+				'./src/styles/theme.css',
+				'./src/styles/code.css',
+				'./src/styles/homepage.css',
+			],
+			expressiveCode: {
+				themes: ['github-light', 'github-dark'],
+				styleOverrides: {
+					borderRadius: '8px',
+					borderColor: 'var(--code-border)',
+					codeFontFamily: 'var(--sl-font-mono)',
+					codeFontSize: '0.8125rem',
+					codeLineHeight: '1.6',
+					uiFontFamily: 'var(--sl-font-mono)',
+					uiFontSize: '0.75rem',
+					frames: {
+						frameBoxShadowCssValue: 'none',
+						editorActiveTabIndicatorBottomColor: 'var(--sl-color-accent)',
+						editorActiveTabBorderColor: 'transparent',
+						editorTabBarBorderBottomColor: 'var(--code-border)',
+						terminalTitlebarBorderBottomColor: 'var(--code-border)',
+						terminalBackground: 'var(--code-bg)',
+						editorBackground: 'var(--code-bg)',
+					},
+				},
+			},
 			head: [
 				{
 					tag: 'script',

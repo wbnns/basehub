@@ -1,9 +1,9 @@
 ---
 title: Transaction Pool
-description: Working with the Base transaction pool.
+description: Inspect and monitor the Base txpool through RPC extensions and tracing instrumentation.
 ---
 
-The Base transaction pool (txpool) manages pending transactions before they are included in blocks. The `base/base` repository provides RPC extensions and tracing instrumentation for inspecting and monitoring pool state.
+The Base transaction pool holds pending transactions until the builder includes them in a block. The `base/base` repository ships RPC extensions and tracing instrumentation for inspecting pool contents and monitoring transaction lifecycle events.
 
 ## Relevant Crates
 

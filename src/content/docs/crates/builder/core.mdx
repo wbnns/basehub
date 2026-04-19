@@ -7,9 +7,9 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 ## Overview
 
-The `builder/core` sub-crate (`base-builder-core`) is the main block builder for the OP Stack. It handles sequencing, flashblock production at ~200ms intervals, and canonical block assembly.
+The `base-builder-core` crate drives block building for the OP Stack. It handles sequencing, flashblock production at ~200ms intervals, and canonical block assembly.
 
-This is the largest crate in the builder group, with extensive dependencies on reth, alloy, revm, and the shared primitives. It integrates transaction bundling, gas metering, caching (via moka), and secp256k1 signing.
+This is the largest crate in the builder group, with dependencies on reth, alloy, revm, and the shared primitives. It integrates transaction bundling, gas metering, caching (via moka), and secp256k1 signing.
 
 ## Key Dependencies
 

@@ -1,9 +1,9 @@
 ---
 title: Flashblocks Specification
-description: Flashblocks RPC specification — JSON-RPC methods, params, and return types.
+description: JSON-RPC methods, parameters, and return types exposed by the Flashblocks RPC provider.
 ---
 
-This document specifies the JSON-RPC methods implemented by the Flashblocks RPC provider.
+The Flashblocks RPC provider extends standard Ethereum JSON-RPC methods to query preconfirmed flashblock state via the `pending` tag. The methods, parameters, and return types are specified below.
 
 :::note
 This document serves as a reference for the current implementation and may differ from the full Flashblocks specification in terms of scope and methods implemented. The canonical source is [`docs/specs/flashblocks.md`](https://github.com/base/base/blob/main/docs/specs/flashblocks.md) in the base/base repository.

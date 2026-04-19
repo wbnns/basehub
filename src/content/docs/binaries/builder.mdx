@@ -5,7 +5,7 @@ description: The Base block builder binary for flashblock production and block b
 
 import { LinkCard } from '@astrojs/starlight/components';
 
-`base-builder` is the block builder service responsible for producing flashblocks at 200ms intervals and assembling canonical blocks. It uses `FlashblocksServiceBuilder` to orchestrate the block building pipeline.
+`base-builder` produces flashblocks every 200 milliseconds and assembles the sealed canonical blocks for Base. It orchestrates the build pipeline through `FlashblocksServiceBuilder`.
 
 ## Package
 

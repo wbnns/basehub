@@ -1,9 +1,9 @@
 ---
 title: Docker Builds
-description: Building and running base/base with Docker.
+description: Build and run base/base from the Dockerfiles under etc/docker without installing Rust on the host.
 ---
 
-Docker provides a reproducible way to build and run the node without installing the full Rust toolchain on the host. The repository ships several Dockerfiles under `etc/docker/`.
+Docker builds compile `base/base` reproducibly without a host Rust toolchain. The repository ships several Dockerfiles under `etc/docker/` for the client, builder, devnet, and websocket proxy.
 
 ## Available Dockerfiles
 

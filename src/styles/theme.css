@@ -1,13 +1,43 @@
 /* ============================================================
-   BaseHub global theme — Base brand colors + typography.
-   Fallback fonts per base/brand-kit: Inter Tight, Inter, Roboto Mono.
+   BaseHub global theme — Base brand + Stripe-grade typography.
+   Variable woff2 fonts self-hosted from /fonts/.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
+/* -------------------- Self-hosted variable fonts -------------------- */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/Inter-Variable.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/Inter-Variable-Italic.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Inter Tight';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/InterTight-Variable.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2-variations');
+}
 
+/* -------------------- Brand tokens -------------------- */
 :root {
-  /* Base brand — neutrals */
+  /* Neutrals */
   --base-white: #ffffff;
+  --base-gray-05: #f6f7f9;
   --base-gray-10: #eef0f3;
   --base-gray-15: #dee1e7;
   --base-gray-30: #b1b7c3;
@@ -16,22 +46,41 @@
   --base-gray-80: #32353d;
   --base-black: #0a0b0d;
 
-  /* Base brand — accents */
+  /* Accents */
   --base-blue: #0000ff;
   --base-blue-hover: #0000cc;
   --base-cerulean: #3c8aff;
 
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.75rem;
+
   /* Fonts */
   --sl-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --sl-font-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sl-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
+
+  /* Reading measure */
+  --sl-content-width: 46rem;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* -------------------- LIGHT MODE (default) -------------------- */
+/* -------------------- LIGHT MODE -------------------- */
 :root,
 :root[data-theme='light'] {
   color-scheme: light;
 
   --sl-color-accent-low: #dee6ff;
+  --sl-color-accent-tint: #f0f4ff;
   --sl-color-accent: var(--base-blue);
   --sl-color-accent-high: var(--base-blue-hover);
 
@@ -42,18 +91,37 @@
   --sl-color-gray-4: var(--base-gray-30);
   --sl-color-gray-5: var(--base-gray-15);
   --sl-color-gray-6: var(--base-gray-10);
-  --sl-color-gray-7: #f6f7f9;
+  --sl-color-gray-7: var(--base-gray-05);
   --sl-color-black: var(--base-white);
 
   --sl-color-text: var(--base-black);
   --sl-color-text-accent: var(--base-blue);
   --sl-color-bg: var(--base-white);
-  --sl-color-bg-nav: var(--base-white);
+  --sl-color-bg-nav: rgba(255, 255, 255, 0.85);
   --sl-color-bg-sidebar: var(--base-white);
-  --sl-color-bg-inline-code: var(--base-gray-10);
+  --sl-color-bg-inline-code: var(--base-gray-05);
   --sl-color-hairline-light: var(--base-gray-15);
   --sl-color-hairline: var(--base-gray-15);
   --sl-color-hairline-shade: var(--base-gray-30);
+
+  /* Callouts */
+  --callout-info-border: #b8c7ff;
+  --callout-info-bg: #f0f4ff;
+  --callout-info-text: #1230a8;
+  --callout-tip-border: #9cd9c4;
+  --callout-tip-bg: #ecfaf4;
+  --callout-tip-text: #0a6c4a;
+  --callout-caution-border: #f3cf95;
+  --callout-caution-bg: #fdf6ea;
+  --callout-caution-text: #8a5a05;
+  --callout-danger-border: #f0aaa6;
+  --callout-danger-bg: #fdeeec;
+  --callout-danger-text: #9a1c12;
+
+  /* Code chrome */
+  --code-bg: var(--base-gray-05);
+  --code-border: var(--base-gray-15);
+  --code-frame-bg: #fbfcfd;
 }
 
 /* -------------------- DARK MODE -------------------- */
@@ -61,6 +129,7 @@
   color-scheme: dark;
 
   --sl-color-accent-low: #001b5a;
+  --sl-color-accent-tint: #0a1230;
   --sl-color-accent: var(--base-cerulean);
   --sl-color-accent-high: #a8c4ff;
 
@@ -77,36 +146,435 @@
   --sl-color-text: var(--base-gray-10);
   --sl-color-text-accent: var(--base-cerulean);
   --sl-color-bg: var(--base-black);
-  --sl-color-bg-nav: var(--base-black);
+  --sl-color-bg-nav: rgba(10, 11, 13, 0.85);
   --sl-color-bg-sidebar: var(--base-black);
-  --sl-color-bg-inline-code: #1a1c1f;
-  --sl-color-hairline-light: var(--base-gray-80);
-  --sl-color-hairline: var(--base-gray-80);
-  --sl-color-hairline-shade: var(--base-gray-60);
+  --sl-color-bg-inline-code: #16181b;
+  --sl-color-hairline-light: #1f2227;
+  --sl-color-hairline: #1f2227;
+  --sl-color-hairline-shade: var(--base-gray-80);
+
+  /* Callouts */
+  --callout-info-border: #2a3d7a;
+  --callout-info-bg: #0e1633;
+  --callout-info-text: #b8c7ff;
+  --callout-tip-border: #1d4d3c;
+  --callout-tip-bg: #0c1c17;
+  --callout-tip-text: #6ed6b1;
+  --callout-caution-border: #5a3f0e;
+  --callout-caution-bg: #1d1608;
+  --callout-caution-text: #f3cf95;
+  --callout-danger-border: #5a1c16;
+  --callout-danger-bg: #1d0c0a;
+  --callout-danger-text: #f0aaa6;
+
+  /* Code chrome */
+  --code-bg: #0d0e10;
+  --code-border: #1f2227;
+  --code-frame-bg: #0d0e10;
 }
 
-/* -------------------- Tighter typography -------------------- */
+/* -------------------- Base typography -------------------- */
 html {
-  font-size: 15px;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-family: var(--sl-font);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+  font-variant-ligatures: common-ligatures;
   letter-spacing: -0.005em;
 }
 
+/* Map Starlight type tokens onto our scale */
+:root {
+  --sl-text-xs: var(--text-xs);
+  --sl-text-sm: var(--text-sm);
+  --sl-text-base: var(--text-base);
+  --sl-text-body: var(--text-base);
+  --sl-text-body-sm: var(--text-sm);
+  --sl-text-code: var(--text-sm);
+  --sl-text-code-sm: var(--text-xs);
+  --sl-text-h1: var(--text-4xl);
+  --sl-text-h2: var(--text-2xl);
+  --sl-text-h3: var(--text-xl);
+  --sl-text-h4: var(--text-lg);
+  --sl-text-h5: var(--text-base);
+}
+
+/* -------------------- Headings -------------------- */
 h1, h2, h3, h4, h5, h6,
 .sl-markdown-content h1,
 .sl-markdown-content h2,
 .sl-markdown-content h3,
-.sl-markdown-content h4 {
-  font-family: 'Inter Tight', 'Inter', system-ui, sans-serif;
-  letter-spacing: -0.02em;
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6 {
+  font-family: var(--font-display);
   font-weight: 700;
+  color: var(--sl-color-white);
 }
 
-/* Denser sidebar like Stripe */
+.sl-markdown-content h1 {
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin-bottom: 1rem;
+}
+
+.sl-markdown-content h2 {
+  font-size: var(--text-2xl);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin-top: 3.5rem !important;
+  padding-top: 2rem;
+  border-top: 1px solid var(--sl-color-hairline-light);
+  margin-bottom: 1rem;
+}
+
+.sl-markdown-content > h2:first-of-type,
+.sl-markdown-content > :first-child + h2 {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 2.5rem !important;
+}
+
+.sl-markdown-content h3 {
+  font-size: var(--text-xl);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-top: 2.5rem !important;
+  margin-bottom: 0.75rem;
+}
+
+.sl-markdown-content h4 {
+  font-size: var(--text-lg);
+  letter-spacing: -0.015em;
+  margin-top: 2rem !important;
+  margin-bottom: 0.5rem;
+}
+
+/* Heading anchor — Stripe-style # on hover */
+.sl-markdown-content :is(h2, h3, h4, h5, h6) {
+  position: relative;
+}
+
+.sl-markdown-content :is(h2, h3, h4, h5, h6) > a[aria-hidden='true'] {
+  position: absolute;
+  left: -1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  color: var(--sl-color-gray-3);
+  font-weight: 400;
+  transition: opacity 0.15s var(--ease-out);
+  text-decoration: none;
+}
+
+.sl-markdown-content :is(h2, h3, h4, h5, h6) > a[aria-hidden='true']::before {
+  content: '#';
+}
+
+.sl-markdown-content :is(h2, h3, h4, h5, h6):hover > a[aria-hidden='true'] {
+  opacity: 1;
+}
+
+/* -------------------- Body text -------------------- */
+.sl-markdown-content p {
+  font-size: var(--text-md);
+  line-height: 1.65;
+  color: var(--sl-color-gray-1);
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+.sl-markdown-content :is(ul, ol) {
+  font-size: var(--text-md);
+  line-height: 1.65;
+  color: var(--sl-color-gray-1);
+}
+
+.sl-markdown-content li + li {
+  margin-top: 0.5rem;
+}
+
+.sl-markdown-content blockquote {
+  margin: 1.5rem 0;
+  padding: 0.5rem 1.25rem;
+  border-left: 3px solid var(--sl-color-accent);
+  background: var(--sl-color-accent-tint);
+  color: var(--sl-color-gray-1);
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+}
+
+.sl-markdown-content blockquote p {
+  margin-bottom: 0.5rem;
+}
+.sl-markdown-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* -------------------- Links (typography only) -------------------- */
+.sl-markdown-content :is(p, li, td, th, blockquote, dd) a:not(.sl-anchor-link):not([aria-hidden='true']) {
+  color: var(--sl-color-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s var(--ease-out), color 0.15s var(--ease-out);
+}
+
+.sl-markdown-content :is(p, li, td, th, blockquote, dd) a:not(.sl-anchor-link):not([aria-hidden='true']):hover {
+  text-decoration-color: currentColor;
+}
+
+/* -------------------- Tables -------------------- */
+.sl-markdown-content table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--sl-color-hairline-light);
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+  font-size: var(--text-sm);
+}
+
+.sl-markdown-content table th {
+  background: var(--sl-color-gray-7);
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+.sl-markdown-content table td {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+  color: var(--sl-color-gray-1);
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-markdown-content table tr:last-child td {
+  border-bottom: none;
+}
+
+.sl-markdown-content table code {
+  font-size: 0.95em;
+}
+
+/* -------------------- Horizontal rule -------------------- */
+.sl-markdown-content hr {
+  border: none;
+  border-top: 1px solid var(--sl-color-hairline-light);
+  margin: 3rem 0;
+}
+
+/* -------------------- Asides / callouts -------------------- */
+.sl-markdown-content .starlight-aside {
+  border-radius: 6px;
+  border: 1px solid var(--sl-color-hairline-light);
+  border-left-width: 3px;
+  background: var(--sl-color-gray-7);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.sl-markdown-content .starlight-aside__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.375rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sl-markdown-content .starlight-aside__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.sl-markdown-content .starlight-aside p {
+  font-size: var(--text-base);
+  margin-bottom: 0.5rem;
+  color: inherit;
+}
+.sl-markdown-content .starlight-aside p:last-child {
+  margin-bottom: 0;
+}
+
+.sl-markdown-content .starlight-aside--note {
+  border-color: var(--callout-info-border);
+  background: var(--callout-info-bg);
+}
+.sl-markdown-content .starlight-aside--note .starlight-aside__title {
+  color: var(--callout-info-text);
+}
+
+.sl-markdown-content .starlight-aside--tip {
+  border-color: var(--callout-tip-border);
+  background: var(--callout-tip-bg);
+}
+.sl-markdown-content .starlight-aside--tip .starlight-aside__title {
+  color: var(--callout-tip-text);
+}
+
+.sl-markdown-content .starlight-aside--caution {
+  border-color: var(--callout-caution-border);
+  background: var(--callout-caution-bg);
+}
+.sl-markdown-content .starlight-aside--caution .starlight-aside__title {
+  color: var(--callout-caution-text);
+}
+
+.sl-markdown-content .starlight-aside--danger {
+  border-color: var(--callout-danger-border);
+  background: var(--callout-danger-bg);
+}
+.sl-markdown-content .starlight-aside--danger .starlight-aside__title {
+  color: var(--callout-danger-text);
+}
+
+/* -------------------- Sidebar -------------------- */
+.sidebar-pane {
+  border-right: 1px solid var(--sl-color-hairline-light);
+}
+
+starlight-sidebar-state-persist > ul,
+.sidebar-content > ul {
+  padding: 0.5rem 0.75rem !important;
+}
+
+.sidebar-content summary,
+.sidebar-content > ul > li > details > summary > .group-label > span,
+.sidebar-content > ul > li > span.large {
+  font-family: var(--font-display);
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3) !important;
+  padding: 0.4rem 0.625rem !important;
+  margin-top: 1rem !important;
+}
+
+.sidebar-content > ul > li:first-child > details > summary > .group-label > span,
+.sidebar-content > ul > li:first-child > span.large {
+  margin-top: 0 !important;
+}
+
 starlight-sidebar-state-persist ul li a,
 .sidebar-content a {
-  font-size: 0.8125rem;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+  padding: 0.3rem 0.625rem !important;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+}
+
+starlight-sidebar-state-persist ul li a:hover,
+.sidebar-content a:hover {
+  background: var(--sl-color-gray-7);
+  color: var(--sl-color-text);
+}
+
+starlight-sidebar-state-persist ul li a[aria-current='page'],
+.sidebar-content a[aria-current='page'] {
+  background: var(--sl-color-accent-tint);
+  color: var(--sl-color-accent-high);
+  font-weight: 500;
+  box-shadow: inset 2px 0 0 var(--sl-color-accent);
+}
+
+/* Nested groups: indent rail */
+.sidebar-content ul ul {
+  border-left: 1px solid var(--sl-color-hairline-light);
+  margin-left: 0.625rem;
+  padding-left: 0.5rem !important;
+}
+
+/* Use Starlight's native caret; just refine its color */
+.sidebar-content details > summary svg {
+  color: var(--sl-color-gray-3);
+}
+
+/* -------------------- Right rail / TOC -------------------- */
+.right-sidebar starlight-toc nav {
+  font-size: var(--text-sm);
+}
+
+.right-sidebar starlight-toc nav > h2,
+.right-sidebar h2#starlight__on-this-page {
+  font-family: var(--font-display);
+  font-size: 0.6875rem !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+  margin-bottom: 0.75rem;
+}
+
+.right-sidebar starlight-toc a {
+  font-size: var(--text-sm);
+  color: var(--sl-color-gray-2);
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+  text-decoration: none;
+  display: block;
+  transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+}
+
+.right-sidebar starlight-toc a:hover {
+  color: var(--sl-color-text);
+  background: var(--sl-color-gray-7);
+}
+
+.right-sidebar starlight-toc a[aria-current='true'] {
+  color: var(--sl-color-accent);
+  border-left-color: var(--sl-color-accent);
+  font-weight: 500;
+}
+
+/* -------------------- Top nav -------------------- */
+.header {
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+/* -------------------- LinkCard polish -------------------- */
+.sl-link-card {
+  border-radius: 8px !important;
+  border-color: var(--sl-color-hairline-light) !important;
+  transition: border-color 0.15s var(--ease-out), background 0.15s var(--ease-out) !important;
+}
+.sl-link-card:hover {
+  border-color: var(--sl-color-accent) !important;
+  background: var(--sl-color-gray-7) !important;
+}
+.sl-link-card .title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* -------------------- Reading content width -------------------- */
+.sl-markdown-content {
+  font-size: var(--text-md);
 }

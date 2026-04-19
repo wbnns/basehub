@@ -1,6 +1,6 @@
 ---
 title: "infra/mempool-rebroadcaster"
-description: "Rebroadcasts mempool transactions across multiple providers for reliable propagation."
+description: "Rebroadcasts mempool transactions to multiple upstream providers to ensure propagation."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `infra/mempool-rebroadcaster` sub-crate (`mempool-rebroadcaster`) is part of the [infra crate group](/crates/infra/overview/).
 
-Rebroadcasts mempool transactions across multiple providers for reliable propagation.
+It rebroadcasts pending mempool transactions to multiple upstream providers so they propagate even when individual peers drop them.
 
 ## Source
 

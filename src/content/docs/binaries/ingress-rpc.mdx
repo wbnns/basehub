@@ -5,7 +5,7 @@ description: JSON-RPC ingress proxy with Kafka audit trail for transaction and b
 
 import { LinkCard } from '@astrojs/starlight/components';
 
-`ingress-rpc` is a JSON-RPC ingress proxy that sits in front of the node, accepting incoming RPC requests and routing them to the appropriate backend. It records all requests to Kafka for audit purposes.
+`ingress-rpc` fronts the node, accepting JSON-RPC requests and routing each one to the right backend. Every request is mirrored to Kafka for audit and replay.
 
 ## Package
 

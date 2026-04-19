@@ -1,6 +1,6 @@
 ---
 title: "shared/engine-ext"
-description: "In-process engine client for direct communication with Reth's execution layer."
+description: "In-process engine client that talks directly to Reth's execution layer without going over RPC."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 The `shared/engine-ext` sub-crate (`base-engine-ext`) is part of the [shared crate group](/crates/shared/overview/).
 
-In-process engine client for direct communication with Reth's execution layer.
+It exposes an in-process engine client so consensus components can drive Reth's execution layer directly without round-tripping through JSON-RPC.
 
 ## Source
 
