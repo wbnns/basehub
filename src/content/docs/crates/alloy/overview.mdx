@@ -1,0 +1,29 @@
+---
+title: alloy
+description: Alloy type extensions for Base — consensus types, EVM customizations, RPC types, and network definitions.
+---
+
+The `alloy` crate group provides Base-specific extensions to the [Alloy](https://github.com/alloy-rs/alloy) library, which is the standard Rust toolkit for Ethereum types and RPC.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [consensus](/crates/alloy/consensus/) | `base-alloy-consensus` | Base-specific consensus types |
+| [evm](/crates/alloy/evm/) | `base-alloy-evm` | EVM customizations for Base |
+| [hardforks](/crates/alloy/hardforks/) | `base-alloy-hardforks` | Base hardfork definitions |
+| [network](/crates/alloy/network/) | `base-alloy-network` | Network type definitions |
+| [provider](/crates/alloy/provider/) | `base-alloy-provider` | Alloy provider extensions |
+| [rpc-jsonrpsee](/crates/alloy/rpc-jsonrpsee/) | `base-alloy-rpc-jsonrpsee` | JSON-RPC server traits (jsonrpsee) |
+| [rpc-types-engine](/crates/alloy/rpc-types-engine/) | `base-alloy-rpc-types-engine` | Engine API RPC types |
+| [rpc-types](/crates/alloy/rpc-types/) | `base-alloy-rpc-types` | General RPC type extensions |
+
+## Role in the Architecture
+
+The alloy crates sit at the foundation of the dependency graph. They define the types that flow through every other layer — from how blocks and transactions are represented in consensus, to the RPC types returned to users, to the EVM execution context.
+
+These crates extend the upstream Alloy types with Base-specific fields and behaviors needed for the OP Stack L2 environment.
+
+## Source
+
+[`crates/alloy/`](https://github.com/base/base/tree/main/crates/alloy)

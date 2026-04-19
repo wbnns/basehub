@@ -1,0 +1,262 @@
+---
+title: Access Lists Specification
+description: Flashblock-Level Access Lists (FAL) — adapting EIP-7928 for flashblock chains.
+---
+
+This document specifies Flashblock-Level Access Lists (FAL), an adaptation of [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928) Block-Level Access Lists (BAL) designed for chains that produce flashblocks, such as Base.
+
+:::note
+The canonical source is [`docs/specs/access-lists.md`](https://github.com/base/base/blob/main/docs/specs/access-lists.md) in the base/base repository.
+:::
+
+## Abstract
+
+FAL records every account and storage location accessed during flashblock execution, along with post-execution values. This enables parallel disk reads, parallel transaction validation, and state reconstruction without full re-execution.
+
+## Motivation
+
+Standard BAL (EIP-7928) targets L1 Ethereum where blocks are atomic units. Base produces **flashblocks** -- incremental sub-block deltas streamed at 200ms intervals. FAL adapts the access-list concept to this architecture by:
+
+- Operating on incremental flashblock deltas rather than complete blocks.
+- Handling OP Stack-specific transaction types (L1 attributes, L1-to-L2 deposits).
+- Tracking three separate fee vaults instead of a single `COINBASE`.
+- Omitting beacon chain features absent from the OP Stack (EIP-4895 withdrawals, EIP-4788 beacon root, EIP-7002/7251 validator operations).
+
+## Key Differences from BAL
+
+| Aspect | BAL (EIP-7928) | FAL |
+|--------|----------------|-----|
+| Unit of operation | Complete block | Flashblock delta (incremental) |
+| Hash storage | Block header | Flashblock metadata |
+| Fee recipient | Single `COINBASE` | Three OP Stack fee vaults |
+| Transaction types | Standard + withdrawals | Standard + L1 attributes + L1-to-L2 deposits |
+| Beacon chain features | Included | Omitted |
+
+### OP Stack Fee Vaults
+
+Instead of recording balance changes against `COINBASE`, FAL tracks three separate fee vault addresses:
+
+| Vault | Address | Purpose |
+|-------|---------|---------|
+| Sequencer Fee Vault | `0x4200000000000000000000000000000000000011` | Priority fees |
+| Base Fee Vault | `0x4200000000000000000000000000000000000019` | Base fees |
+| L1 Fee Vault | `0x420000000000000000000000000000000000001a` | L1 data fees |
+
+### L1 Attributes Transaction
+
+The first transaction in each block (index 0) is the L1 attributes transaction. It updates the L1Block contract (`0x4200000000000000000000000000000000000015`) storage slots:
+
+| Slot | Content |
+|------|---------|
+| 0 | L1 block number |
+| 1 | L1 base fee |
+| 2 | L1 timestamp |
+| 3 | Batcher hash |
+| 4 | Sequence number |
+| 5 | Blob base fee |
+| 6 | L1 block hash |
+
+### L1-to-L2 User Deposits
+
+L1-to-L2 deposits are treated as regular transactions with block access indices `1..n`. The FAL records sender and recipient addresses with their balance changes.
+
+---
+
+## Specification
+
+### Data Structures
+
+#### FlashblocksPayloadV1
+
+```rust
+pub struct FlashblocksPayloadV1 {
+    pub payload_id: PayloadId,
+    pub index: u64,
+    pub base: Option<ExecutionPayloadBaseV1>,
+    pub diff: ExecutionPayloadFlashblockDeltaV1,
+    pub metadata: Value, // Contains "flashblock_access_list"
+}
+```
+
+#### FlashblockAccessList
+
+```rust
+pub struct FlashblockAccessList {
+    pub min_tx_index: u64,                    // Inclusive starting transaction index
+    pub max_tx_index: u64,                    // Exclusive ending transaction index
+    pub account_changes: Vec<AccountChanges>, // All account state changes
+    pub fal_hash: B256,                       // Keccak-256 of RLP-encoded changes
+}
+```
+
+### RLP Data Structures
+
+The following Python-style type aliases define the RLP encoding:
+
+```python
+Address        = bytes     # 20-byte Ethereum address
+StorageKey     = bytes     # 32-byte storage slot key
+StorageValue   = bytes     # 32-byte storage value
+CodeData       = bytes     # Variable-length bytecode
+BlockAccessIndex = uint16
+Balance        = uint256
+Nonce          = uint64
+
+# Constants (OP Stack adapted)
+MAX_TXS        = 30_000
+MAX_SLOTS      = 300_000
+MAX_ACCOUNTS   = 300_000
+MAX_CODE_SIZE  = 24_576
+MAX_CODE_CHANGES = 1
+
+# Change structures
+StorageChange  = [BlockAccessIndex, StorageValue]
+BalanceChange  = [BlockAccessIndex, Balance]
+NonceChange    = [BlockAccessIndex, Nonce]
+CodeChange     = [BlockAccessIndex, CodeData]
+SlotChanges    = [StorageKey, List[StorageChange]]
+
+AccountChanges = [
+    Address,
+    List[SlotChanges],      # storage_changes
+    List[StorageKey],        # storage_reads
+    List[BalanceChange],     # balance_changes
+    List[NonceChange],       # nonce_changes
+    List[CodeChange]         # code_changes
+]
+
+FlashblockAccessList = List[AccountChanges]
+```
+
+### Scope and Inclusion Rules
+
+The following must be included in the `FlashblockAccessList`:
+
+- **Addresses with state changes** -- any account whose storage, balance, nonce, or code was modified.
+- **Inspection targets** -- targets of `BALANCE`, `EXTCODESIZE`, `EXTCODECOPY`, `EXTCODEHASH`.
+- **Call targets** -- targets of `CALL`, `CALLCODE`, `DELEGATECALL`, `STATICCALL`.
+- **Creation targets** -- addresses produced by `CREATE` and `CREATE2`.
+- **Transaction parties** -- senders and recipients of every transaction.
+- **Fee vault addresses** -- all three OP Stack fee vaults listed above.
+- **`SELFDESTRUCT` beneficiaries** -- addresses receiving self-destructed balances.
+- **System contracts** -- L1Block contract (`0x4200...0015`) and EIP-2935 block hash contract.
+- **L1-to-L2 deposit recipients** -- recipients of cross-chain deposits.
+- **Precompiled contracts** -- when accessed during execution.
+- **L1Block during L1 attributes execution** -- always included in the first flashblock.
+
+Addresses without state changes must still appear with empty change lists.
+
+### Ordering and Determinism
+
+To ensure deterministic encoding:
+
+- **Addresses** are sorted lexicographically (bytewise ascending).
+- **Storage keys** are sorted lexicographically within each account.
+- **Block access indices** are sorted in ascending order within each change list.
+
+### BlockAccessIndex Assignment
+
+| Index Value | Assigned To |
+|-------------|-------------|
+| `0` | Pre-execution system contracts and L1 attributes transaction (first flashblock only, where `min_tx_index = 0`). |
+| `min_tx_index` ... `max_tx_index - 1` | Transactions within the flashblock, including L1-to-L2 deposits and regular transactions. |
+| `n + 1` | Post-execution system contracts (final flashblock only). |
+
+### Recording Semantics
+
+#### Storage
+
+**Writes** (recorded in `storage_changes`):
+
+- Any value change where the post-execution value differs from the pre-execution value.
+- Zeroing a slot (pre-execution value exists, post-execution value is zero).
+
+**Reads** (recorded in `storage_reads`):
+
+- `SLOAD` without a corresponding write.
+- No-op writes where `SSTORE` is called but the post-execution value equals the pre-execution value.
+
+#### Balance Changes
+
+Post-transaction balances are recorded for:
+
+- **Senders** -- after gas cost, transferred value, and L1 data fee are deducted (including gas refunds).
+- **Recipients** -- only when transferred value is greater than zero.
+- **Fee vaults** -- updated balance after each transaction.
+- **`SELFDESTRUCT` / `SENDALL` beneficiaries** -- balance after receiving funds.
+- **Deposit recipients** -- balance after the deposit is credited.
+
+For zero-value transfers, the address is included but omitted from `balance_changes`.
+
+#### Code Changes
+
+Post-transaction runtime bytecode is recorded for:
+
+- Contracts deployed via `CREATE` or `CREATE2`.
+- Contracts modified via `SELFDESTRUCT` (if applicable).
+- EIP-7702 delegation indicators.
+
+#### Nonce Changes
+
+Post-transaction nonces are recorded for:
+
+- EOA senders (incremented by transaction execution).
+- Successful `CREATE` performers (nonce incremented).
+- Newly deployed contracts (nonce set to 1).
+- EIP-7702 authorities (nonce incremented on successful delegation).
+
+### OP Stack Edge Cases
+
+- **Precompiles**: Include when accessed. Record a balance change if the precompile receives value.
+- **`SENDALL`**: Record both sender (balance to zero) and beneficiary (balance increased).
+- **`SELFDESTRUCT`**: Include without nonce/code changes. Record balance-to-zero if pre-transaction balance was positive. Include storage reads.
+- **Gas refunds**: The final sender balance (after refunds) is the recorded value.
+- **Exceptional halts (reverts/out-of-gas)**: Record the final nonce and balance of the sender and fee vaults. Include all accessed addresses even if execution was reverted.
+- **EIP-7702**: The authority address must be included with nonce/code changes after a successful delegation operation, and with empty changes if the delegation fails.
+
+### Empty State
+
+When no state changes exist in a flashblock:
+
+- `account_changes` is an empty list.
+- `fal_hash` equals the Keccak-256 of an empty RLP list: `0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347`.
+
+### Validation
+
+The following pseudocode describes FAL validation:
+
+```python
+def validate_fal(flashblock, provided_fal):
+    # 1. Extract the FAL from flashblock metadata
+    fal = extract_fal(flashblock.metadata)
+
+    # 2. Verify the provided hash matches the encoded account_changes
+    encoded = rlp_encode(fal.account_changes)
+    expected_hash = keccak256(encoded)
+    assert fal.fal_hash == expected_hash, "FAL hash mismatch"
+
+    # 3. Execute the flashblock and collect actual accesses
+    actual_accesses = execute_flashblock(flashblock)
+    actual_encoded = rlp_encode(actual_accesses)
+    actual_hash = keccak256(actual_encoded)
+
+    # 4. Verify actual execution matches the provided FAL
+    assert actual_hash == fal.fal_hash, "Execution mismatch"
+
+    return True
+```
+
+---
+
+## Performance
+
+FAL enables the following optimizations:
+
+- **Parallel disk reads** -- storage slots and account data can be prefetched across transactions.
+- **Parallel transaction validation** -- independent transactions can be validated concurrently.
+- **State reconstruction without execution** -- post-state can be derived from the access list alone.
+- **Compact representation** -- expected size is approximately 40--50 KiB compressed on average, comparable to BAL.
+
+## Source
+
+Canonical specification: [docs/specs/access-lists.md](https://github.com/base/base/blob/main/docs/specs/access-lists.md)

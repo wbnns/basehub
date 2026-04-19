@@ -1,0 +1,91 @@
+---
+title: base-reth-node
+description: The main Base Reth Node binary — a Reth-based Ethereum execution client for the Base L2 network.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`base-reth-node` is the primary binary for running a Base Reth Node. It extends the standard Reth OP node with five custom extensions that add Flashblocks support, transaction pool RPC, resource metering, and proofs history.
+
+## Package
+
+- **Crate name:** `base-reth-node`
+- **Source:** [`bin/node`](https://github.com/base/base/tree/main/bin/node)
+- **Dockerfile:** `etc/docker/Dockerfile.client`
+
+## Extensions
+
+The node binary installs five extensions on top of the standard Reth OP node:
+
+| Extension | Crate | Purpose |
+|-----------|-------|---------|
+| `TxPoolRpcExtension` | `base-txpool-rpc` | Exposes custom transaction pool RPC methods |
+| `TxPoolExtension` | `base-txpool-tracing` | Adds transaction pool tracing and diagnostics |
+| `MeteringExtension` | `base-metering` | Resource metering RPC for gas accounting |
+| `FlashblocksExtension` | `base-flashblocks` | Flashblocks streaming provider over WebSocket |
+| `ProofsHistoryExtension` | `base-proofs-history` | Retains trie proofs for the fault proof window |
+
+These extensions are registered via Reth's `NodeComponents` system. Each one hooks into the node lifecycle to provide additional RPC methods or background services.
+
+## Key Dependencies
+
+- `reth-optimism-node` — Base Reth node builder
+- `reth-optimism-cli` — CLI framework with jemalloc and OTel
+- `base-flashblocks` — Flashblocks RPC provider
+- `base-metering` — Resource metering RPC
+- `base-txpool-rpc` — Transaction pool RPC extensions
+- `base-txpool-tracing` — Transaction pool tracing
+- `base-proofs-history` — Proofs history extension
+- `base-cli-utils` — CLI utilities (logging, metrics)
+
+## Build
+
+```bash
+# Build just this binary
+just build-node
+
+# Or using cargo directly
+cargo build --bin base-reth-node
+
+# Release build
+cargo build --release --bin base-reth-node
+
+# Max performance build (PGO + LTO)
+just build-maxperf
+```
+
+## Usage
+
+```bash
+./target/release/base-reth-node node \
+  --chain base \
+  --datadir /data/base \
+  --http \
+  --http.api eth,net,web3,debug,txpool \
+  --ws \
+  --ws.api eth,net,web3
+```
+
+View all available options:
+
+```bash
+./target/release/base-reth-node --help
+```
+
+## Docker
+
+```bash
+# Build the image
+docker build -t base-reth-node -f etc/docker/Dockerfile.client .
+
+# Run
+docker run -it --rm \
+  -v /data/base:/data \
+  -p 8545:8545 \
+  -p 8546:8546 \
+  base-reth-node node --chain base --datadir /data
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/node" />

@@ -1,47 +1,20 @@
 {
   "name": "basehub",
+  "type": "module",
   "version": "0.1.0",
-  "description": "Get started and learn more about using Base",
-  "repository": "basefoss/basehub",
-  "license": "MIT",
-  "bugs": "https://github.com/basefoss/basehub/issues",
-  "devDependencies": {
-    "npm-run-all": "^4.1.5",
-    "prettier": "^3.0.2",
-    "stylelint": "^15.10.2",
-    "stylelint-config-standard-scss": "^10.0.0"
-  },
+  "private": true,
   "scripts": {
-    "lint": "npm-run-all --parallel --continue-on-error lint:*",
-    "lint:css": "stylelint '**/*.scss'",
-    "lint:formatting": "prettier --check '**/*.{scss,js,json}'",
-    "format": "prettier --write '**/*.{scss,js,json}'",
-    "test": "npm run lint"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
   },
-  "stylelint": {
-    "ignoreFiles": [
-      "assets/css/just-the-docs-default.scss",
-      "assets/css/just-the-docs-light.scss",
-      "assets/css/just-the-docs-dark.scss",
-      "_sass/vendor/**/*.scss"
-    ],
-    "extends": [
-      "stylelint-config-standard-scss"
-    ],
-    "rules": {
-      "alpha-value-notation": null,
-      "at-rule-empty-line-before": null,
-      "color-function-notation": null,
-      "media-feature-range-notation": "prefix",
-      "no-descending-specificity": null,
-      "scss/no-global-function-names": null
-    }
-  },
-  "prettier": {
-    "endOfLine": "lf",
-    "semi": false,
-    "singleQuote": false,
-    "tabWidth": 2,
-    "trailingComma": "es5"
+  "dependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@astrojs/starlight": "^0.37.6",
+    "astro": "^5.6.1",
+    "sharp": "^0.34.2",
+    "typescript": "^5.9.3"
   }
 }

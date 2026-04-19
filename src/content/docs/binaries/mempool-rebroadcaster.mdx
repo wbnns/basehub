@@ -1,0 +1,49 @@
+---
+title: mempool-rebroadcaster
+description: Bidirectional Geth-Reth mempool transaction rebroadcasting service.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`mempool-rebroadcaster` is a service that bridges the Geth and Reth transaction pools, rebroadcasting transactions bidirectionally to ensure both clients have a consistent view of pending transactions.
+
+## Package
+
+- **Crate name:** `mempool-rebroadcaster-bin`
+- **Binary name:** `mempool-rebroadcaster`
+- **Source:** [`bin/mempool-rebroadcaster`](https://github.com/base/base/tree/main/bin/mempool-rebroadcaster)
+- **Library:** [`crates/infra/mempool-rebroadcaster`](https://github.com/base/base/tree/main/crates/infra/mempool-rebroadcaster)
+
+## Architecture
+
+The rebroadcaster connects to both a Geth node and a Reth node, monitoring each transaction pool and forwarding new transactions to the other:
+
+```
+Geth txpool ←→ mempool-rebroadcaster ←→ Reth txpool
+```
+
+This ensures that during the migration from Geth to Reth, or in hybrid deployments where both clients are running, transactions submitted to either node are visible to both. The service periodically polls both pools and rebroadcasts any transactions that are missing from the other.
+
+## Key Dependencies
+
+- `mempool-rebroadcaster` — Core rebroadcasting logic
+- `clap` — CLI argument parsing
+- `dotenvy` — Environment variable loading
+- `tracing` / `tracing-subscriber` — Structured logging
+- `tokio` — Async runtime
+
+## Build
+
+```bash
+cargo build --bin mempool-rebroadcaster --release
+```
+
+## Usage
+
+```bash
+./target/release/mempool-rebroadcaster [OPTIONS]
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/mempool-rebroadcaster" />

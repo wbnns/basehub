@@ -1,0 +1,36 @@
+---
+title: client
+description: Node client — CLI, engine, flashblocks integration, metering, proofs, and transaction pool tracing.
+---
+
+The `client` crate group assembles the full Base Reth Node. It provides the CLI, engine API integration, flashblocks support, metering RPC, proof extensions, and transaction pool tracing.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [cli](/crates/client/cli/) | `base-client-cli` | CLI argument parsing and node configuration |
+| [engine](/crates/client/engine/) | `base-client-engine` | Engine API client for consensus-execution communication |
+| [flashblocks-node](/crates/client/flashblocks-node/) | `base-flashblocks-node` | Flashblocks-enabled node assembly |
+| [flashblocks](/crates/client/flashblocks/) | `base-flashblocks` | Flashblocks RPC provider and pending state cache |
+| [metering](/crates/client/metering/) | `base-metering` | Metering RPC endpoints for resource tracking |
+| [proofs](/crates/client/proofs/) | `base-proofs-extension` | Proof generation extensions |
+| [txpool-tracing](/crates/client/txpool-tracing/) | `base-txpool-tracing` | Transaction pool tracing and diagnostics |
+
+## Role in the Architecture
+
+The client crate group is the primary interface for node operators. It:
+
+1. Parses CLI arguments and configures the node (`cli`)
+2. Manages the Engine API connection between execution and consensus (`engine`)
+3. Assembles the flashblocks-enabled node with all components (`flashblocks-node`)
+4. Provides the Flashblocks RPC for querying preconfirmed state (`flashblocks`)
+5. Exposes metering endpoints for gas and resource tracking (`metering`)
+6. Supports proof generation for the fault proof system (`proofs`)
+7. Adds tracing to the transaction pool for debugging (`txpool-tracing`)
+
+The `base-reth-node` binary (in `bin/node`) depends primarily on this crate group.
+
+## Source
+
+[`crates/client/`](https://github.com/base/base/tree/main/crates/client)

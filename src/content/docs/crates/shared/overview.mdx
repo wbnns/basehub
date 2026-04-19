@@ -1,0 +1,37 @@
+---
+title: shared
+description: Shared utilities — primitives, access lists, JWT authentication, bundles, CLI utils, and RPC types.
+---
+
+The `shared` crate group provides foundational types and utilities used across the entire workspace. These crates define the common primitives, access list types, authentication, and RPC extensions that other crate groups depend on.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [access-lists](/crates/shared/access-lists/) | `base-access-lists` | Flashblock-level Access Lists (FAL) implementation |
+| [bundles](/crates/shared/bundles/) | `base-bundles` | Transaction bundle types |
+| [cli-utils](/crates/shared/cli-utils/) | `base-cli-utils` | CLI utilities (logging, metrics, clap helpers) |
+| [engine-ext](/crates/shared/engine-ext/) | `base-engine-ext` | Engine API extensions |
+| [jwt](/crates/shared/jwt/) | `base-jwt` | JWT authentication for Engine API |
+| [node](/crates/shared/node/) | `base-client-node` | Shared node configuration |
+| [primitives](/crates/shared/primitives/) | `base-primitives` | Core primitive types (includes Solidity contracts for tests) |
+| [reth-rpc-types](/crates/shared/reth-rpc-types/) | `base-reth-rpc-types` | Reth-compatible RPC type definitions |
+| [txpool-rpc](/crates/shared/txpool-rpc/) | `base-txpool-rpc` | Transaction pool RPC extensions |
+
+## Role in the Architecture
+
+The shared crates form the foundation layer that all other crate groups depend on:
+
+- **primitives** — Defines the core types (transactions, blocks, receipts) used everywhere. Includes Solidity contracts compiled with Foundry for testing.
+- **access-lists** — Implements the [FAL specification](/specifications/access-lists/) for flashblock-level access lists, adapting EIP-7928 for the OP Stack.
+- **cli-utils** — Provides standardized CLI setup including clap argument parsing, tracing/logging configuration, and Prometheus metrics exporting.
+- **jwt** — Handles JWT-based authentication for the Engine API connection between execution and consensus layers.
+- **engine-ext** — Extends the Engine API with Base-specific payload attributes.
+- **txpool-rpc** — Adds custom RPC methods for interacting with the transaction pool.
+- **bundles** — Defines transaction bundle types for MEV and priority ordering.
+- **reth-rpc-types** — Bridges Base types to Reth's RPC type system.
+
+## Source
+
+[`crates/shared/`](https://github.com/base/base/tree/main/crates/shared)

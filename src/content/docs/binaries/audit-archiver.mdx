@@ -1,0 +1,63 @@
+---
+title: audit-archiver
+description: Kafka-to-S3 audit log archival service with configurable worker pools.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`audit-archiver` consumes audit log messages from Kafka (produced by `ingress-rpc`) and archives them to S3-compatible storage for long-term retention, debugging, and compliance.
+
+## Package
+
+- **Crate name:** `audit-archiver`
+- **Source:** [`bin/audit-archiver`](https://github.com/base/base/tree/main/bin/audit-archiver)
+- **Library:** [`crates/infra/audit`](https://github.com/base/base/tree/main/crates/infra/audit) (`audit-archiver-lib`)
+
+## Architecture
+
+The archiver runs a configurable pool of workers that consume messages from Kafka topics and write them in batches to S3:
+
+```
+Kafka topics → audit-archiver (worker pool) → S3 bucket
+```
+
+The service supports a `noop-archive` mode for testing where messages are consumed and logged but not written to S3.
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Worker pool** | Configurable pool of up to 80 concurrent workers |
+| **S3 archival** | Writes audit logs to S3-compatible object storage |
+| **Noop mode** | `noop-archive` mode for testing without S3 writes |
+| **Metrics** | Exposes Prometheus metrics on port 9002 |
+| **Batch processing** | Groups messages into batches for efficient writes |
+
+## Ports
+
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| 9002 | HTTP | Prometheus metrics |
+
+## Key Dependencies
+
+- `audit-archiver-lib` — Core archival logic
+- `rdkafka` — Kafka consumer
+- `aws-sdk-s3` — S3 client
+- `tokio` — Async runtime
+
+## Build
+
+```bash
+cargo build --bin audit-archiver --release
+```
+
+## Usage
+
+```bash
+./target/release/audit-archiver [OPTIONS]
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/audit-archiver" />

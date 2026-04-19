@@ -1,0 +1,73 @@
+---
+title: Releases
+description: Release process and versioning for base/base.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution">
+This repository (`base/base`) is for development. Production releases are published through [base/node](https://github.com/base/node/releases).
+</Aside>
+
+## Versioning
+
+The workspace version is `0.0.0` (development). All crates share the workspace version defined in the root `Cargo.toml`:
+
+```toml
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.88"
+```
+
+## Reth Version
+
+Base Reth Node tracks a specific Reth release. The current pinned version:
+
+```
+reth v1.11.0
+```
+
+This is specified in the workspace dependencies as a git dependency with a tag:
+
+```toml
+reth-db = { git = "https://github.com/paradigmxyz/reth", tag = "v1.11.0" }
+```
+
+## Production Docker Images
+
+Production images are published at:
+
+```
+ghcr.io/base/node-reth
+```
+
+These are managed in the [base/node](https://github.com/base/node) repository and include both vanilla Reth and Base Reth, selectable via `NODE_TYPE`.
+
+## Release Process
+
+Release branches follow the `releases/v<version>` naming convention. The process uses GitHub Actions workflows:
+
+1. **Release candidates** are created via the "Create Release" workflow with `rc` type. RC versions are auto-numbered (e.g., `v1.0.0-rc.1`, `v1.0.0-rc.2`).
+2. **Final releases** are created with `final` type, which tags Docker images as `v1.0.0`, `1.0`, `1`, and `latest`.
+
+### Workflows
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| Release Version Sync | Automatic | Updates `Cargo.toml` versions on release branches |
+| Create Release | Manual | Creates RC or final release tags |
+| Release | Tag push | Builds Docker images, creates GitHub release |
+
+## Default Build Targets
+
+The workspace defines default members that are built by `cargo build`:
+
+- `bin/based`
+- `bin/node` (produces `base-reth-node`)
+- `bin/basectl`
+- `bin/builder`
+- `bin/consensus`
+- `bin/ingress-rpc`
+- `bin/audit-archiver`
+- `bin/mempool-rebroadcaster`

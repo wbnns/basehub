@@ -1,0 +1,57 @@
+---
+title: ingress-rpc
+description: JSON-RPC ingress proxy with Kafka audit trail for transaction and bundle submission.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`ingress-rpc` is a JSON-RPC ingress proxy that sits in front of the node, accepting incoming RPC requests and routing them to the appropriate backend. It records all requests to Kafka for audit purposes.
+
+## Package
+
+- **Crate name:** `ingress-rpc`
+- **Source:** [`bin/ingress-rpc`](https://github.com/base/base/tree/main/bin/ingress-rpc)
+- **Library:** [`crates/infra/ingress-rpc`](https://github.com/base/base/tree/main/crates/infra/ingress-rpc) (`ingress-rpc-lib`)
+
+## Architecture
+
+The ingress RPC proxy handles three categories of traffic:
+
+1. **Transaction submission** — `eth_sendRawTransaction` calls forwarded to the transaction pool
+2. **Bundle submission** — `eth_sendBundle` and related methods forwarded to the builder
+3. **Mempool/simulation/raw TX forwarding** — Read and simulation requests forwarded to the appropriate backend
+
+All requests are logged to Kafka for audit and replay purposes. The proxy uses `jsonrpsee` for its JSON-RPC server implementation.
+
+## Request Flow
+
+```
+Client → ingress-rpc → Kafka (audit log)
+                     → Backend (node/builder/mempool)
+                     → Client (response)
+```
+
+## Key Dependencies
+
+- `ingress-rpc-lib` — Core proxy logic
+- `clap` — CLI argument parsing
+- `tokio` — Async runtime
+- `rdkafka` — Kafka client for audit logging
+- `jsonrpsee` — JSON-RPC server
+- `dotenvy` — Environment variable loading
+
+## Build
+
+```bash
+cargo build --bin ingress-rpc --release
+```
+
+## Usage
+
+```bash
+./target/release/ingress-rpc [OPTIONS]
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/ingress-rpc" />

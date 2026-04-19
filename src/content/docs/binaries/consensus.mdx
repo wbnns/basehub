@@ -1,0 +1,51 @@
+---
+title: consensus
+description: The Base consensus node binary implementing the OP Stack consensus protocol via Kona.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`base-consensus` runs the consensus layer of the Base network, implementing the OP Stack consensus protocol derived from the Kona framework.
+
+## Package
+
+- **Crate name:** `base-consensus`
+- **Source:** [`bin/consensus`](https://github.com/base/base/tree/main/bin/consensus)
+
+## Architecture
+
+The consensus binary:
+
+1. **L1 derivation** — Connects to L1 Ethereum to read rollup data and derives L2 blocks from L1 batches using the derivation pipeline
+2. **P2P networking** — Manages peer-to-peer networking for block gossip and state sync
+3. **Engine API** — Communicates with the execution layer (base-reth-node) via the Engine API to deliver derived payloads
+4. **Kona integration** — Uses `kona-node-service` for the core consensus loop and `kona-genesis` for chain configuration
+
+## Key Dependencies
+
+- `base-cli-utils` — CLI utilities (logging, metrics)
+- `base-client-cli` — Client CLI extensions
+- `kona-genesis` — Genesis configuration
+- `kona-cli` — Consensus CLI framework
+- `kona-node-service` — Node service orchestration
+
+## Build
+
+```bash
+cargo build --bin base-consensus --release
+```
+
+## Usage
+
+```bash
+./target/release/base-consensus [OPTIONS]
+```
+
+The consensus node must be configured with:
+- An L1 Ethereum RPC endpoint for reading rollup data
+- An Engine API endpoint for communicating with the execution layer
+- A P2P configuration for block gossip
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/consensus" />

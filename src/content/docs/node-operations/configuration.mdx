@@ -1,0 +1,52 @@
+---
+title: Configuration Reference
+description: Node configuration options, environment variables, and CLI flags.
+---
+
+## CLI Options
+
+The Base Reth Node inherits Reth's comprehensive CLI. View all options:
+
+```bash
+./target/release/base-reth-node --help
+```
+
+Key option categories:
+
+- **Network** — Chain selection, bootnodes, P2P port
+- **RPC** — HTTP/WS endpoints, CORS, API namespaces
+- **Database** — Data directory, state pruning
+- **Metrics** — Prometheus endpoint
+- **Engine API** — JWT secret, engine API endpoint
+- **Logging** — Log level, log format
+
+## Environment Variables
+
+Configuration can also be set via environment variables. The devnet uses `etc/docker/devnet-env` for its environment.
+
+## Build Profiles
+
+The workspace defines several Cargo build profiles:
+
+| Profile | Use Case | Key Settings |
+|---------|---------|-------------|
+| `dev` | Development | `debug = "line-tables-only"`, `incremental = false` |
+| `release` | Production | `opt-level = 3`, `lto = "thin"`, `strip = "symbols"` |
+| `maxperf` | Maximum performance | `lto = "fat"`, `codegen-units = 1` |
+| `profiling` | Performance analysis | `debug = "line-tables-only"`, `frame-pointers = true` |
+| `ci` | CI builds | `debug = false`, minimal disk usage |
+
+## basectl
+
+The [`basectl`](/node-operations/basectl/) utility provides configuration management for different network targets:
+
+```bash
+# Mainnet configuration
+cargo run -p basectl --release -- -c mainnet
+
+# Sepolia testnet
+cargo run -p basectl --release -- -c sepolia
+
+# Local devnet
+cargo run -p basectl --release -- -c devnet
+```

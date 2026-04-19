@@ -1,0 +1,116 @@
+---
+title: Running the Node
+description: How to run the Base Reth Node.
+---
+
+After [building from source](/getting-started/building/) or [building a Docker image](/getting-started/docker/), you can start the `base-reth-node` binary. This page covers basic usage. For production deployment guidance, see [Node Operations](/node-operations/deployment/).
+
+## Starting the Node
+
+Run the binary directly from the build output directory:
+
+```bash
+./target/release/base-reth-node
+```
+
+Or, if you used `just build-node`:
+
+```bash
+./target/release/base-reth-node
+```
+
+The node will begin syncing from the network. On the first run it creates a data directory (by default `~/.local/share/reth/` on Linux, `~/Library/Application Support/reth/` on macOS) and starts downloading blocks.
+
+## CLI Help
+
+View all available options and subcommands:
+
+```bash
+./target/release/base-reth-node --help
+```
+
+This prints the full help text including every flag, option, and subcommand. It is the definitive reference for the CLI and is always in sync with the version you built.
+
+## Common Options
+
+### Data Directory
+
+Override the default data directory:
+
+```bash
+./target/release/base-reth-node --datadir /mnt/ssd/base-node
+```
+
+### HTTP JSON-RPC
+
+Enable the HTTP JSON-RPC server:
+
+```bash
+./target/release/base-reth-node \
+  --http \
+  --http.addr 127.0.0.1 \
+  --http.port 8545
+```
+
+By default the server only listens on localhost. Set `--http.addr 0.0.0.0` to accept connections from other machines (make sure your firewall is configured appropriately).
+
+### WebSocket JSON-RPC
+
+Enable the WebSocket server alongside (or instead of) HTTP:
+
+```bash
+./target/release/base-reth-node \
+  --ws \
+  --ws.addr 127.0.0.1 \
+  --ws.port 8546
+```
+
+### Logging
+
+Control log verbosity with the `-v` flag (can be repeated) or the `RUST_LOG` environment variable:
+
+```bash
+# Increase verbosity
+./target/release/base-reth-node -vvv
+
+# Fine-grained control via RUST_LOG
+RUST_LOG=info,reth=debug ./target/release/base-reth-node
+```
+
+### Metrics
+
+Enable the Prometheus metrics endpoint:
+
+```bash
+./target/release/base-reth-node \
+  --metrics 127.0.0.1:9001
+```
+
+Point your Prometheus instance at `http://<host>:9001/metrics` to scrape node metrics.
+
+## Example: Full Node with RPC
+
+A typical invocation that enables both HTTP and WebSocket RPC, metrics, and stores data on a dedicated volume:
+
+```bash
+./target/release/base-reth-node \
+  --datadir /data/base-node \
+  --http \
+  --http.addr 0.0.0.0 \
+  --http.port 8545 \
+  --ws \
+  --ws.addr 0.0.0.0 \
+  --ws.port 8546 \
+  --metrics 0.0.0.0:9001 \
+  -vv
+```
+
+## Stopping the Node
+
+Send `SIGINT` (Ctrl+C) or `SIGTERM` to gracefully shut down the node. It will flush pending state to disk before exiting. Avoid sending `SIGKILL` unless absolutely necessary, as it can leave the database in an inconsistent state requiring a repair on next startup.
+
+## Next Steps
+
+- [Development Workflow](/getting-started/development/) -- learn the day-to-day check, test, and fix commands.
+- [Local Devnet](/getting-started/devnet/) -- spin up a full local network for integration testing.
+- [Configuration](/node-operations/configuration/) -- detailed configuration reference for production deployments.

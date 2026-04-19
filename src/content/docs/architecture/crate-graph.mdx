@@ -1,0 +1,209 @@
+---
+title: Crate Dependency Graph
+description: Visual map of workspace dependencies across the 8 crate groups in base/base.
+---
+
+The `base/base` workspace contains 8 top-level crate groups. This page maps out how they depend on each other, which crates are foundational, and where the key integration boundaries lie.
+
+## High-level dependency flow
+
+The dependency graph flows downward: higher-level groups depend on lower-level ones, but not the reverse.
+
+```
+┌─────────────────────────────────────────────────────┐
+│                       infra                          │
+│  based, basectl, ingress-rpc, websocket-proxy, ...   │
+└───────────┬──────────┬──────────┬───────────────────┘
+            │          │          │
+            v          v          v
+┌──────────────┐ ┌──────────┐ ┌──────────┐
+│   builder    │ │  client  │ │consensus │
+│  core, pub,  │ │ node,cli,│ │ protocol,│
+│  metering    │ │ engine,  │ │ rpc,kona │
+│              │ │ flash    │ │          │
+└──────┬───────┘ └────┬─────┘ └────┬─────┘
+       │              │            │
+       │         ┌────┘            │
+       │         v                 │
+       │    ┌──────────┐           │
+       └───►│execution │◄──────────┘
+            └────┬─────┘
+                 │
+                 v
+            ┌──────────┐     ┌──────────┐
+            │  shared  │◄────│  proof   │
+            └────┬─────┘     └──────────┘
+                 │
+                 v
+            ┌──────────┐
+            │  alloy   │
+            └──────────┘
+```
+
+**Key observations:**
+
+- **`alloy`** and **`shared`** sit at the bottom of the graph. They have no internal workspace dependencies and are consumed by everything above them.
+- **`execution`** depends on `shared` and `alloy` for types, and is consumed by both `client` and `builder`.
+- **`client`** is the main integration point -- it pulls in execution, consensus, and shared.
+- **`infra`** binaries sit at the top, assembling components from multiple groups.
+- **`proof`** is relatively isolated. It depends on `shared` for types but has its own Kona-derived execution and derivation logic (designed to run inside a fault proof VM).
+
+## Detailed crate-level dependencies
+
+### Alloy crates
+
+```
+alloy/
+  └── (external: alloy-rs ecosystem)
+      No internal workspace dependencies.
+      Consumed by: shared, client, consensus, builder, execution
+```
+
+The alloy crates define Ethereum and Optimism wire types using the [Alloy](https://github.com/alloy-rs/alloy) framework. They are leaf dependencies with no intra-workspace imports.
+
+### Shared crates
+
+```
+shared/
+  ├── base-primitives          ← foundational types (blocks, txs, receipts)
+  ├── base-bundles             ← depends on: base-primitives
+  ├── base-jwt                 ← standalone (JWT auth tokens)
+  ├── base-cli-utils           ← standalone (CLI helpers)
+  ├── base-engine-ext          ← depends on: base-primitives
+  ├── base-access-lists        ← depends on: base-primitives
+  ├── base-reth-rpc-types      ← depends on: base-primitives
+  └── base-txpool-rpc          ← depends on: base-primitives, base-reth-rpc-types
+```
+
+[`base-primitives`](https://github.com/base/base/tree/main/crates/shared/primitives) is the single most depended-upon crate. It defines `BaseTxEnvelope`, `BaseBlock`, chain IDs, and fee calculation types. Almost every other workspace crate imports it directly or transitively.
+
+### Execution crates
+
+```
+execution/
+  └── (execution crates)
+      depends on: base-primitives, alloy types
+      consumed by: client, builder
+```
+
+The execution group provides Base's EVM configuration. It depends on `base-primitives` for block and transaction types and on alloy types for encoding. The `client` and `builder` groups both consume execution crates to run EVM state transitions.
+
+### Consensus crates
+
+```
+consensus/
+  ├── base-protocol            ← depends on: base-primitives
+  ├── base-consensus-rpc       ← depends on: base-protocol, base-primitives
+  │
+  └── kona-* (vendored)
+      ├── kona-node-service    ← top-level; depends on most kona-* below
+      ├── kona-engine          ← depends on: kona-derive, kona-providers-alloy
+      ├── kona-derive          ← depends on: kona-sources, kona-genesis, kona-hardforks
+      ├── kona-gossip          ← depends on: kona-disc, kona-peers
+      ├── kona-sources         ← depends on: kona-providers-alloy
+      ├── kona-providers-alloy ← depends on: kona-genesis
+      ├── kona-genesis         ← depends on: kona-registry
+      ├── kona-registry        ← depends on: kona-hardforks
+      ├── kona-hardforks       ← leaf
+      ├── kona-disc            ← leaf (peer discovery)
+      ├── kona-peers           ← leaf (peer management)
+      ├── kona-cli             ← leaf (CLI utils)
+      └── kona-macros          ← leaf (proc macros)
+```
+
+The Kona crates form their own internal dependency tree. `kona-node-service` is the top-level entry point, and `kona-derive` is the core derivation pipeline. The Base-native consensus crates (`base-protocol`, `base-consensus-rpc`) integrate with the Kona stack and provide Base-specific protocol constants.
+
+### Builder crates
+
+```
+builder/
+  ├── base-builder-core        ← depends on: base-primitives, base-bundles,
+  │                               execution crates, base-engine-ext
+  ├── base-builder-publish     ← depends on: base-builder-core, base-primitives
+  └── base-builder-metering    ← depends on: base-builder-core
+```
+
+The builder's dependency chain:
+
+```
+base-builder-metering ──► base-builder-core ──► base-primitives
+                                │                     │
+base-builder-publish ───────────┘                     v
+                                               alloy types
+                                                     │
+                                                     v
+                                              execution crates
+```
+
+`base-builder-core` contains the block building loop and depends on execution crates for EVM access and on `base-primitives` for block/transaction types. `base-builder-publish` handles the output side -- streaming flashblocks and submitting sealed blocks.
+
+### Client crates
+
+```
+client/
+  ├── base-client-node         ← depends on: base-client-cli, base-client-engine,
+  │                               base-flashblocks, base-metering, base-txpool-tracing,
+  │                               execution crates, consensus crates, shared crates
+  ├── base-client-cli          ← depends on: base-cli-utils
+  ├── base-client-engine       ← depends on: base-primitives, base-engine-ext
+  ├── base-flashblocks         ← depends on: base-primitives
+  ├── base-metering            ← depends on: base-primitives, base-reth-rpc-types
+  └── base-txpool-tracing      ← depends on: base-primitives
+```
+
+`base-client-node` is the integration hub. It is where Reth's `NodeBuilder` is configured with all Base-specific components. Its dependency list is the longest in the workspace because it wires together execution, consensus, flashblocks, metering, and the transaction pool.
+
+### Proof crates
+
+```
+proof/
+  ├── kona-proof               ← depends on: kona-driver, kona-mpt
+  ├── kona-driver              ← depends on: kona-executor, kona-preimage
+  ├── kona-executor            ← depends on: kona-mpt, kona-preimage
+  ├── kona-mpt                 ← leaf (Merkle Patricia Trie)
+  ├── kona-preimage            ← leaf (preimage oracle interface)
+  ├── kona-std-fpvm            ← leaf (FPVM runtime)
+  └── kona-std-fpvm-proc       ← leaf (proc macros for FPVM)
+```
+
+The proof group is intentionally isolated from the rest of the workspace. It must be compilable to FPVM targets (MIPS/RISC-V), so it avoids pulling in networking, RPC, or OS-specific dependencies. It re-implements derivation and execution logic using `kona-preimage` to read data from the host environment.
+
+### Infra crates
+
+```
+infra/
+  ├── based                    ← depends on: client, builder, consensus, shared
+  ├── basectl-cli              ← depends on: shared (base-cli-utils, base-primitives)
+  ├── ingress-rpc-lib          ← depends on: shared (base-jwt, base-primitives)
+  ├── websocket-proxy          ← depends on: shared (base-primitives)
+  ├── mempool-rebroadcaster    ← depends on: shared (base-primitives, base-txpool-rpc)
+  ├── audit-archiver-lib       ← depends on: shared (base-primitives)
+  └── system-tests             ← depends on: client, shared, infra binaries
+```
+
+Infra crates are consumers. They import from the lower layers but are not imported by any other workspace crate (except `system-tests`, which depends on infra binaries for integration testing).
+
+## Dependency rules
+
+The workspace follows these conventions:
+
+1. **No circular dependencies.** The crate graph is a DAG.
+2. **Shared and alloy are leaf layers.** They never depend on higher-level groups.
+3. **Proof is sandboxed.** Proof crates do not depend on client, builder, or infra crates, keeping them FPVM-compilable.
+4. **External Reth dependencies flow through execution and client.** Other groups do not directly import `reth-*` crates; they go through the abstractions in execution or shared.
+5. **Kona crates are vendored, not patched.** The consensus and proof groups contain full copies of Kona crates (not Git patches), allowing Base-specific modifications while preserving the ability to pull upstream changes.
+
+## Workspace Cargo.toml structure
+
+All inter-crate dependencies are declared as workspace dependencies in the root [`Cargo.toml`](https://github.com/base/base/blob/main/Cargo.toml). Individual crate `Cargo.toml` files reference these with `workspace = true`:
+
+```toml
+# Root Cargo.toml (excerpt)
+[workspace.dependencies]
+base-primitives = { path = "crates/shared/primitives" }
+base-builder-core = { path = "crates/builder/core" }
+base-client-node = { path = "crates/shared/node" }
+# ... etc.
+```
+
+This centralized dependency management ensures version consistency and makes it straightforward to audit the full dependency graph.

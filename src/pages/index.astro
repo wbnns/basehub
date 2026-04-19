@@ -1,0 +1,293 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'BaseHub',
+    description: 'Technical reference for the base/base codebase — the Rust-based L2 node powering Base.',
+    template: 'splash',
+    hero: { tagline: '' },
+    pagefind: false,
+  }}
+>
+  <div class="homepage">
+
+    <!-- 1. MASTHEAD -->
+    <section class="hp-masthead">
+      <h1 class="hp-masthead-title">BaseHub</h1>
+      <p class="hp-masthead-desc">
+        Technical reference for the <code>base/base</code> Rust codebase — the L2 node powering Base.
+      </p>
+      <div class="hp-masthead-meta">
+        <span>Built on Reth</span>
+        <span class="hp-meta-sep"></span>
+        <span>8 crate groups, 70+ crates</span>
+        <span class="hp-meta-sep"></span>
+        <a href="https://github.com/base/base">base/base on GitHub</a>
+      </div>
+      <hr class="hp-rule-heavy" />
+    </section>
+
+    <!-- 2. LEAD + SIDEBAR -->
+    <section class="hp-lead-sidebar">
+      <div class="hp-lead">
+        <h2><a href="/architecture/overview/">System Architecture</a></h2>
+        <p>
+          The Base node is composed of 8 crate groups spanning consensus, execution,
+          block building, fault proofs, and shared infrastructure. Data flows from
+          Ethereum L1 through a derivation pipeline into the execution layer, with
+          Flashblocks providing 200ms preconfirmations.
+        </p>
+        <pre class="hp-ascii-diagram">                     L1 (Ethereum)
+                          |
+          ┌───────────────┼───────────────┐
+          v               v               v
+     ┌─────────┐   ┌───────────┐   ┌───────────┐
+     │consensus│   │   proof   │   │  builder   │
+     │ (kona)  │   │  (kona)   │   │(flashblocks│
+     └────┬────┘   └───────────┘   │  + core)  │
+          │                         └─────┬─────┘
+          v                               v
+     ┌─────────┐                   ┌───────────┐
+     │ client  │◄─────────────────►│ execution │
+     │(node +  │                   │  (EVM +   │
+     │ engine) │                   │  payload) │
+     └────┬────┘                   └───────────┘
+          │
+          v
+     ┌─────────┐   ┌───────────┐   ┌───────────┐
+     │ shared  │   │   alloy   │   │   infra   │
+     │(prims,  │   │ (types +  │   │(binaries +│
+     │ utils)  │   │  codecs)  │   │  tooling) │
+     └─────────┘   └───────────┘   └───────────┘</pre>
+        <a href="/architecture/overview/" class="hp-text-link">Full architecture overview</a>
+      </div>
+
+      <div class="hp-sidebar">
+        <h3 class="hp-col-heading">Quick Start</h3>
+        <hr class="hp-rule-thin" />
+        <pre class="hp-code-block"># Clone the repository
+git clone https://github.com/base/base.git
+cd base
+
+# Build from source
+just build
+
+# Run the node
+./target/release/base-reth-node --chain base</pre>
+
+        <h3 class="hp-col-heading">Getting Started</h3>
+        <hr class="hp-rule-thin" />
+        <ul class="hp-link-list">
+          <li><a href="/getting-started/prerequisites/">Prerequisites</a> — Rust, system dependencies</li>
+          <li><a href="/getting-started/building/">Building</a> — Compile from source</li>
+          <li><a href="/getting-started/docker/">Docker</a> — Container images</li>
+          <li><a href="/getting-started/running/">Running</a> — Launch a node</li>
+          <li><a href="/getting-started/development/">Development</a> — Local dev workflow</li>
+          <li><a href="/getting-started/devnet/">Devnet</a> — Local test network</li>
+        </ul>
+
+        <h3 class="hp-col-heading">Specifications</h3>
+        <hr class="hp-rule-thin" />
+        <ul class="hp-link-list">
+          <li><a href="/specifications/flashblocks/">Flashblocks</a> — 200ms preconfirmation protocol</li>
+          <li><a href="/specifications/access-lists/">Access Lists (FAL)</a> — Flashblock-level access lists</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="hp-rule" />
+
+    <!-- 3. THREE-COLUMN MIDDLE -->
+    <section class="hp-three-col">
+      <div class="hp-col">
+        <h3 class="hp-col-heading">Integration Guides</h3>
+        <hr class="hp-rule-thin" />
+        <ul class="hp-link-list">
+          <li><a href="/integration-guides/flashblocks-rpc/">Flashblocks RPC</a> — Stream pre-confirmed blocks</li>
+          <li><a href="/integration-guides/metering-rpc/">Metering RPC</a> — Gas metering endpoints</li>
+          <li><a href="/integration-guides/txpool/">Transaction Pool</a> — Submit and monitor transactions</li>
+          <li><a href="/integration-guides/connecting/">Connecting to Base</a> — Network endpoints and config</li>
+        </ul>
+      </div>
+
+      <div class="hp-col hp-col-bordered">
+        <h3 class="hp-col-heading">Node Operations</h3>
+        <hr class="hp-rule-thin" />
+        <ul class="hp-link-list">
+          <li><a href="/node-operations/deployment/">Deployment</a> — Production deployment guide</li>
+          <li><a href="/node-operations/docker/">Docker</a> — Container orchestration</li>
+          <li><a href="/node-operations/configuration/">Configuration</a> — Flags and environment</li>
+          <li><a href="/node-operations/monitoring/">Monitoring</a> — Metrics and alerting</li>
+          <li><a href="/node-operations/releases/">Releases</a> — Version management</li>
+          <li><a href="/node-operations/basectl/">basectl</a> — Node management CLI</li>
+        </ul>
+      </div>
+
+      <div class="hp-col hp-col-bordered">
+        <h3 class="hp-col-heading">Binaries</h3>
+        <hr class="hp-rule-thin" />
+        <ul class="hp-link-list">
+          <li><a href="/binaries/base-reth-node/">base-reth-node</a> — Primary node binary</li>
+          <li><a href="/binaries/basectl/">basectl</a> — Node management tool</li>
+          <li><a href="/binaries/based/">based</a> — Base daemon</li>
+          <li><a href="/binaries/builder/">builder</a> — Block builder service</li>
+          <li><a href="/binaries/consensus/">consensus</a> — Consensus client</li>
+        </ul>
+        <a href="/binaries/ingress-rpc/" class="hp-text-link">4 more binaries</a>
+      </div>
+    </section>
+
+    <hr class="hp-rule" />
+
+    <!-- 4. CRATE REFERENCE INDEX -->
+    <section class="hp-crate-index">
+      <h2>
+        Crate Reference
+        <span class="hp-crate-meta">
+          — 8 groups, 70+ crates.
+          <a href="/crates/overview/">Overview</a>
+        </span>
+      </h2>
+      <div class="hp-crate-grid">
+        <div class="hp-crate-group">
+          <h4><a href="/crates/alloy/overview/">alloy</a></h4>
+          <ul>
+            <li><a href="/crates/alloy/consensus/"><code>consensus</code></a></li>
+            <li><a href="/crates/alloy/evm/"><code>evm</code></a></li>
+            <li><a href="/crates/alloy/hardforks/"><code>hardforks</code></a></li>
+            <li><a href="/crates/alloy/network/"><code>network</code></a></li>
+            <li><a href="/crates/alloy/provider/"><code>provider</code></a></li>
+            <li><a href="/crates/alloy/rpc-jsonrpsee/"><code>rpc-jsonrpsee</code></a></li>
+            <li><a href="/crates/alloy/rpc-types-engine/"><code>rpc-types-engine</code></a></li>
+            <li><a href="/crates/alloy/rpc-types/"><code>rpc-types</code></a></li>
+          </ul>
+        </div>
+        <div class="hp-crate-group">
+          <h4><a href="/crates/builder/overview/">builder</a></h4>
+          <ul>
+            <li><a href="/crates/builder/core/"><code>core</code></a></li>
+            <li><a href="/crates/builder/metering/"><code>metering</code></a></li>
+            <li><a href="/crates/builder/publish/"><code>publish</code></a></li>
+          </ul>
+        </div>
+        <div class="hp-crate-group">
+          <h4><a href="/crates/client/overview/">client</a></h4>
+          <ul>
+            <li><a href="/crates/client/cli/"><code>cli</code></a></li>
+            <li><a href="/crates/client/engine/"><code>engine</code></a></li>
+            <li><a href="/crates/client/flashblocks-node/"><code>flashblocks-node</code></a></li>
+            <li><a href="/crates/client/flashblocks/"><code>flashblocks</code></a></li>
+            <li><a href="/crates/client/metering/"><code>metering</code></a></li>
+            <li><a href="/crates/client/proofs/"><code>proofs</code></a></li>
+            <li><a href="/crates/client/txpool-tracing/"><code>txpool-tracing</code></a></li>
+          </ul>
+        </div>
+        <div class="hp-crate-group">
+          <h4><a href="/crates/consensus/overview/">consensus</a></h4>
+          <ul>
+            <li><a href="/crates/consensus/cli/"><code>cli</code></a></li>
+            <li><a href="/crates/consensus/derive/"><code>derive</code></a></li>
+            <li><a href="/crates/consensus/disc/"><code>disc</code></a></li>
+            <li><a href="/crates/consensus/engine/"><code>engine</code></a></li>
+            <li><a href="/crates/consensus/genesis/"><code>genesis</code></a></li>
+            <li><a href="/crates/consensus/gossip/"><code>gossip</code></a></li>
+            <li><a href="/crates/consensus/hardforks/"><code>hardforks</code></a></li>
+            <li><a href="/crates/consensus/macros/"><code>macros</code></a></li>
+            <li><a href="/crates/consensus/peers/"><code>peers</code></a></li>
+            <li><a href="/crates/consensus/protocol/"><code>protocol</code></a></li>
+            <li><a href="/crates/consensus/providers-alloy/"><code>providers-alloy</code></a></li>
+            <li><a href="/crates/consensus/registry/"><code>registry</code></a></li>
+            <li><a href="/crates/consensus/rpc/"><code>rpc</code></a></li>
+            <li><a href="/crates/consensus/service/"><code>service</code></a></li>
+            <li><a href="/crates/consensus/sources/"><code>sources</code></a></li>
+          </ul>
+        </div>
+        <div class="hp-crate-group">
+          <h4><a href="/crates/execution/overview/">execution</a></h4>
+          <ul>
+            <li><a href="/crates/execution/chainspec/"><code>chainspec</code></a></li>
+            <li><a href="/crates/execution/cli/"><code>cli</code></a></li>
+            <li><a href="/crates/execution/consensus/"><code>consensus</code></a></li>
+            <li><a href="/crates/execution/evm/"><code>evm</code></a></li>
+            <li><a href="/crates/execution/exex/"><code>exex</code></a></li>
+            <li><a href="/crates/execution/hardforks/"><code>hardforks</code></a></li>
+            <li><a href="/crates/execution/node/"><code>node</code></a></li>
+            <li><a href="/crates/execution/payload/"><code>payload</code></a></li>
+            <li><a href="/crates/execution/primitives/"><code>primitives</code></a></li>
+            <li><a href="/crates/execution/reth/"><code>reth</code></a></li>
+            <li><a href="/crates/execution/rpc/"><code>rpc</code></a></li>
+            <li><a href="/crates/execution/storage/"><code>storage</code></a></li>
+            <li><a href="/crates/execution/trie/"><code>trie</code></a></li>
+            <li><a href="/crates/execution/txpool/"><code>txpool</code></a></li>
+          </ul>
+        </div>
+        <div class="hp-crate-group">
+          <h4><a href="/crates/infra/overview/">infra</a></h4>
+          <ul>
+            <li><a href="/crates/infra/audit/"><code>audit</code></a></li>
+            <li><a href="/crates/infra/basectl/"><code>basectl</code></a></li>
+            <li><a href="/crates/infra/based/"><code>based</code></a></li>
+            <li><a href="/crates/infra/ingress-rpc/"><code>ingress-rpc</code></a></li>
+            <li><a href="/crates/infra/mempool-rebroadcaster/"><code>mempool-rebroadcaster</code></a></li>
+            <li><a href="/crates/infra/system-tests/"><code>system-tests</code></a></li>
+            <li><a href="/crates/infra/websocket-proxy/"><code>websocket-proxy</code></a></li>
+          </ul>
+        </div>
+        <div class="hp-crate-group">
+          <h4><a href="/crates/proof/overview/">proof</a></h4>
+          <ul>
+            <li><a href="/crates/proof/driver/"><code>driver</code></a></li>
+            <li><a href="/crates/proof/executor/"><code>executor</code></a></li>
+            <li><a href="/crates/proof/mpt/"><code>mpt</code></a></li>
+            <li><a href="/crates/proof/preimage/"><code>preimage</code></a></li>
+            <li><a href="/crates/proof/proof/"><code>proof</code></a></li>
+            <li><a href="/crates/proof/std-fpvm/"><code>std-fpvm</code></a></li>
+            <li><a href="/crates/proof/std-fpvm-proc/"><code>std-fpvm-proc</code></a></li>
+          </ul>
+        </div>
+        <div class="hp-crate-group">
+          <h4><a href="/crates/shared/overview/">shared</a></h4>
+          <ul>
+            <li><a href="/crates/shared/access-lists/"><code>access-lists</code></a></li>
+            <li><a href="/crates/shared/bundles/"><code>bundles</code></a></li>
+            <li><a href="/crates/shared/cli-utils/"><code>cli-utils</code></a></li>
+            <li><a href="/crates/shared/engine-ext/"><code>engine-ext</code></a></li>
+            <li><a href="/crates/shared/jwt/"><code>jwt</code></a></li>
+            <li><a href="/crates/shared/node/"><code>node</code></a></li>
+            <li><a href="/crates/shared/primitives/"><code>primitives</code></a></li>
+            <li><a href="/crates/shared/reth-rpc-types/"><code>reth-rpc-types</code></a></li>
+            <li><a href="/crates/shared/txpool-rpc/"><code>txpool-rpc</code></a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <hr class="hp-rule" />
+
+    <!-- 5. FOOTER ROW -->
+    <section class="hp-footer-row">
+      <div class="hp-footer-main">
+        <h3 class="hp-col-heading">Architecture</h3>
+        <hr class="hp-rule-thin" />
+        <ul class="hp-link-list">
+          <li><a href="/architecture/overview/">Overview</a> — System design and crate map</li>
+          <li><a href="/architecture/crate-graph/">Crate Graph</a> — Dependency relationships</li>
+          <li><a href="/architecture/execution-pipeline/">Execution Pipeline</a> — Block processing flow</li>
+          <li><a href="/architecture/flashblocks-pipeline/">Flashblocks Pipeline</a> — Preconfirmation flow</li>
+        </ul>
+      </div>
+      <div class="hp-footer-side">
+        <h3 class="hp-col-heading">Contributing</h3>
+        <hr class="hp-rule-thin" />
+        <p>
+          Contributions to <code>base/base</code> are welcome.
+          See the <a href="/contributing/">contributing guide</a> for
+          workflow, standards, and PR process.
+        </p>
+      </div>
+    </section>
+
+  </div>
+</StarlightPage>

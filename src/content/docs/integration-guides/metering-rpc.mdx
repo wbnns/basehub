@@ -1,0 +1,222 @@
+---
+title: Metering RPC
+description: Guide to the Metering API for gas estimation and resource tracking.
+---
+
+The Metering API provides resource metering based on transaction simulations. It gives builders and applications accurate gas estimates, resource consumption breakdowns, and metering data for transactions before they are included in a block.
+
+## What Metering Provides
+
+Traditional gas estimation (`eth_estimateGas`) returns a single number. The Metering API goes further by simulating transactions against the current state and reporting:
+
+- **Gas consumption** -- total gas used, broken down by execution phase.
+- **Resource usage** -- compute, storage reads, storage writes, and memory allocation.
+- **Metering metadata** -- information used by the block builder to price and prioritize transactions.
+
+This is particularly useful for:
+
+- Block builders that need to meter transactions for optimal block packing.
+- Applications that want to display detailed cost breakdowns to users.
+- MEV searchers estimating transaction costs against live state.
+
+## Relevant Crates
+
+The metering system is implemented across two crates in the `base/base` workspace:
+
+| Crate | Description |
+|-------|-------------|
+| `base-metering` | Core metering logic -- simulates transactions and computes resource consumption metrics. |
+| `base-builder-metering` | Builder-specific metering integration -- connects metering to the block building pipeline. |
+
+These crates live under [`crates/builder/`](https://github.com/base/base/tree/main/crates/builder) in the repository.
+
+## RPC Endpoints
+
+### `base_estimateMeteredGas`
+
+Simulates a transaction and returns a detailed metering report.
+
+#### Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `transaction` | `Object` | Transaction call object (`from`, `to`, `data`, `value`, `gas`, etc.). |
+| `blockNumber` | `String` | Block tag or number. Use `"latest"` or `"pending"` for current state. |
+
+#### Returns
+
+`Object` -- Metering result containing gas estimates and resource breakdown.
+
+#### Example
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "base_estimateMeteredGas",
+    "params": [
+      {
+        "from": "0xSenderAddress",
+        "to": "0xContractAddress",
+        "data": "0xCalldata"
+      },
+      "latest"
+    ],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "gasUsed": "0x1a4c0",
+    "gasLimit": "0x1e848",
+    "computeUnits": "0x3200",
+    "storageReads": "0x5",
+    "storageWrites": "0x2",
+    "success": true
+  }
+}
+```
+
+### `base_getMeteringConfig`
+
+Returns the current metering configuration parameters used by the builder.
+
+#### Parameters
+
+None.
+
+#### Returns
+
+`Object` -- Metering configuration including resource weights and limits.
+
+#### Example
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "base_getMeteringConfig",
+    "params": [],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "computeWeight": 1,
+    "storageReadWeight": 2,
+    "storageWriteWeight": 5,
+    "maxComputeUnitsPerBlock": "0x989680",
+    "maxStorageReadsPerBlock": "0x493e0",
+    "maxStorageWritesPerBlock": "0x186a0"
+  }
+}
+```
+
+## Usage with ethers.js
+
+```javascript
+import { JsonRpcProvider } from "ethers";
+
+const provider = new JsonRpcProvider("https://your-base-rpc-endpoint");
+
+// Estimate metered gas for a transaction
+async function estimateMeteredGas(tx) {
+  const result = await provider.send("base_estimateMeteredGas", [
+    {
+      from: tx.from,
+      to: tx.to,
+      data: tx.data,
+      value: tx.value ?? "0x0",
+    },
+    "latest",
+  ]);
+
+  console.log("Gas used:", parseInt(result.gasUsed, 16));
+  console.log("Compute units:", parseInt(result.computeUnits, 16));
+  console.log("Storage reads:", parseInt(result.storageReads, 16));
+  console.log("Storage writes:", parseInt(result.storageWrites, 16));
+  console.log("Success:", result.success);
+
+  return result;
+}
+```
+
+## Usage with viem
+
+```typescript
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
+
+const client = createPublicClient({
+  chain: base,
+  transport: http("https://your-base-rpc-endpoint"),
+});
+
+// Estimate metered gas
+const result = await client.request({
+  method: "base_estimateMeteredGas" as any,
+  params: [
+    {
+      from: "0xSenderAddress",
+      to: "0xContractAddress",
+      data: "0xCalldata",
+    },
+    "latest",
+  ],
+});
+```
+
+## How Metering Works
+
+The metering pipeline operates as follows:
+
+1. **Transaction submission** -- a transaction (or call object) is submitted to the metering RPC.
+2. **State simulation** -- the transaction is executed against the current (or specified) state using the EVM, with metering instrumentation enabled.
+3. **Resource accounting** -- during simulation, the metering engine tracks compute cycles, storage operations, and memory usage.
+4. **Result assembly** -- the raw resource counts are combined with the current metering configuration (weights) to produce the final metering report.
+5. **Builder integration** -- when used by the block builder, metering results feed into transaction ordering and block packing decisions.
+
+```
+Transaction
+    │
+    ▼
+┌──────────────────┐
+│  EVM Simulation   │
+│  (base-metering)  │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────────────┐
+│  Resource Accounting      │
+│  compute, storage, memory │
+└────────┬─────────────────┘
+         │
+         ▼
+┌──────────────────────────────┐
+│  Metering Report              │
+│  gas, compute units, storage  │
+└──────────────────────────────┘
+```
+
+## Error Handling
+
+| Scenario | Behavior |
+|----------|----------|
+| Transaction reverts during simulation | `success: false` in the result; gas and resource fields still populated. |
+| Invalid transaction parameters | Standard JSON-RPC error response. |
+| State unavailable for requested block | JSON-RPC error with appropriate code. |
+
+## Further Reading
+
+- [Crate Reference](/crates/overview/) -- overview of all crate groups, including the builder crates.
+- [Execution Pipeline](/architecture/execution-pipeline/) -- how the EVM and state management work.

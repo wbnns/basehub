@@ -1,0 +1,63 @@
+---
+title: Monitoring
+description: Metrics, health checks, and observability for the Base Reth Node.
+---
+
+## Prometheus Metrics
+
+The Base Reth Node exports Prometheus-compatible metrics. The `base-cli-utils` crate sets up a metrics HTTP listener using `metrics-exporter-prometheus`.
+
+Key metric categories:
+
+- **Process metrics** — CPU, memory, file descriptors (via `metrics-process`)
+- **RPC metrics** — Request counts, latencies, error rates
+- **Transaction pool** — Pool size, pending/queued counts
+- **Sync progress** — Block height, peer count
+- **Flashblocks** — Flashblock production rate, latency
+
+## Devnet Monitoring
+
+The devnet includes built-in monitoring commands:
+
+```bash
+# Check block numbers and sync status across all nodes
+just devnet-status
+
+# View funded test accounts with balances and nonces
+just devnet-accounts
+
+# Run smoke tests (send test transactions to L1 and L2)
+just devnet-smoke
+
+# Full check suite
+just devnet-checks
+```
+
+## Log Streaming
+
+Stream logs from devnet containers:
+
+```bash
+# All containers
+just devnet-logs
+
+# Specific containers
+just devnet-logs l2-node builder
+```
+
+## Profiling
+
+For performance profiling, build with the `profiling` profile:
+
+```bash
+just devnet-profiling
+```
+
+This starts the devnet with Pyroscope integration and optimized builds that retain frame pointers for accurate profiling.
+
+The profiling profile settings:
+- Inherits from `release`
+- LTO disabled for faster builds
+- Debug info: line tables only
+- Frame pointers forced on
+- Symbols not stripped

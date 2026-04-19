@@ -1,0 +1,64 @@
+---
+title: Deployment
+description: Production deployment of the Base Reth Node.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution">
+This repository is for development purposes. For production deployments, use the releases referenced in [base/node](https://github.com/base/node/releases).
+</Aside>
+
+## Production Images
+
+The recommended way to run Base Reth Node in production is via the official Docker image from [base/node](https://github.com/base/node):
+
+```bash
+docker pull ghcr.io/base/node-reth:latest
+```
+
+This image bundles both vanilla Reth and Base Reth and can be toggled with the `NODE_TYPE` environment variable:
+
+```bash
+# Run Base Reth
+docker run ghcr.io/base/node-reth -e NODE_TYPE=base
+
+# Run vanilla Reth
+docker run ghcr.io/base/node-reth -e NODE_TYPE=vanilla
+```
+
+## Building from Source for Deployment
+
+If you need a custom build:
+
+```bash
+# Standard release build
+just build
+
+# Maximum performance (LTO fat, single codegen unit, jemalloc)
+just build-maxperf
+```
+
+The `maxperf` profile enables:
+- Full LTO (`lto = "fat"`)
+- Single codegen unit (`codegen-units = 1`)
+- jemalloc memory allocator
+
+The resulting binary is at `target/release/base-reth-node` (or `target/maxperf/base-reth-node` for maxperf).
+
+## Hardware Requirements
+
+Base Reth Node requires:
+
+- **CPU:** Multi-core processor (4+ cores recommended)
+- **Memory:** 16 GB+ RAM
+- **Storage:** NVMe SSD with sufficient space for chain state
+- **Network:** Stable, high-bandwidth connection
+
+## Configuration
+
+See the [Configuration Reference](/node-operations/configuration/) for all available options, or run:
+
+```bash
+./target/release/base-reth-node --help
+```

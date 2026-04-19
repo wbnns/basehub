@@ -1,0 +1,202 @@
+---
+title: Architecture Overview
+description: How the 8 crate groups in base/base fit together — from Reth integration to Flashblocks production.
+---
+
+The `base/base` repository is a Rust workspace that implements the Base L2 node. It is built on top of [Reth](https://github.com/paradigmxyz/reth) v1.11.0, an Ethereum execution client, and extends it with Optimism rollup semantics, a custom block builder with Flashblocks support, and a fault proof pipeline derived from [Kona](https://github.com/op-rs/kona).
+
+The workspace is organized into **8 top-level crate groups**, each in its own subdirectory under `crates/`. These groups map to the major subsystems of an L2 node: receiving transactions, building blocks, executing the EVM, reaching consensus with L1, generating fault proofs, and operating the infrastructure that ties it all together.
+
+## System diagram
+
+At the highest level, the system looks like this:
+
+```
+                         L1 (Ethereum)
+                              |
+              ┌───────────────┼───────────────┐
+              v               v               v
+         ┌─────────┐   ┌───────────┐   ┌───────────┐
+         │consensus│   │   proof   │   │  builder   │
+         │ (kona)  │   │  (kona)   │   │(flashblocks│
+         └────┬────┘   └───────────┘   │  + core)  │
+              │                         └─────┬─────┘
+              v                               v
+         ┌─────────┐                   ┌───────────┐
+         │ client  │◄─────────────────►│ execution │
+         │(node +  │                   │  (EVM +   │
+         │ engine) │                   │  payload) │
+         └────┬────┘                   └───────────┘
+              │
+              v
+         ┌─────────┐   ┌───────────┐   ┌───────────┐
+         │ shared  │   │   alloy   │   │   infra   │
+         │(prims,  │   │ (types +  │   │(binaries +│
+         │ utils)  │   │  codecs)  │   │  tooling) │
+         └─────────┘   └───────────┘   └───────────┘
+```
+
+## Crate groups
+
+### 1. Client — the node core
+
+**Path:** [`crates/client/`](https://github.com/base/base/tree/main/crates/client)
+
+The client group contains the node implementation itself. It is the entry point for the `base-reth-node` binary and assembles all the other subsystems into a running process.
+
+| Crate | Purpose |
+|---|---|
+| `base-client-node` | Node configuration, component wiring, Reth `NodeBuilder` integration |
+| `base-client-cli` | CLI argument parsing and subcommand definitions |
+| `base-client-engine` | Engine API handler — receives payloads from the consensus layer and drives execution |
+| `base-flashblocks` | Flashblocks state management, WebSocket streaming, sub-block interval logic |
+| `base-metering` | Gas metering extensions and RPC metering endpoints |
+| `base-txpool-tracing` | Transaction pool event tracing and diagnostics |
+
+The client group depends on nearly every other group. It pulls primitives from **shared**, types from **alloy**, EVM logic from **execution**, and consensus derivation from **consensus**.
+
+### 2. Execution — EVM and payload construction
+
+**Path:** [`crates/execution/`](https://github.com/base/base/tree/main/crates/execution)
+
+This group wraps Reth's EVM execution with Base-specific customizations. It is responsible for:
+
+- Configuring the `EvmConfig` with Optimism-specific precompiles and fee logic
+- Building execution payloads (the block body that the engine seals)
+- Applying L1-to-L2 deposit transactions that arrive via the derivation pipeline
+
+Reth's modular `EvmConfig` trait allows Base to inject its own gas pricing rules (L1 data fee), custom precompiles, and Optimism system transaction handling without forking the core EVM loop.
+
+### 3. Consensus — L1 derivation
+
+**Path:** [`crates/consensus/`](https://github.com/base/base/tree/main/crates/consensus)
+
+Consensus is split into two sub-groups:
+
+**Base-native crates:**
+
+| Crate | Purpose |
+|---|---|
+| `base-protocol` | Protocol constants, chain config, fork schedule |
+| `base-consensus-rpc` | RPC interface for consensus queries |
+
+**Kona-derived crates** (forked/vendored from the [Kona](https://github.com/op-rs/kona) project):
+
+| Crate | Purpose |
+|---|---|
+| `kona-node-service` | Top-level consensus node service |
+| `kona-engine` | Engine driver — sends `engine_forkchoiceUpdated` / `engine_newPayload` calls |
+| `kona-derive` | L1 derivation pipeline — reads batches from L1, produces L2 payload attributes |
+| `kona-gossip` | P2P gossip protocol for unsafe block propagation |
+| `kona-sources` | Data source adapters (L1 RPC, blobs, DA) |
+| `kona-providers-alloy` | Alloy-based provider implementations for L1/L2 data |
+| `kona-genesis` | Genesis state and rollup config loading |
+| `kona-registry` | Chain registry (rollup configs for known chains) |
+| `kona-hardforks` | Hardfork activation logic |
+| `kona-disc` | Peer discovery |
+| `kona-peers` | Peer management and scoring |
+| `kona-cli` | CLI utilities for consensus binaries |
+| `kona-macros` | Procedural macros used across kona crates |
+
+The derivation pipeline reads L1 blocks, extracts batch data (from calldata or EIP-4844 blobs), and derives the sequence of L2 blocks that the execution layer must process. This is the mechanism by which Base inherits Ethereum's security.
+
+### 4. Builder — block construction and Flashblocks
+
+**Path:** [`crates/builder/`](https://github.com/base/base/tree/main/crates/builder)
+
+The builder group implements Base's custom block builder, which goes beyond standard Reth payload building by producing **Flashblocks** -- partial block updates streamed every 200 milliseconds.
+
+| Crate | Purpose |
+|---|---|
+| `base-builder-core` | Core block building loop, transaction ordering, Flashblock interval timer |
+| `base-builder-publish` | Publishing built blocks/flashblocks to consumers (WebSocket, engine) |
+| `base-builder-metering` | Builder-specific metrics (build times, transaction counts, revenue) |
+
+The builder runs as a separate binary (`builder`) and communicates with the node via the Engine API. See [Flashblocks Pipeline](/architecture/flashblocks-pipeline/) for a detailed walkthrough.
+
+### 5. Proof — fault proof generation
+
+**Path:** [`crates/proof/`](https://github.com/base/base/tree/main/crates/proof)
+
+The proof group contains the machinery for generating fault proofs that can be verified on L1. These crates are also derived from Kona and target execution inside a fault proof virtual machine (FPVM).
+
+| Crate | Purpose |
+|---|---|
+| `kona-proof` | Top-level proof orchestration |
+| `kona-driver` | Drives the derivation + execution pipeline inside the FPVM |
+| `kona-executor` | EVM executor adapted for the proof environment |
+| `kona-mpt` | Merkle Patricia Trie operations for state proof verification |
+| `kona-preimage` | Preimage oracle client — requests data from the host during proof execution |
+| `kona-std-fpvm` | Standard FPVM runtime (syscall interface, memory management) |
+| `kona-std-fpvm-proc` | Procedural macros for FPVM entry points |
+
+In a fault proof, the entire derivation-then-execution pipeline runs deterministically inside a sandboxed VM. The `kona-driver` crate replays the same logic as the consensus layer's derivation pipeline, but reads data through a preimage oracle rather than from the network.
+
+### 6. Shared — common types and utilities
+
+**Path:** [`crates/shared/`](https://github.com/base/base/tree/main/crates/shared)
+
+Shared crates provide types, utilities, and abstractions used across multiple other groups.
+
+| Crate | Purpose |
+|---|---|
+| `base-primitives` | Core types: `BaseTxEnvelope`, `BaseBlock`, chain IDs, fee types |
+| `base-bundles` | Bundle types for MEV/searcher bundle submission |
+| `base-jwt` | JWT authentication for Engine API and inter-service communication |
+| `base-cli-utils` | Common CLI argument types and parsing helpers |
+| `base-engine-ext` | Engine API extensions (additional methods beyond the standard spec) |
+| `base-access-lists` | Access list generation and optimization |
+| `base-reth-rpc-types` | Custom RPC type definitions |
+| `base-txpool-rpc` | Transaction pool RPC method types |
+
+`base-primitives` is the most widely depended-upon crate in the workspace. It defines the canonical transaction, block, and receipt types that every other group imports.
+
+### 7. Alloy — type system and codecs
+
+**Path:** [`crates/alloy/`](https://github.com/base/base/tree/main/crates/alloy)
+
+The alloy group provides Ethereum/Optimism type definitions and encoding/decoding logic built on the [Alloy](https://github.com/alloy-rs/alloy) library ecosystem. These crates define the wire format for transactions, receipts, and other protocol objects, ensuring compatibility with the broader Ethereum tooling ecosystem.
+
+### 8. Infra — binaries and operational tooling
+
+**Path:** [`crates/infra/`](https://github.com/base/base/tree/main/crates/infra)
+
+The infra group contains the supporting binaries and tooling that run alongside the core node.
+
+| Crate/Binary | Purpose |
+|---|---|
+| `based` | Sequencer orchestrator daemon |
+| `basectl-cli` | Operator CLI tool for node management and diagnostics |
+| `ingress-rpc-lib` | RPC ingress proxy — routes and load-balances incoming RPC requests |
+| `websocket-proxy` | WebSocket proxy for Flashblocks streaming |
+| `mempool-rebroadcaster` | Rebroadcasts mempool transactions to peers |
+| `audit-archiver-lib` | Archives audit logs for compliance and debugging |
+| `system-tests` | End-to-end integration test harness |
+
+## Reth integration
+
+Base does not fork Reth. Instead, it uses Reth as a library dependency and extends it through Reth's plugin architecture:
+
+1. **`NodeBuilder`** — the client group uses Reth's `NodeBuilder` to assemble a node with custom components (EVM config, transaction pool, payload builder).
+2. **`EvmConfig`** — the execution group provides an Optimism-aware EVM configuration that plugs into Reth's execution pipeline.
+3. **`PayloadBuilder`** — the builder group implements a custom payload builder that produces Flashblocks.
+4. **`EngineApi`** — the client engine crate extends the standard Engine API with additional methods for Flashblocks and metering.
+
+This library-based integration means Base automatically picks up upstream Reth improvements (perf optimizations, new EVM opcodes, database improvements) by updating the Reth dependency version.
+
+## Optimism component usage
+
+Base is an OP Stack chain, and the codebase relies on several Optimism-specific components:
+
+- **`reth-optimism-*` crates** — Reth ships first-party Optimism support. Base uses these for deposit transaction handling, L1 fee calculation, and the Optimism-specific Engine API extensions (`op-engine-api`).
+- **Kona** — the consensus and proof groups are built on Kona, the Rust implementation of the OP Stack's derivation pipeline and fault proof program. Base vendors these crates to apply Base-specific patches (e.g., Flashblocks-aware derivation).
+- **Alloy Optimism types** — the alloy group extends Alloy's Optimism type definitions with Base-specific transaction types and receipt fields.
+
+## Build toolchain
+
+The workspace uses:
+
+- **Rust edition 2024** with a minimum supported Rust version of **1.88**
+- **MIT license** for all crates
+- **Just** as the task runner (see `justfile` at the repo root)
+- **Docker** for containerized builds and deployments

@@ -1,0 +1,53 @@
+---
+title: Crate Reference
+description: Overview of the 8 top-level crate groups in the base/base workspace.
+---
+
+The `base/base` repository is organized as a Cargo workspace with 8 top-level crate groups. Each group contains multiple sub-crates that handle a specific domain of the Base Reth Node.
+
+## Workspace Structure
+
+| Crate Group | Sub-crates | Purpose |
+|-------------|-----------|---------|
+| [alloy](/crates/alloy/overview/) | 8 | Alloy type extensions for Base (consensus types, RPC types, EVM, hardforks) |
+| [builder](/crates/builder/overview/) | 3 | Block building, flashblock production, and metering |
+| [client](/crates/client/overview/) | 7 | Node client — CLI, engine, flashblocks integration, metering, RPC |
+| [consensus](/crates/consensus/overview/) | 15 | OP Stack consensus — derivation, gossip, P2P, sequencing (Kona-based) |
+| [execution](/crates/execution/overview/) | 14 | Execution layer — EVM, chainspec, payload building, storage, txpool |
+| [infra](/crates/infra/overview/) | 7 | Infrastructure tooling — basectl, ingress RPC, WebSocket proxy |
+| [proof](/crates/proof/overview/) | 7 | Fault proof system — FPVM, preimage oracle, proof driver (Kona-based) |
+| [shared](/crates/shared/overview/) | 9 | Shared utilities — primitives, access lists, JWT, bundles, CLI utils |
+
+## Naming Conventions
+
+Crate names in `Cargo.toml` follow these patterns:
+
+- **`base-*`** — Core Base crates (e.g., `base-primitives`, `base-flashblocks`, `base-builder-core`)
+- **`kona-*`** — Consensus and proof crates derived from the Kona project (e.g., `kona-derive`, `kona-proof`)
+- **Infrastructure** — Named after their binary or function (e.g., `based`, `basectl-cli`, `ingress-rpc-lib`)
+
+## Dependency Flow
+
+At a high level, dependencies flow in this direction:
+
+```
+shared, alloy (foundation types)
+    ↓
+execution (EVM, state, txpool)
+    ↓
+client (node assembly, CLI, RPC)
+    ↓
+builder (block building, flashblocks)
+
+consensus (independent OP Stack consensus)
+proof (independent fault proof system)
+infra (infrastructure binaries, depends on various crates)
+```
+
+The `shared` and `alloy` crates provide foundational types used throughout the workspace. The `execution` crates build on these to implement the EVM and state management. The `client` crates assemble the full node, and the `builder` crates handle block production.
+
+The `consensus` and `proof` crate groups are relatively independent — they implement the OP Stack consensus protocol and fault proof system respectively, with their own internal dependency chains.
+
+## Source Code
+
+All crates live under [`crates/`](https://github.com/base/base/tree/main/crates) in the repository.

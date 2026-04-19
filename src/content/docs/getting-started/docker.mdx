@@ -1,0 +1,118 @@
+---
+title: Docker Builds
+description: Building and running base/base with Docker.
+---
+
+Docker provides a reproducible way to build and run the node without installing the full Rust toolchain on the host. The repository ships several Dockerfiles under `etc/docker/`.
+
+## Available Dockerfiles
+
+| File | Purpose |
+|---|---|
+| `etc/docker/Dockerfile.client` | Production client image containing `base-reth-node` |
+| `etc/docker/Dockerfile.builder` | Builder image used as a base for multi-stage builds |
+| `etc/docker/Dockerfile.devnet` | Devnet-specific image for local development networks |
+| `etc/docker/Dockerfile.websocket-proxy` | Standalone websocket proxy image |
+
+## Building the Client Image
+
+From the repository root, build the production client image:
+
+```bash
+docker build -t base-reth-node -f etc/docker/Dockerfile.client .
+```
+
+This performs a multi-stage build: it compiles the Rust binary inside a builder container and copies the resulting binary into a minimal runtime image. The build context is the repository root, so all workspace crates are available to the compiler.
+
+Depending on your hardware, the first build may take 15-30 minutes. Subsequent builds benefit from Docker layer caching.
+
+## Running the Container
+
+Start the node with default settings:
+
+```bash
+docker run -it --rm base-reth-node
+```
+
+Pass CLI options after the image name, exactly as you would with the bare binary:
+
+```bash
+docker run -it --rm base-reth-node --help
+```
+
+### Persisting Data
+
+By default, a container's filesystem is ephemeral. To persist chain data across restarts, mount a host directory to the node's data directory:
+
+```bash
+docker run -it --rm \
+  -v /path/to/data:/data \
+  base-reth-node \
+  --datadir /data
+```
+
+### Exposing Ports
+
+The node exposes several network ports. Map them to the host as needed:
+
+```bash
+docker run -it --rm \
+  -v /path/to/data:/data \
+  -p 8545:8545 \
+  -p 8546:8546 \
+  -p 30303:30303 \
+  -p 30303:30303/udp \
+  base-reth-node \
+  --datadir /data \
+  --http \
+  --http.addr 0.0.0.0 \
+  --ws \
+  --ws.addr 0.0.0.0
+```
+
+| Port | Protocol | Service |
+|---|---|---|
+| 8545 | TCP | HTTP JSON-RPC |
+| 8546 | TCP | WebSocket JSON-RPC |
+| 30303 | TCP + UDP | P2P discovery and communication |
+
+### Running in the Background
+
+Use `-d` instead of `-it` to run detached:
+
+```bash
+docker run -d --name base-node \
+  -v /path/to/data:/data \
+  -p 8545:8545 \
+  base-reth-node \
+  --datadir /data \
+  --http --http.addr 0.0.0.0
+
+# View logs
+docker logs -f base-node
+
+# Stop
+docker stop base-node
+```
+
+## Building Other Images
+
+Build the websocket proxy image:
+
+```bash
+docker build -t base-websocket-proxy -f etc/docker/Dockerfile.websocket-proxy .
+```
+
+Build the devnet image (typically used by the docker-compose devnet stack rather than run directly):
+
+```bash
+docker build -t base-devnet -f etc/docker/Dockerfile.devnet .
+```
+
+## Tips
+
+- **Layer caching**: The Dockerfiles are structured so that dependency fetching is cached separately from source compilation. If you only change Rust source files, the dependency layers are reused.
+- **BuildKit**: Enable BuildKit for faster builds: `DOCKER_BUILDKIT=1 docker build ...`
+- **Cross-compilation**: If you need an `amd64` image on an ARM host (or vice versa), use `docker buildx build --platform linux/amd64 ...`.
+
+For running a full local devnet with Docker Compose, see [Local Devnet](/getting-started/devnet/). For production Docker deployments, see [Node Operations: Docker](/node-operations/docker/).

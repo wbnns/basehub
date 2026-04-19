@@ -1,0 +1,154 @@
+---
+title: Development Workflow
+description: Day-to-day development — check, test, fix.
+---
+
+The `base/base` repository uses [Just](https://github.com/casey/just) recipes to orchestrate common development tasks. This page walks through the commands you will use daily when working on the codebase.
+
+## Quick Reference
+
+| Command | What it does |
+|---|---|
+| `just check` | Runs the full check suite (format, udeps, clippy, test, deny) |
+| `just test` | Runs the test suite via cargo-nextest |
+| `just fix` | Auto-fixes formatting, clippy, and zepter issues |
+| `just ci` | Full CI pipeline (fix, check, lychee, zepter, no-std check) |
+
+## Running Tests
+
+The project uses [cargo-nextest](https://nexte.st/) as its test runner. Install it if you have not already:
+
+```bash
+cargo install cargo-nextest
+```
+
+Run the full test suite:
+
+```bash
+just test
+```
+
+This executes `cargo nextest` with all features enabled. The devnet tests are excluded by default since they require a running Docker Compose stack.
+
+To run tests for a specific crate:
+
+```bash
+cargo nextest run -p base-execution-evm
+```
+
+To run a single test by name:
+
+```bash
+cargo nextest run -p base-execution-evm -- test_name
+```
+
+### Building Test Contracts
+
+Some tests depend on compiled Solidity contracts. If you see test failures related to missing contract artifacts, build them first:
+
+```bash
+just build-contracts
+```
+
+See [Building from Source](/getting-started/building/#building-solidity-test-contracts) for details.
+
+## Checking Code Quality
+
+The `check` recipe runs the full quality gate in sequence:
+
+```bash
+just check
+```
+
+This is equivalent to running each of these in order:
+
+1. **`check-format`** -- Verifies that all Rust source files match `rustfmt` style.
+2. **`check-udeps`** -- Detects unused dependencies in `Cargo.toml` files.
+3. **`check-clippy`** -- Runs Clippy with the project's configured lints.
+4. **`test`** -- Runs the full test suite.
+5. **`check-deny`** -- Checks dependencies for known vulnerabilities and license issues via `cargo-deny`.
+
+If any step fails, the pipeline stops. Fix the issue and re-run.
+
+## Auto-Fixing Issues
+
+Most formatting and lint issues can be fixed automatically:
+
+```bash
+just fix
+```
+
+This runs three fixers in sequence:
+
+1. **`format-fix`** -- Applies `rustfmt` to all source files.
+2. **`clippy-fix`** -- Applies Clippy's suggested fixes.
+3. **`zepter-fix`** -- Fixes feature propagation issues detected by [zepter](https://github.com/nicknisi/zepter).
+
+Run `just fix` before committing to avoid CI failures.
+
+## Full CI Pipeline
+
+To run the same checks that CI runs on pull requests:
+
+```bash
+just ci
+```
+
+This encompasses:
+
+1. `fix` -- auto-fix everything fixable
+2. `check` -- the full quality gate
+3. `lychee` -- checks for broken links in documentation
+4. `zepter` -- validates Cargo feature propagation
+5. `check-no-std` -- ensures `no_std` compatibility for crates that require it
+
+Running `just ci` locally before pushing is the best way to catch issues early.
+
+## Formatting
+
+Check formatting without modifying files:
+
+```bash
+just check-format
+```
+
+Auto-format all files:
+
+```bash
+just format-fix
+```
+
+The project uses the standard `rustfmt` configuration. If your editor supports format-on-save with `rustfmt`, enable it for a smoother workflow.
+
+## Clippy
+
+Run Clippy to catch common mistakes and non-idiomatic patterns:
+
+```bash
+just check-clippy
+```
+
+Apply Clippy's suggestions automatically:
+
+```bash
+just clippy-fix
+```
+
+## Recommended Editor Setup
+
+For the best development experience, configure your editor with:
+
+- **rust-analyzer** -- Provides inline type hints, go-to-definition, and real-time diagnostics.
+- **Format on save** -- Set your editor to run `rustfmt` whenever you save a `.rs` file.
+- **Clippy as the check command** -- Configure rust-analyzer to use `clippy` instead of `cargo check` for richer diagnostics:
+
+  ```json
+  {
+    "rust-analyzer.check.command": "clippy"
+  }
+  ```
+
+## Next Steps
+
+- [Local Devnet](/getting-started/devnet/) -- run a full local network for integration testing.
+- [Contributing](/contributing/) -- guidelines for submitting pull requests.

@@ -1,0 +1,73 @@
+---
+title: Docker Operations
+description: Building and running the Base Reth Node with Docker.
+---
+
+## Dockerfiles
+
+The repository provides several Dockerfiles in [`etc/docker/`](https://github.com/base/base/tree/main/etc/docker):
+
+| Dockerfile | Purpose |
+|-----------|---------|
+| `Dockerfile.client` | Main Base Reth Node client |
+| `Dockerfile.builder` | Block builder service |
+| `Dockerfile.devnet` | Local development network setup |
+| `Dockerfile.websocket-proxy` | WebSocket proxy for flashblock streaming |
+
+## Building Images
+
+### Client Node
+
+```bash
+docker build -t base-reth-node -f etc/docker/Dockerfile.client .
+```
+
+### Builder
+
+```bash
+docker build -t base-builder -f etc/docker/Dockerfile.builder .
+```
+
+### WebSocket Proxy
+
+```bash
+docker build -t websocket-proxy -f etc/docker/Dockerfile.websocket-proxy .
+```
+
+## Running Containers
+
+```bash
+docker run -it --rm \
+  -p 8545:8545 \
+  -p 8546:8546 \
+  -p 30303:30303 \
+  -v /path/to/data:/data \
+  base-reth-node [OPTIONS]
+```
+
+Common flags:
+- `-p 8545:8545` — HTTP JSON-RPC
+- `-p 8546:8546` — WebSocket JSON-RPC
+- `-p 30303:30303` — P2P networking
+- `-v /path/to/data:/data` — Persistent data volume
+
+## Docker Compose
+
+The repository includes a Docker Compose configuration for running a local devnet:
+
+```bash
+docker compose --env-file etc/docker/devnet-env \
+  -f etc/docker/docker-compose.yml up -d --build
+```
+
+See [Local Devnet](/getting-started/devnet/) for the full devnet setup guide.
+
+## Production Images
+
+For production use, the official images are published at:
+
+```
+ghcr.io/base/node-reth
+```
+
+See the [base/node repository](https://github.com/base/node) for release tags and configuration.

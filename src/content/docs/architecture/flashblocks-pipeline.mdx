@@ -1,0 +1,258 @@
+---
+title: Flashblocks Pipeline
+description: How the builder produces flashblocks at 200ms sub-block intervals, streams them over WebSockets, and reconciles state at block boundaries.
+---
+
+Flashblocks are partial block updates produced every 200 milliseconds during a 2-second L2 block interval. They give users and applications sub-second confirmation of transaction inclusion without changing the final block structure or the consensus protocol.
+
+This page describes the internal pipeline: how the builder produces flashblocks, how they are streamed to consumers, and how state is reconciled when the full block is sealed.
+
+## Motivation
+
+Standard L2 blocks on Base are produced every 2 seconds. For latency-sensitive applications (trading, gaming, real-time UIs), 2 seconds is too slow for a responsive experience. Flashblocks reduce the effective confirmation time to approximately 200 milliseconds by streaming the builder's work-in-progress.
+
+A flashblock is not a new consensus primitive. It is an **application-layer optimization**: the builder shares its intermediate results before the block is finalized. Consumers who trust the sequencer can act on flashblocks immediately; consumers who require consensus finality wait for the sealed block as usual.
+
+## Architecture
+
+The Flashblocks pipeline involves three crate groups:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                         Builder                               │
+│                                                               │
+│  ┌───────────────────┐    ┌───────────────────┐               │
+│  │ base-builder-core │───►│base-builder-publish│──► Engine API │
+│  │                   │    │                   │               │
+│  │ tx selection,     │    │ flashblock framing│               │
+│  │ EVM execution,    │    │ WebSocket publish │               │
+│  │ 200ms timer       │    │ sealed block emit │               │
+│  └───────────────────┘    └────────┬──────────┘               │
+│                                    │                          │
+│  ┌───────────────────┐             │                          │
+│  │base-builder-meter.│             │                          │
+│  │                   │             │                          │
+│  │ build time, tx    │             │                          │
+│  │ count, revenue    │             │                          │
+│  └───────────────────┘             │                          │
+└────────────────────────────────────┼──────────────────────────┘
+                                     │
+                                     ▼
+                           ┌───────────────────┐
+                           │  websocket-proxy   │  (infra)
+                           │                   │
+                           │ fan-out to         │
+                           │ subscribers        │
+                           └────────┬──────────┘
+                                    │
+                     ┌──────────────┼──────────────┐
+                     ▼              ▼              ▼
+                  Client A      Client B      Client C
+```
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                         Client Node                           │
+│                                                               │
+│  ┌───────────────────┐    ┌───────────────────┐               │
+│  │ base-flashblocks  │◄───│ base-client-engine│               │
+│  │                   │    │                   │               │
+│  │ flashblock state  │    │ engine API handler│               │
+│  │ tracking, sub     │    │ payload validation│               │
+│  │ management        │    │                   │               │
+│  └───────────────────┘    └───────────────────┘               │
+└──────────────────────────────────────────────────────────────┘
+```
+
+## The build loop
+
+The core building loop in [`base-builder-core`](https://github.com/base/base/tree/main/crates/builder/core) operates on a timer-driven cycle within each 2-second block interval.
+
+### Step 1: Receive payload attributes
+
+The consensus layer sends `engine_forkchoiceUpdated` with `PayloadAttributes` to begin a new block. The attributes include:
+
+- **Parent block hash** -- the block to build on top of.
+- **Timestamp** -- the L2 timestamp for the new block.
+- **Deposit transactions** -- mandatory L1-to-L2 messages that must appear at the start of the block.
+- **Fee recipient** -- the address that receives priority fees.
+- **Flashblocks configuration** -- whether flashblocks are enabled and the sub-interval duration (default: 200ms).
+
+### Step 2: Initialize the build context
+
+The builder sets up:
+
+- A mutable state overlay on top of the parent block's state.
+- A running transaction list (starts with the deposit transactions).
+- A cumulative gas counter.
+- A 200ms interval timer.
+- A flashblock sequence counter (starting at 0).
+
+### Step 3: Execute transactions in sub-intervals
+
+The builder enters a loop that repeats every 200 milliseconds until the block time expires:
+
+```
+for each 200ms interval:
+    1. Pull pending transactions from the pool (sorted by effective tip)
+    2. Execute each transaction against the state overlay:
+       - If the transaction succeeds: append to the running tx list,
+         update cumulative gas, record the receipt
+       - If the transaction fails (reverts, out-of-gas, nonce mismatch):
+         skip it and try the next
+    3. Compute the intermediate state root
+    4. Emit a flashblock containing:
+       - The transactions processed in this interval
+       - The receipts for those transactions
+       - The cumulative gas used so far
+       - The intermediate state root
+       - The flashblock index (0, 1, 2, ...)
+       - The block number and parent hash
+    5. Increment the flashblock sequence counter
+```
+
+A typical 2-second block produces up to **10 flashblocks** (2000ms / 200ms). In practice, the number may be fewer if the builder finishes processing all pending transactions before the block time expires.
+
+### Step 4: Seal the block
+
+When the block timer expires, the builder:
+
+1. Stops accepting new transactions.
+2. Computes the final state root.
+3. Assembles the complete block header (with all transactions from all flashblocks).
+4. Sends the sealed payload to the node via `engine_newPayload`.
+
+The sealed block is identical to what would have been produced without Flashblocks. The only difference is that consumers received incremental updates during construction.
+
+## Publishing: `base-builder-publish`
+
+The [`base-builder-publish`](https://github.com/base/base/tree/main/crates/builder/publish) crate handles the output side of the pipeline. It is responsible for two output channels:
+
+### Engine API output
+
+The sealed block payload is sent to the node's Engine API (`engine_newPayload`), followed by a `engine_forkchoiceUpdated` call to update the canonical chain tip. This is the standard Reth/OP Stack block import path.
+
+### WebSocket streaming output
+
+Flashblocks are streamed in real time over a WebSocket connection. Each flashblock is serialized as a JSON object and pushed to connected subscribers.
+
+The publish crate:
+
+1. Maintains a set of WebSocket connections (via the `websocket-proxy` infra binary, which handles fan-out).
+2. Serializes each flashblock into the `flashblocks_v0` JSON-RPC notification format.
+3. Sends the notification to the proxy, which distributes it to all subscribers.
+4. At the end of the block, sends a final `flashblocks_v0` notification with `sealed: true`, signaling that the block is complete.
+
+### Flashblock message format
+
+Each flashblock notification contains:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "flashblocks_v0",
+  "params": {
+    "index": 3,
+    "blockNumber": "0x1a2b3c",
+    "parentHash": "0xabc...def",
+    "timestamp": "0x67890",
+    "transactions": ["0x...rlp1", "0x...rlp2"],
+    "receipts": [{ ... }, { ... }],
+    "stateRoot": "0x...",
+    "gasUsed": "0x...",
+    "sealed": false
+  }
+}
+```
+
+When `sealed` is `true`, the message represents the final state of the block. Consumers can treat a `sealed: true` flashblock as equivalent to a full block notification.
+
+## WebSocket proxy: fan-out and backpressure
+
+The [`websocket-proxy`](https://github.com/base/base/tree/main/crates/infra/websocket-proxy) binary sits between the builder and external consumers. It exists because the builder should focus on building blocks, not managing thousands of WebSocket connections.
+
+The proxy:
+
+- Accepts incoming WebSocket connections from clients.
+- Subscribes to the builder's flashblock stream (a single connection).
+- Fans out each flashblock notification to all connected clients.
+- Applies backpressure: if a client cannot keep up, the proxy drops messages for that client rather than blocking the builder.
+- Handles connection lifecycle (ping/pong, reconnection, graceful shutdown).
+
+This separation ensures that a slow or misbehaving consumer cannot affect block building performance.
+
+## Client-side: `base-flashblocks`
+
+On the node side, the [`base-flashblocks`](https://github.com/base/base/tree/main/crates/client/flashblocks) crate manages flashblock state within the running node.
+
+Its responsibilities:
+
+- **Tracking in-progress flashblocks** -- maintains a buffer of flashblocks for the current block interval, updating as new ones arrive from the builder.
+- **Subscription management** -- the node exposes its own `flashblocks_subscribe` RPC method for local consumers. The `base-flashblocks` crate manages these subscriptions and forwards flashblock notifications.
+- **State reconciliation** -- when the sealed block arrives via `engine_newPayload`, the crate reconciles the flashblock state with the final block. Any speculative state derived from flashblocks is replaced by the canonical block state.
+
+## State reconciliation
+
+Flashblocks introduce a concept of **speculative state**: consumers act on transactions that are included in a flashblock but not yet in a sealed block. In the normal case, the sealed block contains exactly the union of all flashblock transactions, so speculative state matches final state perfectly.
+
+However, there are edge cases:
+
+### Reorgs within a block interval
+
+If the builder receives a new `forkchoiceUpdated` that changes the parent block during construction (e.g., due to an L1 reorg affecting deposit transactions), the builder:
+
+1. Discards the in-progress block.
+2. Sends a `flashblocks_v0` notification with `"reorg": true` to signal that previous flashblocks for this block number are invalid.
+3. Starts building a new block from the updated parent.
+
+Consumers must handle reorg notifications by discarding any speculative state derived from the invalidated flashblocks.
+
+### Builder restarts
+
+If the builder process restarts mid-block, flashblock numbering resets. The `websocket-proxy` detects the upstream disconnection and sends a disconnect notification to subscribers. When the builder reconnects, it starts a fresh block interval.
+
+## Metering: `base-builder-metering`
+
+The [`base-builder-metering`](https://github.com/base/base/tree/main/crates/builder/metering) crate collects performance metrics from the build loop:
+
+| Metric | Description |
+|---|---|
+| `builder_flashblock_build_time_ms` | Time to produce each flashblock |
+| `builder_flashblock_tx_count` | Number of transactions per flashblock |
+| `builder_block_total_gas` | Total gas used in the sealed block |
+| `builder_block_tx_count` | Total transactions in the sealed block |
+| `builder_block_revenue_wei` | Total priority fees earned by the builder |
+| `builder_block_build_time_ms` | Wall-clock time for the full 2-second build cycle |
+| `builder_flashblock_count` | Number of flashblocks produced per block |
+
+These metrics are exported via Prometheus and are critical for monitoring builder performance in production. A drop in `flashblock_tx_count` or a spike in `flashblock_build_time_ms` can indicate EVM execution bottlenecks or transaction pool issues.
+
+## Timeline of a single block
+
+The following timeline illustrates a typical 2-second block with Flashblocks:
+
+```
+Time (ms)   Event
+─────────   ─────
+   0        forkchoiceUpdated received; builder starts block N
+   0-10     Deposit transactions executed
+  10-200    User transactions executed from pool
+ 200        Flashblock 0 emitted (deposits + first batch of user txs)
+ 200-400    More user transactions executed
+ 400        Flashblock 1 emitted
+ 400-600    More user transactions executed
+ 600        Flashblock 2 emitted
+   ...      (continues every 200ms)
+1800-2000   Final batch of user transactions executed
+2000        Flashblock 9 emitted (final interval)
+2000        Block sealed; engine_newPayload sent
+2000+       forkchoiceUpdated confirms block N as canonical
+```
+
+In this example, a user whose transaction was included in Flashblock 0 received confirmation at t=200ms -- a 10x improvement over the 2-second block time.
+
+## Integration with the execution pipeline
+
+Flashblocks do not change the execution pipeline described in [Execution Pipeline](/architecture/execution-pipeline/). The EVM execution, state trie updates, and block sealing steps are identical. Flashblocks simply add **observation points** at 200ms intervals, allowing external consumers to see progress before the block is complete.
+
+The key invariant is: **the set of transactions in the sealed block is exactly the union of all flashblock transaction sets for that block**. There are no transactions that appear in a flashblock but not in the sealed block (barring the reorg case described above), and no transactions that appear in the sealed block but not in any flashblock.

@@ -1,0 +1,211 @@
+---
+title: Transaction Pool
+description: Working with the Base transaction pool.
+---
+
+The Base transaction pool (txpool) manages pending transactions before they are included in blocks. The `base/base` repository provides RPC extensions and tracing instrumentation for inspecting and monitoring pool state.
+
+## Relevant Crates
+
+| Crate | Description |
+|-------|-------------|
+| `base-txpool-rpc` | Txpool RPC namespace extensions -- provides JSON-RPC methods for querying pool contents. |
+| `base-txpool-tracing` | Tracing instrumentation for txpool operations -- emits structured logs and metrics for transaction lifecycle events. |
+
+These crates live under [`crates/execution/`](https://github.com/base/base/tree/main/crates/execution) in the repository.
+
+## How Transactions Flow Through the Pool
+
+```
+User / Application
+       │
+       ▼
+┌─────────────────┐
+│  JSON-RPC        │   eth_sendRawTransaction
+│  (ingress-rpc)   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Validation      │   Nonce check, balance check, gas price check
+│                  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Transaction     │   Pending pool (ready to include)
+│  Pool            │   Queued pool (future nonce gap)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Block Builder   │   Selects transactions for next block/flashblock
+│                  │
+└─────────────────┘
+```
+
+1. **Ingress** -- transactions arrive via `eth_sendRawTransaction` through the ingress RPC.
+2. **Validation** -- each transaction is validated: signature verification, nonce ordering, sufficient balance for gas and value, gas price meets the minimum.
+3. **Pool insertion** -- valid transactions enter the pool. Transactions with the next expected nonce go into the **pending** sub-pool (ready for inclusion). Transactions with a future nonce go into the **queued** sub-pool (waiting for the gap to be filled).
+4. **Promotion** -- when a pending transaction is included in a block or flashblock, queued transactions from the same sender may be promoted to pending if the nonce gap is closed.
+5. **Selection** -- the block builder pulls transactions from the pending pool, ordered by effective gas price, for inclusion in the next flashblock delta.
+
+## RPC Methods
+
+The `base-txpool-rpc` crate extends the standard txpool namespace with the following methods.
+
+### `txpool_status`
+
+Returns the number of transactions in each sub-pool.
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "txpool_status",
+    "params": [],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "pending": "0x12",
+    "queued": "0x3"
+  }
+}
+```
+
+### `txpool_content`
+
+Returns all transactions in the pool, grouped by sender address and nonce.
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "txpool_content",
+    "params": [],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "pending": {
+      "0xSenderAddress": {
+        "0": { "hash": "0x...", "gasPrice": "0x...", "nonce": "0x0", "..." : "..." },
+        "1": { "hash": "0x...", "gasPrice": "0x...", "nonce": "0x1", "..." : "..." }
+      }
+    },
+    "queued": {
+      "0xAnotherSender": {
+        "5": { "hash": "0x...", "gasPrice": "0x...", "nonce": "0x5", "..." : "..." }
+      }
+    }
+  }
+}
+```
+
+### `txpool_inspect`
+
+Returns a text summary of all transactions in the pool (lighter-weight than `txpool_content`).
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "txpool_inspect",
+    "params": [],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "pending": {
+      "0xSenderAddress": {
+        "0": "0xRecipient: 0 wei + 21000 gas x 1000000000 wei"
+      }
+    },
+    "queued": {}
+  }
+}
+```
+
+### `txpool_contentFrom`
+
+Returns transactions from a specific sender address.
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "txpool_contentFrom",
+    "params": ["0xSenderAddress"],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "pending": {
+      "0": { "hash": "0x...", "nonce": "0x0", "..." : "..." }
+    },
+    "queued": {}
+  }
+}
+```
+
+## Tracing and Observability
+
+The `base-txpool-tracing` crate instruments the transaction pool with structured tracing events. When enabled, it emits events for:
+
+| Event | Description |
+|-------|-------------|
+| `txpool.insert` | A transaction was inserted into the pool. Includes sender, nonce, hash, gas price. |
+| `txpool.promote` | A queued transaction was promoted to pending (nonce gap filled). |
+| `txpool.discard` | A transaction was removed from the pool (replaced, expired, or invalidated). |
+| `txpool.replace` | A transaction was replaced by a new one with the same nonce and higher gas price. |
+| `txpool.evict` | A transaction was evicted due to pool size limits. |
+
+These events can be consumed by any `tracing` subscriber -- written to stdout, sent to a logging backend, or exported as OpenTelemetry spans.
+
+### Enabling Tracing
+
+Tracing is configured via the node's logging configuration. For example, to enable debug-level txpool tracing:
+
+```bash
+RUST_LOG=base_txpool_tracing=debug base-reth-node \
+  --http \
+  --http.api eth,txpool
+```
+
+## Practical Tips
+
+- **Nonce management** -- use `eth_getTransactionCount` with the `"pending"` tag (see [Flashblocks RPC](/integration-guides/flashblocks-rpc/)) to get the latest nonce including flashblock-preconfirmed transactions. This avoids nonce collisions when submitting transactions rapidly.
+- **Gas price monitoring** -- query `txpool_status` periodically to gauge pool congestion. A high pending count relative to block throughput suggests rising base fees.
+- **Transaction replacement** -- to speed up or cancel a pending transaction, submit a new transaction with the same nonce and a higher gas price (typically at least 10% higher to be accepted by the pool).
+- **Pool limits** -- the pool has configurable size limits. When full, the lowest-priced transactions are evicted first. Monitor `txpool.evict` tracing events to detect when your transactions might be at risk.
+
+## Further Reading
+
+- [Crate Reference](/crates/overview/) -- overview of all crate groups, including the execution crates.
+- [Flashblocks RPC](/integration-guides/flashblocks-rpc/) -- using the `"pending"` tag for preconfirmed nonces and balances.
+- [Connecting to Base](/integration-guides/connecting/) -- network endpoints and chain parameters.

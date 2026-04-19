@@ -1,0 +1,44 @@
+---
+title: execution
+description: Execution layer — EVM, chain specification, payload building, storage, transaction pool, and state management.
+---
+
+The `execution` crate group implements the core execution layer of the Base Reth Node. It handles everything from EVM execution to state storage, transaction pool management, and payload building.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [chainspec](/crates/execution/chainspec/) | `reth-optimism-chainspec` | EVM chain spec for Optimism |
+| [cli](/crates/execution/cli/) | `reth-optimism-cli` | Execution layer CLI (jemalloc, OTel) |
+| [consensus](/crates/execution/consensus/) | `reth-optimism-consensus` | Block validation and trie roots |
+| [evm](/crates/execution/evm/) | `reth-optimism-evm` | Block executor and state transitions |
+| [exex](/crates/execution/exex/) | `reth-optimism-exex` | Execution Extensions — proofs with trie updates |
+| [hardforks](/crates/execution/hardforks/) | `reth-optimism-forks` | Optimism hardfork definitions |
+| [node](/crates/execution/node/) | `reth-optimism-node` | Node builder — assembles all components |
+| [payload](/crates/execution/payload/) | `reth-optimism-payload-builder` | Payload construction from pending transactions |
+| [primitives](/crates/execution/primitives/) | `reth-optimism-primitives` | Custom transaction and receipt types |
+| [reth](/crates/execution/reth/) | `reth-op` | Meta-crate re-exporting all OP reth components |
+| [rpc](/crates/execution/rpc/) | `reth-optimism-rpc` | eth\_, debug\_, op\_ RPC namespaces |
+| [storage](/crates/execution/storage/) | `reth-optimism-storage` | Database codec implementations |
+| [trie](/crates/execution/trie/) | `reth-optimism-trie` | Trie storage for fault proof window |
+| [txpool](/crates/execution/txpool/) | `reth-optimism-txpool` | Transaction pool with L1 cost calculation |
+
+## Role in the Architecture
+
+The execution crate group is the heart of the node. It:
+
+1. Defines the Base chain specification including gas limits, hardforks, and genesis (`chainspec`, `hardforks`)
+2. Configures and runs the EVM for transaction execution (`evm`)
+3. Builds execution payloads from pending transactions (`payload`)
+4. Manages the transaction pool for pending transactions (`txpool`)
+5. Handles state storage and the Merkle Patricia Trie (`storage`, `trie`)
+6. Provides RPC endpoints for querying execution state (`rpc`)
+7. Integrates with Reth's execution pipeline (`reth`, `node`)
+8. Supports Execution Extensions for custom indexing (`exex`)
+
+Built on top of [Reth](https://github.com/paradigmxyz/reth) v1.11.0, these crates customize Reth's execution engine for the Base L2 environment.
+
+## Source
+
+[`crates/execution/`](https://github.com/base/base/tree/main/crates/execution)

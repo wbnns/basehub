@@ -1,0 +1,189 @@
+---
+title: Execution Pipeline
+description: Transaction flow from RPC receipt through the transaction pool, payload building, EVM execution, state trie update, and block production.
+---
+
+This page traces the life of a transaction through the Base node, from the moment it arrives at the RPC endpoint to when it is included in a sealed block and committed to the state trie. Each stage references the crate responsible for that step.
+
+## Pipeline overview
+
+```
+ User/Wallet
+      │
+      ▼
+ ┌──────────────────┐
+ │  1. RPC Ingress   │  ingress-rpc-lib, base-reth-rpc-types
+ └────────┬─────────┘
+          ▼
+ ┌──────────────────┐
+ │  2. Transaction   │  base-txpool-rpc, base-txpool-tracing,
+ │     Pool          │  base-access-lists, base-bundles
+ └────────┬─────────┘
+          ▼
+ ┌──────────────────┐
+ │  3. Payload       │  base-builder-core, base-engine-ext
+ │     Building      │
+ └────────┬─────────┘
+          ▼
+ ┌──────────────────┐
+ │  4. EVM           │  execution crates (EvmConfig),
+ │     Execution     │  base-primitives
+ └────────┬─────────┘
+          ▼
+ ┌──────────────────┐
+ │  5. State Trie    │  Reth's state database,
+ │     Update        │  kona-mpt (for proofs)
+ └────────┬─────────┘
+          ▼
+ ┌──────────────────┐
+ │  6. Block         │  base-builder-publish,
+ │     Sealing       │  base-client-engine
+ └──────────────────┘
+```
+
+## Stage 1: RPC ingress
+
+Transactions enter the system through JSON-RPC endpoints. The Base node exposes the standard Ethereum JSON-RPC API (`eth_sendRawTransaction`) plus Base-specific extensions.
+
+**Relevant crates:**
+
+- [`ingress-rpc-lib`](https://github.com/base/base/tree/main/crates/infra/ingress-rpc) -- in production deployments, an ingress proxy sits in front of the node. It handles rate limiting, authentication (via `base-jwt`), and request routing. The proxy forwards validated requests to the node's internal RPC server.
+- [`base-reth-rpc-types`](https://github.com/base/base/tree/main/crates/shared/rpc-types) -- defines the request and response types for Base-specific RPC methods.
+
+When the node receives `eth_sendRawTransaction`, it:
+
+1. Decodes the RLP-encoded transaction bytes into a `BaseTxEnvelope` (defined in `base-primitives`).
+2. Validates the signature, chain ID, and basic transaction fields.
+3. Submits the transaction to the transaction pool.
+
+For bundle submissions (used by MEV searchers), the `base-bundles` crate defines the `BaseBundle` type, which groups multiple transactions with ordering constraints and tip payments.
+
+## Stage 2: Transaction pool
+
+The transaction pool holds pending transactions that are valid but not yet included in a block. Base uses Reth's built-in transaction pool with custom extensions.
+
+**Relevant crates:**
+
+- [`base-txpool-rpc`](https://github.com/base/base/tree/main/crates/shared/txpool-rpc) -- RPC methods for querying pool state (`txpool_content`, `txpool_status`, and Base-specific methods).
+- [`base-txpool-tracing`](https://github.com/base/base/tree/main/crates/client/txpool-tracing) -- emits tracing events for transaction lifecycle (received, promoted, dropped, included). Useful for debugging and monitoring.
+- [`base-access-lists`](https://github.com/base/base/tree/main/crates/shared/access-lists) -- access list generation. When a transaction declares storage slots it will touch, the pool can pre-validate these and the execution engine can optimize state loading.
+- [`base-bundles`](https://github.com/base/base/tree/main/crates/shared/bundles) -- bundle handling logic. Bundles are stored separately from individual transactions and are evaluated atomically during payload building.
+
+The pool maintains several sub-pools:
+
+- **Pending** -- transactions ready for immediate inclusion (correct nonce, sufficient balance).
+- **Queued** -- transactions with future nonces, waiting for gaps to fill.
+- **Basefee** -- transactions whose `maxFeePerGas` is below the current base fee. They become pending when the base fee drops.
+
+Transactions are sorted by **effective tip** (the priority fee the builder would receive). The builder pulls from the pending pool in tip-descending order.
+
+## Stage 3: Payload building
+
+Payload building is the process of selecting transactions from the pool and assembling them into a candidate block. In Base, this happens in the builder, which operates on a configurable interval.
+
+**Relevant crates:**
+
+- [`base-builder-core`](https://github.com/base/base/tree/main/crates/builder/core) -- the main building loop. It:
+  1. Receives a `PayloadAttributes` message from the consensus layer (via `engine_forkchoiceUpdated`). This message includes the parent block hash, timestamp, and any **deposit transactions** from L1.
+  2. Pulls pending transactions from the pool, sorted by effective tip.
+  3. Applies each transaction against the current state to check validity and compute gas used.
+  4. Respects the block gas limit and any per-transaction gas limits.
+  5. Optionally includes bundles, evaluating them atomically (all-or-nothing).
+- [`base-engine-ext`](https://github.com/base/base/tree/main/crates/shared/engine-ext) -- Engine API extensions that carry additional payload attributes specific to Base (e.g., Flashblocks configuration, builder identity).
+
+### Deposit transactions
+
+Every L2 block begins with **deposit transactions** -- L1-to-L2 messages derived from L1 by the consensus layer. These are mandatory and always placed at the top of the block, before any user transactions. The builder does not select them from the pool; they are injected by the engine.
+
+The ordering within a block is:
+
+```
+┌──────────────────────────────────────┐
+│  Deposit transactions (from L1)      │  ← mandatory, first
+├──────────────────────────────────────┤
+│  User transactions (from pool)       │  ← sorted by effective tip
+├──────────────────────────────────────┤
+│  Bundle transactions (if any)        │  ← evaluated atomically
+└──────────────────────────────────────┘
+```
+
+### Flashblocks sub-intervals
+
+In Flashblocks mode, the builder does not wait for the full 2-second block time. Instead, it produces partial payloads (**flashblocks**) every 200 milliseconds. Each flashblock contains whatever transactions have been processed since the last interval. See [Flashblocks Pipeline](/architecture/flashblocks-pipeline/) for details.
+
+## Stage 4: EVM execution
+
+Each transaction is executed against the Ethereum Virtual Machine. Base uses Reth's EVM with an Optimism-specific configuration.
+
+**Relevant crates:**
+
+- Execution crates in [`crates/execution/`](https://github.com/base/base/tree/main/crates/execution) -- provide the `EvmConfig` implementation that configures:
+  - **L1 data fee** -- Optimism charges an additional fee based on the transaction's L1 data cost (the cost of posting the transaction data to L1). This is calculated using the L1 base fee and blob base fee, which are read from the L1 attributes deposit transaction at the start of each block.
+  - **Custom precompiles** -- Base may add precompiles beyond the standard Ethereum set.
+  - **System transactions** -- the L1 attributes deposit transaction updates on-chain variables (`l1BaseFee`, `l1BlobBaseFee`, `sequenceNumber`, etc.) by calling the `L1Block` system contract.
+- [`base-primitives`](https://github.com/base/base/tree/main/crates/shared/primitives) -- defines the transaction envelope types that the EVM processes, including Optimism deposit transactions (`TxDeposit`).
+
+The EVM execution loop for each transaction:
+
+1. **Load sender state** -- retrieve the sender's nonce and balance from the state trie.
+2. **Validate** -- check nonce matches, balance covers `gasLimit * gasPrice + value`, and the transaction is well-formed.
+3. **Deduct upfront cost** -- subtract the maximum possible gas cost from the sender's balance.
+4. **Execute** -- run the EVM bytecode. For contract creations, deploy the code. For calls, execute the target contract.
+5. **Apply state changes** -- write modified storage slots, created/destroyed accounts, and balance transfers to the state.
+6. **Calculate gas refund** -- refund unused gas to the sender (up to the refund cap).
+7. **Pay fees** -- transfer the priority fee to the builder's fee recipient. The base fee is burned. The L1 data fee is sent to the L1 fee vault.
+8. **Emit receipt** -- produce a transaction receipt with status, gas used, and logs.
+
+## Stage 5: State trie update
+
+After all transactions in the payload are executed, the resulting state changes are committed to the state trie.
+
+Base uses Reth's state storage, which maintains:
+
+- **Account trie** -- maps addresses to account state (nonce, balance, storage root, code hash).
+- **Storage tries** -- per-account Merkle Patricia Tries mapping storage slots to values.
+- **State root** -- the root hash of the account trie, included in the block header.
+
+The state root is a cryptographic commitment to the entire world state after the block's execution. It is used by:
+
+- **Consensus** -- the consensus layer verifies that the state root in a proposed block matches the result of re-executing all transactions.
+- **Fault proofs** -- the proof system (`kona-mpt`) uses Merkle Patricia Trie proofs to verify individual state transitions without re-executing the entire block.
+
+For fault proof purposes, [`kona-mpt`](https://github.com/base/base/tree/main/crates/proof/mpt) provides a standalone MPT implementation that can verify inclusion/exclusion proofs against a known state root inside the FPVM.
+
+## Stage 6: Block sealing
+
+Once all transactions are executed and the state root is computed, the block is sealed.
+
+**Relevant crates:**
+
+- [`base-builder-publish`](https://github.com/base/base/tree/main/crates/builder/publish) -- the builder packages the sealed payload (transactions, receipts, state root, block header) and publishes it.
+- [`base-client-engine`](https://github.com/base/base/tree/main/crates/client/engine) -- the node's engine handler receives the sealed payload via `engine_newPayload` and:
+  1. Validates the payload (re-executes transactions and checks the state root).
+  2. Stores the block in the database.
+  3. Updates the chain tip via `engine_forkchoiceUpdated`.
+
+The sealed block header contains:
+
+| Field | Source |
+|---|---|
+| `parentHash` | Previous block's hash |
+| `stateRoot` | Computed from stage 5 |
+| `transactionsRoot` | Merkle root of the transaction list |
+| `receiptsRoot` | Merkle root of the receipt list |
+| `logsBloom` | Bloom filter over all logs |
+| `gasUsed` | Total gas consumed by all transactions |
+| `timestamp` | From the `PayloadAttributes` |
+| `baseFeePerGas` | Calculated from parent block's gas usage via EIP-1559 |
+| `extraData` | Builder-specific metadata |
+
+## End-to-end latency
+
+In normal operation (non-Flashblocks mode), the full pipeline from transaction receipt to block sealing takes up to 2 seconds (the L2 block time). In Flashblocks mode, the first confirmation comes within 200 milliseconds because the builder streams partial results as they are produced.
+
+| Mode | First confirmation | Final block |
+|---|---|---|
+| Standard | ~2 seconds | 2 seconds |
+| Flashblocks | ~200 milliseconds | 2 seconds |
+
+The Flashblocks pipeline does not change the final block structure -- it only provides earlier visibility into which transactions will be included. The sealed block at the end of the 2-second interval is identical regardless of whether Flashblocks streaming was active.

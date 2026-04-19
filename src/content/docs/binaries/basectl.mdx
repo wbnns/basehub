@@ -1,0 +1,65 @@
+---
+title: basectl
+description: TUI management utility for configuring and inspecting Base nodes across different network targets.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`basectl` is a terminal-based management utility for configuring and inspecting Base nodes. It provides a TUI (Terminal User Interface) built with `ratatui` and supports multiple network targets.
+
+## Package
+
+- **Crate name:** `basectl`
+- **Source:** [`bin/basectl`](https://github.com/base/base/tree/main/bin/basectl)
+- **Library:** [`crates/infra/basectl`](https://github.com/base/base/tree/main/crates/infra/basectl) (`basectl-cli`)
+
+## Architecture
+
+`basectl` is split into two crates:
+
+- **`basectl`** (binary) — The CLI entry point that parses arguments and launches the TUI
+- **`basectl-cli`** (library) — The core logic for configuration management, subcommands, and the TUI renderer
+
+The TUI is built with [`ratatui`](https://github.com/ratatui/ratatui), providing an interactive terminal interface for node management.
+
+## Subcommands
+
+| Subcommand | Purpose |
+|------------|---------|
+| `config` | Generate or inspect node configuration for a target network |
+| `flashblocks` | Inspect and manage flashblocks streaming state |
+| `da` | Data availability layer inspection and diagnostics |
+| `command-center` | Interactive TUI dashboard for monitoring and managing the node |
+
+## Configuration Targets
+
+| Config | Network |
+|--------|---------|
+| `mainnet` | Base Mainnet |
+| `sepolia` | Base Sepolia Testnet |
+| `devnet` | Local Development Network |
+| `<path>` | Custom configuration file path |
+
+## Key Dependencies
+
+- `basectl-cli` — Configuration logic library
+- `ratatui` — TUI framework
+- `clap` — CLI argument parsing
+- `anyhow` — Error handling
+- `tokio` — Async runtime
+
+## Usage
+
+```bash
+# Via cargo
+cargo run -p basectl --release -- -c <config>
+
+# Via Just (preferred)
+just basectl mainnet
+just basectl sepolia
+just basectl devnet
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/basectl" />

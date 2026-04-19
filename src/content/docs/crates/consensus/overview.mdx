@@ -1,0 +1,42 @@
+---
+title: consensus
+description: OP Stack consensus implementation — derivation pipeline, gossip networking, P2P discovery, and sequencing.
+---
+
+The `consensus` crate group implements the OP Stack consensus protocol for Base. These crates are derived from the [Kona](https://github.com/op-rs/kona) project and handle L1 derivation, P2P networking, gossip, and block sequencing.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [cli](/crates/consensus/cli/) | `kona-cli` | Consensus node CLI |
+| [derive](/crates/consensus/derive/) | `kona-derive` | L1 derivation pipeline |
+| [disc](/crates/consensus/disc/) | `kona-disc` | Peer discovery |
+| [engine](/crates/consensus/engine/) | `kona-engine` | Consensus engine driver |
+| [genesis](/crates/consensus/genesis/) | `kona-genesis` | Genesis state and chain configuration |
+| [gossip](/crates/consensus/gossip/) | `kona-gossip` | Gossip protocol implementation |
+| [hardforks](/crates/consensus/hardforks/) | `kona-hardforks` | OP Stack hardfork definitions |
+| [macros](/crates/consensus/macros/) | `kona-macros` | Procedural macros for consensus code |
+| [peers](/crates/consensus/peers/) | `kona-peers` | Peer management |
+| [protocol](/crates/consensus/protocol/) | `base-protocol` | Base-specific protocol extensions |
+| [providers-alloy](/crates/consensus/providers-alloy/) | `kona-providers-alloy` | Alloy-based data providers for L1/L2 |
+| [registry](/crates/consensus/registry/) | `kona-registry` | Chain and rollup configuration registry |
+| [rpc](/crates/consensus/rpc/) | `base-consensus-rpc` | Consensus RPC endpoints |
+| [service](/crates/consensus/service/) | `kona-node-service` | Consensus node service orchestration |
+| [sources](/crates/consensus/sources/) | `kona-sources` | Data source abstractions for derivation |
+
+## Role in the Architecture
+
+The consensus layer runs independently from the execution layer, communicating via the Engine API. It:
+
+1. Connects to L1 Ethereum to read rollup data (`sources`, `providers-alloy`)
+2. Derives L2 blocks from L1 data using the derivation pipeline (`derive`)
+3. Manages P2P networking for block gossip (`gossip`, `disc`, `peers`)
+4. Drives the consensus engine that feeds payloads to the execution layer (`engine`)
+5. Handles chain configuration and hardfork activation (`genesis`, `hardforks`, `registry`)
+
+The `base-consensus` binary (in `bin/consensus`) runs this layer.
+
+## Source
+
+[`crates/consensus/`](https://github.com/base/base/tree/main/crates/consensus)

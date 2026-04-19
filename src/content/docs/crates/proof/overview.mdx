@@ -1,0 +1,34 @@
+---
+title: proof
+description: Fault proof system — FPVM, preimage oracle, proof driver, executor, and MPT verification.
+---
+
+The `proof` crate group implements the fault proof system for Base. These crates are derived from the [Kona](https://github.com/op-rs/kona) project and handle proof generation, verification, and the Fault Proof Virtual Machine (FPVM) interface.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [driver](/crates/proof/driver/) | `kona-driver` | Proof generation driver |
+| [executor](/crates/proof/executor/) | `kona-executor` | Stateless block executor for proofs |
+| [mpt](/crates/proof/mpt/) | `kona-mpt` | Merkle Patricia Trie for proofs |
+| [preimage](/crates/proof/preimage/) | `kona-preimage` | Preimage oracle interface |
+| [proof](/crates/proof/proof/) | `kona-proof` | Core proof logic |
+| [std-fpvm](/crates/proof/std-fpvm/) | `kona-std-fpvm` | Standard FPVM runtime |
+| [std-fpvm-proc](/crates/proof/std-fpvm-proc/) | `kona-std-fpvm-proc` | Procedural macros for FPVM |
+
+## Role in the Architecture
+
+The proof system enables trustless verification of L2 state transitions on L1. It:
+
+1. Re-executes L2 blocks in a deterministic environment (`executor`)
+2. Uses the Merkle Patricia Trie for state proof verification (`mpt`)
+3. Interfaces with the preimage oracle for reading L1/L2 data (`preimage`)
+4. Runs inside the Fault Proof Virtual Machine (`std-fpvm`)
+5. Coordinates the proof generation process (`driver`, `proof`)
+
+These crates compile to targets that run inside the FPVM (e.g., MIPS or RISC-V) for on-chain dispute resolution.
+
+## Source
+
+[`crates/proof/`](https://github.com/base/base/tree/main/crates/proof)

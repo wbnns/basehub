@@ -1,0 +1,70 @@
+---
+title: builder
+description: The Base block builder binary for flashblock production and block building.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`base-builder` is the block builder service responsible for producing flashblocks at 200ms intervals and assembling canonical blocks. It uses `FlashblocksServiceBuilder` to orchestrate the block building pipeline.
+
+## Package
+
+- **Crate name:** `base-builder-bin`
+- **Binary name:** `base-builder`
+- **Source:** [`bin/builder`](https://github.com/base/base/tree/main/bin/builder)
+- **Dockerfile:** `etc/docker/Dockerfile.builder`
+
+## Architecture
+
+The builder binary bootstraps using `FlashblocksServiceBuilder`, which wires together:
+
+1. **Block building** — Assembles transactions from the pool into execution payloads
+2. **Flashblock production** — Produces 200ms sub-block preconfirmations streamed to subscribers
+3. **Metering** — Tracks gas usage and resource consumption via `MeteringStoreExtension`
+4. **Transaction pool RPC** — Exposes custom pool methods via `TxPoolRpcExtension`
+
+The builder uses jemalloc as its global allocator for improved memory allocation performance.
+
+## Key Extensions
+
+| Extension | Purpose |
+|-----------|---------|
+| `FlashblocksServiceBuilder` | Orchestrates the full flashblocks pipeline |
+| `MeteringStoreExtension` | Resource metering data store |
+| `TxPoolRpcExtension` | Transaction pool RPC methods |
+
+## Key Dependencies
+
+- `base-cli-utils` — CLI utilities (logging, metrics)
+- `base-builder-core` — Core block building logic
+- `base-builder-metering` — Resource metering
+- `base-builder-publish` — Block publishing and streaming
+- `reth-optimism-node` — Reth node builder
+- `jemalloc` — Memory allocator
+
+## Build
+
+```bash
+# Build the builder binary
+cargo build --bin base-builder --release
+```
+
+## Docker
+
+```bash
+# Build the image
+docker build -t base-builder -f etc/docker/Dockerfile.builder .
+
+# Run
+docker run -it --rm base-builder [OPTIONS]
+```
+
+## Usage
+
+```bash
+./target/release/base-builder [OPTIONS]
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/builder" />

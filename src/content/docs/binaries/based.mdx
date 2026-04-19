@@ -1,0 +1,56 @@
+---
+title: based
+description: Block-building sidecar service with health checks and StatsD metrics.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`based` is a block-building sidecar service that provides health check endpoints and StatsD metrics reporting. It acts as a companion process to the block builder, monitoring its state and reporting metrics to external systems.
+
+## Package
+
+- **Crate name:** `based-bin`
+- **Binary name:** `based`
+- **Source:** [`bin/based`](https://github.com/base/base/tree/main/bin/based)
+- **Library:** [`crates/infra/based`](https://github.com/base/base/tree/main/crates/infra/based) (`based`)
+
+## Architecture
+
+`based` runs as a sidecar alongside the block builder. It:
+
+1. Exposes HTTP health check endpoints for load balancer integration
+2. Reports block-building metrics via StatsD to Datadog or compatible backends
+3. Reads configuration from environment variables for deployment flexibility
+
+## Key Dependencies
+
+- `based` — Core daemon library
+- `clap` — CLI argument parsing
+- `tracing` / `tracing-subscriber` — Structured logging
+- `tokio` — Async runtime
+- `cadence` — StatsD metrics client (for Datadog integration)
+
+## Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `STATSD_HOST` | StatsD server hostname |
+| `STATSD_PORT` | StatsD server port |
+| `STATSD_PREFIX` | Metric name prefix |
+| `CODEFLOW_*` | Codeflow environment integration variables |
+
+## Build
+
+```bash
+cargo build --bin based --release
+```
+
+## Usage
+
+```bash
+./target/release/based [OPTIONS]
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/based" />

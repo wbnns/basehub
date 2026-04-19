@@ -1,0 +1,84 @@
+---
+title: websocket-proxy
+description: Fan-out WebSocket proxy with Brotli compression, API key authentication, and rate limiting.
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+`websocket-proxy` is a fan-out WebSocket proxy designed for streaming flashblocks to connected clients. It supports multiple upstream sources, Brotli compression for bandwidth efficiency, API key authentication, and per-IP rate limiting.
+
+## Package
+
+- **Crate name:** `websocket-proxy-bin`
+- **Binary name:** `websocket-proxy`
+- **Source:** [`bin/websocket-proxy`](https://github.com/base/base/tree/main/bin/websocket-proxy)
+- **Library:** [`crates/infra/websocket-proxy`](https://github.com/base/base/tree/main/crates/infra/websocket-proxy)
+- **Dockerfile:** `etc/docker/Dockerfile.websocket-proxy`
+
+## Architecture
+
+The proxy operates as a fan-out service:
+
+```
+Upstream 1 ─┐
+Upstream 2 ─┤→ websocket-proxy ─→ Client A
+Upstream N ─┘                  ─→ Client B
+                               ─→ Client N
+```
+
+It connects to one or more upstream WebSocket URIs (e.g., builder nodes producing flashblocks) and fans out the messages to all connected downstream clients. This enables horizontal scaling of flashblock delivery.
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Fan-out** | Multiplexes messages from upstream sources to all connected clients |
+| **Brotli compression** | Compresses WebSocket frames for bandwidth-efficient delivery |
+| **API key auth** | Authenticates clients via API keys before allowing connections |
+| **Per-IP rate limiting** | Prevents abuse by limiting connection rates per source IP |
+| **Metrics** | Exposes Prometheus metrics on port 9000 |
+| **Multiple upstreams** | Connects to multiple upstream URIs for redundancy |
+
+## Ports
+
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| 8545 | WebSocket | Client-facing flashblock stream |
+| 9000 | HTTP | Prometheus metrics |
+
+## Key Dependencies
+
+- `websocket-proxy` — Core proxy logic
+- `brotli` — Brotli compression
+- `futures` — Async stream utilities
+- `hostname` — Hostname resolution
+- `tokio` — Async runtime
+
+## Docker
+
+```bash
+# Build the image
+docker build -t websocket-proxy -f etc/docker/Dockerfile.websocket-proxy .
+
+# Run
+docker run -it --rm \
+  -p 8545:8545 \
+  -p 9000:9000 \
+  websocket-proxy [OPTIONS]
+```
+
+## Build
+
+```bash
+cargo build --bin websocket-proxy --release
+```
+
+## Usage
+
+```bash
+./target/release/websocket-proxy [OPTIONS]
+```
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/bin/websocket-proxy" />

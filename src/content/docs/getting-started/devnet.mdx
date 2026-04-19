@@ -1,0 +1,161 @@
+---
+title: Local Devnet
+description: Running a local development network.
+---
+
+The `base/base` repository includes a Docker Compose-based devnet that spins up a complete local network. This is useful for integration testing, debugging, and experimenting with features like flashblocks without connecting to a public testnet.
+
+The devnet configuration lives in `etc/docker/docker-compose.yml`.
+
+## Prerequisites
+
+Before starting the devnet, make sure you have:
+
+- [Docker and Docker Compose](/getting-started/prerequisites/#docker-optional) installed and running.
+- The repository cloned and all [prerequisites](/getting-started/prerequisites/) in place.
+
+### Pre-Pulling Images
+
+The devnet uses several Docker images. To avoid long waits on the first start, pull them ahead of time:
+
+```bash
+just system-tests-pull-images
+```
+
+## Starting the Devnet
+
+The `devnet` recipe handles the full lifecycle: it stops any existing devnet, builds fresh images, and starts the stack:
+
+```bash
+just devnet
+```
+
+This is the recommended way to start or restart the devnet. It ensures you are running the latest code and that there is no stale state from a previous run.
+
+## Stopping the Devnet
+
+To stop all containers and clean up resources:
+
+```bash
+just devnet-down
+```
+
+This removes the containers and associated volumes, giving you a clean slate for the next start.
+
+## Monitoring
+
+### Block Status
+
+Check the current block numbers and sync status of the devnet nodes:
+
+```bash
+just devnet-status
+```
+
+This prints block heights and indicates whether nodes are in sync.
+
+### Funded Test Accounts
+
+View the pre-funded accounts available for testing:
+
+```bash
+just devnet-accounts
+```
+
+These accounts come with a balance of test ETH and are ready to use for sending transactions.
+
+### Container Logs
+
+Stream logs from one or more containers:
+
+```bash
+# All containers
+just devnet-logs
+
+# Specific containers
+just devnet-logs sequencer proposer
+```
+
+Logs are streamed in real time. Press Ctrl+C to stop.
+
+## Testing on the Devnet
+
+### Smoke Tests
+
+Run a basic set of test transactions to verify the devnet is functioning correctly:
+
+```bash
+just devnet-smoke
+```
+
+This sends a few transactions and verifies they are included in blocks.
+
+### Combined Status and Smoke
+
+Run both status checks and smoke tests together:
+
+```bash
+just devnet-checks
+```
+
+This is a convenient single command that first prints the devnet status and then runs the smoke tests.
+
+### Load Testing
+
+Start the Contender load generator to stress-test the devnet:
+
+```bash
+just devnet-load
+```
+
+This generates a sustained stream of transactions, which is useful for benchmarking block production, measuring throughput, and testing behavior under pressure.
+
+## Flashblocks Streaming
+
+The devnet supports flashblocks -- sub-block-time transaction confirmations streamed over WebSocket. To connect and watch flashblocks:
+
+```bash
+just devnet-flashblocks
+```
+
+This opens a WebSocket connection to the devnet and prints flashblock messages as they arrive (typically every 200ms). It is a quick way to verify that the flashblocks pipeline is working end-to-end.
+
+## Typical Workflow
+
+A common development loop with the devnet looks like this:
+
+1. Make code changes.
+2. Start a fresh devnet:
+   ```bash
+   just devnet
+   ```
+3. Verify it is running:
+   ```bash
+   just devnet-status
+   ```
+4. Run smoke tests:
+   ```bash
+   just devnet-smoke
+   ```
+5. Stream flashblocks to test your changes:
+   ```bash
+   just devnet-flashblocks
+   ```
+6. Check logs for issues:
+   ```bash
+   just devnet-logs
+   ```
+7. When finished, tear it down:
+   ```bash
+   just devnet-down
+   ```
+
+## Troubleshooting
+
+**Containers fail to start** -- Make sure Docker is running and your user is in the `docker` group. Run `docker compose version` to verify the Compose plugin is installed.
+
+**Port conflicts** -- If another service is using the ports the devnet needs, stop that service first or edit `etc/docker/docker-compose.yml` to remap ports.
+
+**Stale state** -- If the devnet behaves unexpectedly after code changes, run `just devnet-down` followed by `just devnet` to start from a clean state.
+
+**Slow first start** -- The first run pulls several Docker images and may build containers from scratch. Run `just system-tests-pull-images` ahead of time to pre-pull base images.

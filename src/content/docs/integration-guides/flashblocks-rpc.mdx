@@ -1,0 +1,272 @@
+---
+title: Flashblocks RPC
+description: Practical guide to integrating with the Flashblocks RPC API.
+---
+
+Flashblocks are sub-block preconfirmations produced every 200ms on Base. They allow applications to read preconfirmed state -- balances, nonces, receipts, and block data -- before a full block is sealed. This guide covers how to query that state using standard JSON-RPC calls and how to stream flashblock updates over WebSocket.
+
+## Overview
+
+A single Base block (produced every 2 seconds) is divided into multiple **flashblocks** streamed at 200ms intervals. Each flashblock is a delta containing new transactions and the resulting state changes. The Flashblocks RPC exposes this preconfirmed state through the standard Ethereum JSON-RPC interface by supporting the `"pending"` block tag.
+
+```
+Block N (2s)
+├── Flashblock 0  (0ms)
+├── Flashblock 1  (200ms)
+├── Flashblock 2  (400ms)
+├── Flashblock 3  (600ms)
+├── Flashblock 4  (800ms)
+├── Flashblock 5  (1000ms)
+├── Flashblock 6  (1200ms)
+├── Flashblock 7  (1400ms)
+├── Flashblock 8  (1600ms)
+└── Flashblock 9  (1800ms)
+Block N+1 (2s)
+└── ...
+```
+
+## Querying Preconfirmed State
+
+Use the `"pending"` tag in any of the supported JSON-RPC methods to read the latest preconfirmed state.
+
+### Check an Account Balance
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "eth_getBalance",
+    "params": ["0xYourAddress", "pending"],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+The response returns the balance reflecting all transactions included in the most recent flashblock:
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": "0x1bc16d674ec80000"
+}
+```
+
+### Get a Transaction Receipt
+
+After submitting a transaction, you can poll for its receipt immediately without waiting for the full block:
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "eth_getTransactionReceipt",
+    "params": ["0xYourTxHash"],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+If the transaction has been included in a flashblock, the receipt is returned with a zero `blockHash` indicating it is preconfirmed but not yet finalized:
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "transactionHash": "0x...",
+    "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "blockNumber": "0x123",
+    "status": "0x1",
+    "gasUsed": "0x5208",
+    "logs": []
+  }
+}
+```
+
+### Get the Pending Block
+
+Retrieve the current in-progress block with all transactions included so far:
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "eth_getBlockByNumber",
+    "params": ["pending", true],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+Pass `true` as the second parameter to receive full transaction objects, or `false` for transaction hashes only.
+
+### Get the Pending Nonce
+
+To determine the correct nonce for the next transaction from an account:
+
+```bash
+curl -X POST https://your-base-rpc-endpoint \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "eth_getTransactionCount",
+    "params": ["0xYourAddress", "pending"],
+    "id": 1,
+    "jsonrpc": "2.0"
+  }'
+```
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": "0x5"
+}
+```
+
+This is particularly useful for applications that submit multiple transactions in rapid succession -- the `"pending"` nonce reflects transactions already included in flashblocks, avoiding nonce collisions.
+
+## Using ethers.js / viem
+
+### ethers.js
+
+```javascript
+import { JsonRpcProvider } from "ethers";
+
+const provider = new JsonRpcProvider("https://your-base-rpc-endpoint");
+
+// Query preconfirmed balance
+const balance = await provider.getBalance("0xYourAddress", "pending");
+console.log("Pending balance:", balance.toString());
+
+// Query preconfirmed nonce
+const nonce = await provider.getTransactionCount("0xYourAddress", "pending");
+console.log("Pending nonce:", nonce);
+
+// Poll for a preconfirmed receipt
+async function waitForFlashblockReceipt(txHash, intervalMs = 200) {
+  while (true) {
+    const receipt = await provider.getTransactionReceipt(txHash);
+    if (receipt) return receipt;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
+```
+
+### viem
+
+```typescript
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
+
+const client = createPublicClient({
+  chain: base,
+  transport: http("https://your-base-rpc-endpoint"),
+});
+
+// Query preconfirmed balance
+const balance = await client.getBalance({
+  address: "0xYourAddress",
+  blockTag: "pending",
+});
+
+// Query preconfirmed nonce
+const nonce = await client.getTransactionCount({
+  address: "0xYourAddress",
+  blockTag: "pending",
+});
+
+// Get preconfirmed receipt
+const receipt = await client.getTransactionReceipt({
+  hash: "0xYourTxHash",
+});
+```
+
+## WebSocket Streaming
+
+For real-time flashblock updates, connect to the WebSocket endpoint. The `flashblocks_v1` subscription delivers each flashblock delta as it is produced.
+
+### Subscribing
+
+```javascript
+import WebSocket from "ws";
+
+const ws = new WebSocket("wss://your-base-ws-endpoint");
+
+ws.on("open", () => {
+  // Subscribe to flashblock updates
+  ws.send(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "eth_subscribe",
+      params: ["flashblocks_v1"],
+    })
+  );
+});
+
+ws.on("message", (data) => {
+  const msg = JSON.parse(data);
+
+  if (msg.method === "eth_subscription") {
+    const flashblock = msg.params.result;
+    console.log("Flashblock index:", flashblock.index);
+    console.log("Transactions:", flashblock.diff.transactions?.length ?? 0);
+  }
+});
+```
+
+### Flashblock Payload Structure
+
+Each streamed flashblock contains:
+
+| Field | Description |
+|-------|-------------|
+| `payload_id` | Identifier for the parent payload (block being built). |
+| `index` | Flashblock index within the current block (0, 1, 2, ...). |
+| `base` | Present only on index 0. Contains the base execution payload. |
+| `diff` | Delta of transactions, receipts, and state changes since the previous flashblock. |
+| `metadata` | Additional metadata, including the flashblock access list if enabled. |
+
+## Error Handling and Fallback
+
+### Automatic Fallback
+
+When the `"pending"` tag is used but no preconfirmed data is available (for example, during sequencer downtime or between blocks), the RPC automatically falls back to the `"latest"` confirmed state. This means:
+
+- Applications do not need special error handling for missing flashblock state.
+- Results are always consistent -- either preconfirmed or latest confirmed.
+- The caller cannot distinguish between a "pending equals latest" response and a fallback, so applications should not assume the data is fresher than the latest block.
+
+### Error Responses
+
+Standard JSON-RPC error codes apply:
+
+| Scenario | Behavior |
+|----------|----------|
+| Invalid method parameters | Standard JSON-RPC error response with error code and message. |
+| Transaction not found | `null` result (not an error). |
+| Block not found | `null` result (not an error). |
+| Flashblocks disabled | Falls back to standard RPC behavior. No error is returned. |
+
+### Detecting Preconfirmed vs. Finalized
+
+A preconfirmed receipt can be identified by its `blockHash`:
+
+- **Preconfirmed**: `blockHash` is the zero hash (`0x0000...0000`).
+- **Finalized**: `blockHash` is a real block hash.
+
+```javascript
+function isPreconfirmed(receipt) {
+  return (
+    receipt.blockHash ===
+    "0x0000000000000000000000000000000000000000000000000000000000000000"
+  );
+}
+```
+
+## Further Reading
+
+- [Flashblocks Specification](/specifications/flashblocks/) -- full RPC method reference with parameter and return type details.
+- [Access Lists Specification](/specifications/access-lists/) -- the FAL spec that accompanies flashblocks.
+- [Flashblocks Pipeline](/architecture/flashblocks-pipeline/) -- how flashblocks are produced and streamed internally.

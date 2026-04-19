@@ -1,0 +1,93 @@
+---
+title: Building from Source
+description: How to build base/base from source.
+---
+
+This page covers cloning the repository and building the various targets. Make sure you have all [prerequisites](/getting-started/prerequisites/) installed before continuing.
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/base/base.git
+cd base
+```
+
+## Standard Release Build
+
+The most common build command produces a fully optimized release binary for every binary target in the workspace:
+
+```bash
+just build
+```
+
+Under the hood this runs `cargo build --release`. The compiled binaries are placed in `target/release/`.
+
+## Maximum Performance Build
+
+For production deployments where you want every bit of throughput, use the `maxperf` profile. This enables all CPU-specific optimizations and links against jemalloc:
+
+```bash
+just build-maxperf
+```
+
+This build takes longer to compile but produces a binary tuned for the machine it was compiled on. Do not distribute `maxperf` binaries to machines with different CPU micro-architectures.
+
+## Building Individual Targets
+
+If you only need the node binary and want a faster compile:
+
+```bash
+just build-node
+```
+
+Or build it directly with Cargo:
+
+```bash
+cargo build --release --bin base-reth-node
+```
+
+The resulting binary is at `target/release/base-reth-node`.
+
+## Building Solidity Test Contracts
+
+Several crates in the workspace depend on compiled Solidity contracts for their test suites. Build them with:
+
+```bash
+just build-contracts
+```
+
+This changes into `crates/shared/primitives/contracts`, installs Soldeer dependencies, and runs `forge build`. You must have [Foundry](/getting-started/prerequisites/#foundry) installed for this to work.
+
+## Debug Build (All Targets)
+
+During development you may want an unoptimized build with debug symbols for every target in the workspace:
+
+```bash
+just build-all-targets
+```
+
+This compiles in debug mode, which is significantly faster to compile but produces slower binaries. Use this when you need to iterate quickly and do not care about runtime performance.
+
+## Build Artifacts
+
+| Command | Profile | Output |
+|---|---|---|
+| `just build` | release | `target/release/*` |
+| `just build-maxperf` | maxperf (release + LTO + jemalloc) | `target/release/*` |
+| `just build-node` | release | `target/release/base-reth-node` |
+| `just build-all-targets` | debug | `target/debug/*` |
+| `just build-contracts` | N/A (Foundry) | Solidity artifacts in `crates/shared/primitives/contracts/out/` |
+
+## Troubleshooting
+
+**Linker errors mentioning `clang` or `llvm`** -- Install `libclang-dev` (Debian/Ubuntu) or make sure Xcode Command Line Tools are installed (macOS).
+
+**Out of memory during linking** -- Release and maxperf builds with LTO can use a lot of RAM. Close other memory-heavy applications or add swap space. You can also reduce parallelism:
+
+```bash
+CARGO_BUILD_JOBS=2 just build
+```
+
+**Stale Solidity artifacts** -- If contract tests fail after pulling new changes, re-run `just build-contracts` to recompile.
+
+Once the build completes, continue to [Running the Node](/getting-started/running/) or [Docker Builds](/getting-started/docker/).

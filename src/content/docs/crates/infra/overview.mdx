@@ -1,0 +1,34 @@
+---
+title: infra
+description: Infrastructure tooling — basectl, ingress RPC proxy, WebSocket proxy, mempool rebroadcaster, and testing.
+---
+
+The `infra` crate group provides infrastructure tooling and auxiliary services that support the Base network. These crates power the various binaries beyond the main node.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [audit](/crates/infra/audit/) | `audit-archiver-lib` | Audit log archival |
+| [basectl](/crates/infra/basectl/) | `basectl-cli` | Node management utility |
+| [based](/crates/infra/based/) | `based` | Base daemon service |
+| [ingress-rpc](/crates/infra/ingress-rpc/) | `ingress-rpc-lib` | RPC ingress proxy (Kafka-based) |
+| [mempool-rebroadcaster](/crates/infra/mempool-rebroadcaster/) | `mempool-rebroadcaster` | Transaction rebroadcasting service |
+| [system-tests](/crates/infra/system-tests/) | `system-tests` | End-to-end system test framework |
+| [websocket-proxy](/crates/infra/websocket-proxy/) | `websocket-proxy` | WebSocket proxy for flashblock streaming |
+
+## Role in the Architecture
+
+The infra crates provide the operational tooling around the core node:
+
+- **basectl** — A management utility for configuring and inspecting Base nodes. Supports mainnet, sepolia, and devnet configurations.
+- **based** — The Base daemon that orchestrates node services.
+- **ingress-rpc** — An RPC proxy that routes incoming JSON-RPC requests, using Kafka for message queuing.
+- **websocket-proxy** — Proxies WebSocket connections for flashblock streaming with Brotli compression.
+- **mempool-rebroadcaster** — Rebroadcasts transactions from the mempool to ensure propagation.
+- **audit** — Archives audit logs for operational monitoring.
+- **system-tests** — Integration and end-to-end tests using Docker Compose.
+
+## Source
+
+[`crates/infra/`](https://github.com/base/base/tree/main/crates/infra)

@@ -1,0 +1,21 @@
+---
+title: "client/flashblocks"
+description: "Flashblocks state management — WebSocket streaming, pending state, EVM re-execution."
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+## Overview
+
+The `client/flashblocks` sub-crate (`base-flashblocks`) provides the core flashblocks state management. It handles:
+
+- WebSocket streaming of flashblock updates from the builder
+- Pending state cache for preconfirmed transactions
+- EVM re-execution for state queries against the pending block
+- The `pending` tag support for standard Ethereum JSON-RPC methods
+
+This is the crate that powers the [Flashblocks RPC](/specifications/flashblocks/).
+
+## Source
+
+<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/crates/client/flashblocks" />

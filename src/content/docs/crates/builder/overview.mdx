@@ -1,0 +1,30 @@
+---
+title: builder
+description: Block building, flashblock production, metering, and block publishing for Base.
+---
+
+The `builder` crate group handles block building and flashblock production. The builder produces flashblocks at 200ms intervals and publishes them for streaming to clients.
+
+## Sub-crates
+
+| Crate | Package Name | Purpose |
+|-------|-------------|---------|
+| [core](/crates/builder/core/) | `base-builder-core` | Core block building logic and flashblock production |
+| [metering](/crates/builder/metering/) | `base-builder-metering` | Resource metering for block building |
+| [publish](/crates/builder/publish/) | `base-builder-publish` | Block/flashblock publishing and distribution |
+
+## Role in the Architecture
+
+The builder sits between the execution layer and the consensus layer. It:
+
+1. Receives transactions from the transaction pool
+2. Builds execution payloads using the EVM
+3. Produces flashblocks at ~200ms intervals during the 2-second block time
+4. Publishes flashblocks via WebSocket for real-time streaming
+5. Finalizes the canonical block at the end of each slot
+
+The `base-builder-core` crate contains the main building logic, `base-builder-metering` handles gas and resource accounting, and `base-builder-publish` handles distribution of produced blocks.
+
+## Source
+
+[`crates/builder/`](https://github.com/base/base/tree/main/crates/builder)
