@@ -63,7 +63,7 @@ export default defineConfig({
 						'@type': 'WebSite',
 						name: 'BaseHub',
 						url: 'https://basehub.org',
-						description: 'Technical documentation for Base Chain — network reference, RPC APIs, Flashblocks, node operation, and the open-source Rust client.',
+						description: 'Base docs for agents. Every page as raw Markdown, plus llms.txt, a JSON index, and an MCP server. Network reference, RPC APIs, Flashblocks, node operation, and the open-source Rust client behind base/base.',
 						publisher: { '@type': 'Organization', name: 'BaseHub', url: 'https://basehub.org' },
 					}),
 				},
