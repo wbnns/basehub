@@ -12,6 +12,20 @@ export default defineConfig({
 				src: './src/assets/basehub-logo.png',
 			},
 			customCss: ['./src/styles/homepage.css'],
+			head: [
+				{
+					tag: 'script',
+					attrs: {
+						async: true,
+						defer: true,
+						src: 'https://scripts.simpleanalyticscdn.com/latest.js',
+					},
+				},
+				{
+					tag: 'noscript',
+					content: '<img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" />',
+				},
+			],
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/base/base' },
 				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/buildonbase' },
