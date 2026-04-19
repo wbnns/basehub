@@ -1,0 +1,119 @@
+---
+title: eth_getLogs
+description: Returns event logs on Base matching a filter object; pair with pending on Flashblocks to query logs from pre-confirmed transactions.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Returns an array of all logs matching a filter object. The primary tool for indexing on-chain events.
+
+<Aside type="caution">
+Queries that span large block ranges or high-activity contracts can time out or be rejected. Keep `fromBlock`-to-`toBlock` ranges under 2,000 blocks for reliable results. Node providers may enforce their own limits.
+</Aside>
+
+<Aside type="tip">
+**Flashblocks:** set `"fromBlock": "pending"` and `"toBlock": "pending"` against `https://mainnet-preconf.base.org` to query logs from pre-confirmed transactions, refreshed every ~200ms. For a real-time stream, consider the [`pendingLogs`](/api-reference/flashblocks/pendinglogs/) WebSocket subscription instead.
+</Aside>
+
+## Parameters
+
+### `filter` (object, required)
+
+Filter options. At least one criterion should be provided.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `fromBlock` | string | Start of the block range. Block number in hex or a block tag. Pass `"pending"` on a Flashblocks endpoint to include pre-confirmed logs. Defaults to `"latest"`. |
+| `toBlock` | string | End of the block range. Block number in hex or a block tag. Defaults to `"latest"`. |
+| `address` | string \| array | A contract address or array of addresses to filter by. Optional. |
+| `topics` | array | Array of 32-byte topic filters. Each position can be `null` (match any), a single topic hex string, or an array of hex strings (match any in the array). Position 0 is typically the `keccak256` hash of the event signature. Optional. |
+| `blockHash` | string | Restricts logs to the block with this hash. When supplied, `fromBlock` and `toBlock` are ignored. Optional. |
+
+## Returns
+
+`result` (array of log objects):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address` | string | 20-byte address of the contract that emitted the log. |
+| `topics` | array | Array of 0–4 indexed 32-byte topics. Topic 0 is typically the event signature hash. |
+| `data` | string | ABI-encoded non-indexed event parameters. |
+| `blockNumber` | string | Block number in which this log was emitted (hex). |
+| `transactionHash` | string | 32-byte hash of the transaction that emitted this log. |
+| `transactionIndex` | string | Index of the transaction in the block (hex). |
+| `blockHash` | string | 32-byte hash of the block. |
+| `logIndex` | string | The log's index position within the block (hex). |
+| `removed` | boolean | `true` if the log was removed due to a chain reorganization. |
+
+## Example
+
+### Request
+
+<Tabs>
+  <TabItem label="Standard (block range)">
+
+```bash
+curl https://mainnet.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getLogs",
+    "params": [{
+      "fromBlock": "0x12ced00",
+      "toBlock": "0x12ced28",
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
+    }],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+  <TabItem label="Flashblocks (pending, ~200ms)">
+
+```bash
+curl https://mainnet-preconf.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getLogs",
+    "params": [{
+      "fromBlock": "pending",
+      "toBlock": "pending",
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
+    }],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+</Tabs>
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    {
+      "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "topics": [
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+        "0x000000000000000000000000d3cda913deb6f4967b2ef66ae97de114a83bcc01",
+        "0x0000000000000000000000004200000000000000000000000000000000000006"
+      ],
+      "data": "0x0000000000000000000000000000000000000000000000000000000005f5e100",
+      "blockNumber": "0x12ced28",
+      "transactionHash": "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+      "transactionIndex": "0x0",
+      "blockHash": "0x3a4e8c5d7f2b1a6e9d0c4f8b3e7a2d5c8f1b4e7a0d3c6f9b2e5a8d1c4f7b0e3",
+      "logIndex": "0x0",
+      "removed": false
+    }
+  ]
+}
+```

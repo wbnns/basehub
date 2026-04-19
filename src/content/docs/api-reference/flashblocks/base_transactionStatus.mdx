@@ -1,0 +1,46 @@
+---
+title: base_transactionStatus
+description: Reports whether a transaction hash is present in the node mempool, useful for confirming submission before pre-confirmation lands.
+---
+
+Reports whether a specific transaction is present in the node mempool. Use it to confirm that a submitted transaction has been received before it appears in a Flashblock.
+
+Only available on Flashblocks endpoints: `https://mainnet-preconf.base.org` / `https://sepolia-preconf.base.org`.
+
+Requires [base/base](https://github.com/base/base) minimum client version v0.3.0.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `transactionHash` | string | Yes | The 32-byte transaction hash to query. |
+
+## Returns
+
+`result` is the transaction status object:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status` | string | `"Known"` if the transaction is present in the mempool. `"Unknown"` if the node has not seen it. |
+
+## Example
+
+### Request
+
+```bash
+curl https://mainnet-preconf.base.org \
+  -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"base_transactionStatus","params":["0xabc123..."],"id":1}'
+```
+
+### Response (Known)
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"status": "Known"}}
+```
+
+### Response (Unknown)
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": {"status": "Unknown"}}
+```

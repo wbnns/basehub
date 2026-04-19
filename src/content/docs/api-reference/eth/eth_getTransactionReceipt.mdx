@@ -1,0 +1,104 @@
+---
+title: eth_getTransactionReceipt
+description: Returns the receipt for a mined transaction by hash, or null when the transaction is still pending or has not been included in a block.
+---
+
+Returns the receipt for a transaction identified by its hash. Returns `null` while the transaction is still pending or has not yet been mined.
+
+Receipts are only emitted once a transaction is included in a block. To track a transaction beforehand, call [`base_transactionStatus`](/api-reference/flashblocks/base_transactionStatus/) to confirm it has reached the mempool, or subscribe to [`newFlashblockTransactions`](/api-reference/flashblocks/newFlashblockTransactions/) to detect its pre-confirmation inside a Flashblock.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `transactionHash` | string | Yes | The 32-byte transaction hash. |
+
+## Returns
+
+`result` is the receipt object, or `null` if the transaction has not been mined.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `transactionHash` | string | 32-byte transaction hash. |
+| `transactionIndex` | string | Position of the transaction in the block (hex). |
+| `blockHash` | string | 32-byte hash of the block containing this transaction. |
+| `blockNumber` | string | Block number (hex). |
+| `from` | string | 20-byte sender address. |
+| `to` | string | 20-byte recipient address. `null` for contract deployments. |
+| `cumulativeGasUsed` | string | Total gas used in the block up to and including this transaction (hex). |
+| `effectiveGasPrice` | string | Actual gas price paid per unit of gas for this transaction (hex). |
+| `gasUsed` | string | Gas used by this specific transaction (hex). |
+| `contractAddress` | string \| null | Address of the deployed contract, or `null` if the transaction was not a deployment. |
+| `logs` | array | Array of log objects emitted by this transaction. |
+| `logsBloom` | string | 256-byte bloom filter for the logs in this receipt. |
+| `type` | string | Transaction type: `"0x0"` Legacy, `"0x1"` Access List, `"0x2"` EIP-1559, `"0x7e"` Deposit (L1→L2). |
+| `status` | string | `"0x1"` for success, `"0x0"` for failure (revert). |
+| `blobGasUsed` | string | Blob gas consumed by this transaction (EIP-4844). `null` for non-blob transactions. Propagated accurately in both finalized and pre-confirmed Flashblock state. |
+| `blobGasPrice` | string | Blob gas price at the time of this transaction (EIP-4844). `null` for non-blob transactions. |
+
+## Error codes
+
+| Code | Message | Description |
+| --- | --- | --- |
+| `-32000` | transaction indexing is in progress | The node is still indexing transactions. Retry once the node finishes syncing. |
+
+## Flashblock-specific response fields
+
+The Flashblocks infrastructure stream surfaces pre-confirmed receipt data inside the `metadata.receipts` map of each Flashblock payload before the block seals. The abbreviated receipt mirrors the standard receipt shape:
+
+| Field | Flashblock `metadata.receipts[hash]` |
+| --- | --- |
+| `type` | Transaction type (`0x0`, `0x1`, `0x2`, `0x7e`) |
+| `status` | `"0x1"` success / `"0x0"` failure |
+| `cumulativeGasUsed` | Cumulative gas in block to this transaction |
+| `logs` | Emitted log objects |
+| `logsBloom` | Bloom filter |
+| `transactionIndex` | Index in block |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_getTransactionReceipt",
+  "params": ["0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238"],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "transactionHash": "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+    "transactionIndex": "0x0",
+    "blockHash": "0x3a4e8c5d7f2b1a6e9d0c4f8b3e7a2d5c8f1b4e7a0d3c6f9b2e5a8d1c4f7b0e3",
+    "blockNumber": "0x12ced28",
+    "from": "0xd3CdA913deB6f4967b2Ef66ae97DE114a83bcc01",
+    "to": "0x4200000000000000000000000000000000000006",
+    "cumulativeGasUsed": "0x5208",
+    "effectiveGasPrice": "0x3b9aca00",
+    "gasUsed": "0x5208",
+    "contractAddress": null,
+    "logs": [],
+    "logsBloom": "0x00000000000000000000000000000000...",
+    "status": "0x1",
+    "type": "0x2"
+  }
+}
+```
+
+### Response (not found)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": null
+}
+```

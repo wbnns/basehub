@@ -1,0 +1,91 @@
+---
+title: eth_getTransactionByHash
+description: Returns full transaction data for a 32-byte transaction hash on Base, or null when the node has not seen the transaction.
+---
+
+Returns information about a transaction given its hash. Returns `null` for unknown transactions.
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `transactionHash` | string | The 32-byte transaction hash. Required. |
+
+## Returns
+
+`result` (object, or `null` if the transaction was not found):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `hash` | string | 32-byte transaction hash. |
+| `nonce` | string | Number of transactions sent by the sender prior to this one (hex). |
+| `blockHash` | string | 32-byte hash of the block containing this transaction. `null` if pending. |
+| `blockNumber` | string | Block number (hex). `null` if pending. |
+| `transactionIndex` | string | Index position in the block (hex). `null` if pending. |
+| `from` | string | 20-byte sender address. |
+| `to` | string | 20-byte recipient address. `null` for contract deployments. |
+| `value` | string | ETH value transferred in wei (hex). |
+| `gas` | string | Gas provided by the sender (hex). |
+| `gasPrice` | string | Gas price in wei. For EIP-1559 transactions, this is the effective gas price paid (hex). |
+| `maxFeePerGas` | string | EIP-1559 maximum total fee per gas (hex). Present for type `0x2` transactions only. |
+| `maxPriorityFeePerGas` | string | EIP-1559 maximum priority fee per gas (hex). Present for type `0x2` transactions only. |
+| `input` | string | ABI-encoded call data. `"0x"` for plain ETH transfers. |
+| `type` | string | Transaction type: `"0x0"` Legacy, `"0x1"` Access List, `"0x2"` EIP-1559, `"0x7e"` Deposit (L1→L2). |
+| `chainId` | string | Chain ID the transaction is valid for. `"0x2105"` for Base Mainnet, `"0x14a34"` for Base Sepolia. |
+| `accessList` | array | List of addresses and storage keys pre-declared by the transaction (EIP-2930). Present for type `0x1` and `0x2` transactions. |
+| `v` | string | ECDSA recovery ID (hex). |
+| `r` | string | 32-byte ECDSA signature component r (hex). |
+| `s` | string | 32-byte ECDSA signature component s (hex). |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_getTransactionByHash",
+  "params": ["0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238"],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "hash": "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+    "nonce": "0x1b",
+    "blockHash": "0x3a4e8c5d7f2b1a6e9d0c4f8b3e7a2d5c8f1b4e7a0d3c6f9b2e5a8d1c4f7b0e3",
+    "blockNumber": "0x12ced28",
+    "transactionIndex": "0x0",
+    "from": "0xd3CdA913deB6f4967b2Ef66ae97DE114a83bcc01",
+    "to": "0x4200000000000000000000000000000000000006",
+    "value": "0x2c68af0bb14000",
+    "gas": "0x5208",
+    "gasPrice": "0x3b9aca00",
+    "maxFeePerGas": "0x77359400",
+    "maxPriorityFeePerGas": "0x3b9aca00",
+    "input": "0x",
+    "type": "0x2",
+    "chainId": "0x2105",
+    "accessList": [],
+    "v": "0x1",
+    "r": "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+    "s": "0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c"
+  }
+}
+```
+
+When the node has not seen the transaction:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": null
+}
+```

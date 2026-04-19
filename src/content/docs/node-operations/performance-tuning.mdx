@@ -1,0 +1,46 @@
+---
+title: Performance Tuning
+description: Hardware, storage, and client recommendations for high-performance Base nodes, including production configurations and sync guidance.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This guide covers the hardware, storage, and client choices that yield the best Base node performance.
+
+## Hardware
+
+A performant Base node needs adequate hardware. Recommended minimums:
+
+1. A modern multi-core CPU with strong single-core performance.
+2. At least 32 GB of RAM (64 GB preferred).
+3. A locally attached NVMe SSD. RAID 0 layouts can boost throughput.
+4. Sufficient capacity, sized as:
+
+   ```
+   (2 × [current chain size] + [snapshot size] + 20% buffer)
+   ```
+
+   The formula reserves room for chain growth and snapshot restoration. See [Base Stats](https://base.org/stats) for the current chain size and [Base Chain Data](https://basechaindata.vercel.app) for snapshot size.
+
+<Aside type="note">
+On AWS Elastic Block Store, io2 Block Express volumes provide enough disk read throughput to avoid latency issues during initial sync. Even so, **locally attached NVMe SSDs are strongly preferred over networked storage**.
+</Aside>
+
+### Production hardware
+
+Base production nodes use the following hardware:
+
+- **Reth archive node**
+  - Instance: AWS `i7i.12xlarge` or larger
+  - Storage: RAID 0 across all local NVMe drives (`/dev/nvme*`)
+  - Filesystem: ext4
+
+## Initial sync
+
+Restore from a recent [snapshot](/node-operations/snapshots/) to dramatically shorten initial sync.
+
+## Client software
+
+The [Base Node](https://github.com/base/node) repository carries the current stable client configurations and run instructions.
+
+Reth is currently the most performant Base client, and ongoing optimization work is concentrated there. Background on the move to Reth: [Scaling Base with Reth](https://blog.base.dev/scaling-base-with-reth).

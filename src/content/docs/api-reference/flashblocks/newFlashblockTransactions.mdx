@@ -1,0 +1,45 @@
+---
+title: newFlashblockTransactions
+description: Subscribe to receive each transaction the sequencer pre-confirms into a Flashblock, optionally with full transaction and log data.
+---
+
+Subscribe via `eth_subscribe` to receive each transaction as it is pre-confirmed into a Flashblock. Pass `true` as the second parameter to receive full transaction and log data.
+
+Only available on Flashblocks WebSocket endpoints: `wss://mainnet-preconf.base.org` / `wss://sepolia-preconf.base.org`.
+
+Requires [base/base](https://github.com/base/base) minimum client version v0.3.1.
+
+Each subscription emits one item per WebSocket message, with events arriving roughly every 200ms. If your handler does heavy work per event, throttle or debounce it to avoid blocking.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `subscriptionType` | string | Yes | Must be `"newFlashblockTransactions"`. |
+| `full` | boolean | No | If `true`, each notification includes the full transaction object and associated logs. Defaults to `false` (minimal data only). |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | Hex-encoded subscription ID. |
+
+## Example
+
+### Subscribe
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "eth_subscribe", "params": ["newFlashblockTransactions"]}
+```
+
+### Subscribe (full data)
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "eth_subscribe", "params": ["newFlashblockTransactions", true]}
+```
+
+### Subscription ID response
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": "0x1887ec8b9589ccad00000000000532da"}
+```

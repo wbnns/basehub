@@ -1,0 +1,64 @@
+---
+title: newFlashblocks
+description: Subscribe to the full Flashblock payload stream and receive each pre-confirmed block delta as the sequencer builds it, every ~200ms.
+---
+
+Subscribe via `eth_subscribe` to receive full block state updates as each Flashblock is built. Each message contains the accumulated pre-confirmed state for the block in progress.
+
+Only available on Flashblocks WebSocket endpoints: `wss://mainnet-preconf.base.org` and `wss://sepolia-preconf.base.org`.
+
+Requires [base/base](https://github.com/base/base) minimum client version v0.3.1.
+
+Each subscription emits one Flashblock object per WebSocket message, with events arriving roughly every 200ms. If your handler does heavy work per event, throttle or debounce it to avoid blocking.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `subscriptionType` | string | Yes | Must be `"newFlashblocks"`. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | Hex-encoded subscription ID. Each event notification delivers a Flashblock object — not a standard block object. The payload contains `payload_id`, `index`, `diff`, and (on index 0) `base`. See the [infrastructure stream schema](/api-reference/flashblocks/overview/#flashblock-object) for the full structure. |
+
+## Example
+
+### Subscribe
+
+```json
+{"jsonrpc": "2.0", "id": 1, "method": "eth_subscribe", "params": ["newFlashblocks"]}
+```
+
+### Subscription ID response
+
+```json
+{"jsonrpc": "2.0", "id": 1, "result": "0x3b8cd9e5f4a7b2c1d0e3f4a5b6c7d8e9"}
+```
+
+### JavaScript
+
+```javascript
+import WebSocket from 'ws';
+
+// Use a Flashblocks-enabled provider WSS endpoint in production
+const ws = new WebSocket('wss://mainnet-preconf.base.org');
+
+ws.on('open', () => {
+  ws.send(JSON.stringify({
+    jsonrpc: '2.0',
+    method: 'eth_subscribe',
+    params: ['newFlashblocks'],
+    id: 1
+  }));
+});
+
+ws.on('message', (data) => {
+  const msg = JSON.parse(data.toString());
+  if (msg.method === 'eth_subscription') {
+    // Fires every ~200ms with the latest Flashblock state
+    console.log('Flashblock update:', msg.params.result);
+  }
+});
+```

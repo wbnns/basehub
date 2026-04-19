@@ -1,0 +1,40 @@
+---
+title: Flashblocks Architecture
+description: Sequencer topology and infrastructure components — rollup-boost, op-rbuilder, websocket-proxy, and base — that power Flashblocks on Base.
+---
+
+The Flashblocks pipeline layers four new components — rollup-boost, op-rbuilder, websocket-proxy, and base — onto Base's existing high-availability sequencer.
+
+## Before Flashblocks
+
+Base operates a high-availability sequencer with five sequencer instances:
+
+| Component | Role |
+|-----------|------|
+| **op-node** | Standard OP Stack consensus layer (CL). |
+| **op-geth** | Standard OP Stack execution layer (EL). |
+| **op-conductor** | High availability controller using Raft consensus for leader election. |
+
+One sequencer instance is the **leader** and produces blocks, propagating them over P2P. The other four follow and sync the chain. Leadership transfers when the current leader stops producing blocks.
+
+## With Flashblocks
+
+Flashblocks add several new infrastructure components:
+
+| Component | Purpose | What it unlocks |
+|-----------|---------|-----------------|
+| **rollup-boost** | CL↔EL Engine API proxy. | Streams Flashblocks to the EL without modifying the CL. Provides a stable seam for future block-building changes such as multi-builder. |
+| **op-rbuilder** | Out-of-protocol builder running at 200ms cadence. | Produces sub-second Flashblocks decoupled from the EL and enables pluggable builder mechanisms. |
+| **websocket-proxy** | Fan-out for the Flashblocks stream. | Lets many consumers read the stream without overwhelming the builder. |
+| **[base](https://github.com/base/base)** | RPC surface that exposes preconfirmations. | Turns streamed Flashblocks into familiar RPC methods so apps and wallets can consume preconfirmed state. |
+
+Flashbots builds and maintains [rollup-boost](https://github.com/flashbots/rollup-boost) and [op-rbuilder](https://github.com/flashbots/op-rbuilder); Base maintains the websocket-proxy and the [base](https://github.com/base/base) component.
+
+---
+
+## Further reading
+
+- [Flashblocks Overview](/flashblocks/overview/) — key concepts and transaction lifecycle.
+- [Enable Flashblocks](/node-operations/run-a-base-node/#enable-flashblocks) — run your own Flashblocks-aware RPC node.
+- [API Reference](/api-reference/flashblocks/flashblocks-api-overview/) — RPC methods, WebSocket subscriptions, and infrastructure stream schema.
+- [Flashblocks deep dive](https://blog.base.dev/flashblocks-deep-dive) — engineering blog post with implementation details.

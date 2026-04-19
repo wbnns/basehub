@@ -1,0 +1,41 @@
+---
+title: eth_getBlockTransactionCountByHash
+description: Returns the number of transactions included in the Base block matching the supplied 32-byte block hash.
+---
+
+Returns the number of transactions in a block matching the given block hash.
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `blockHash` | string | The 32-byte block hash. Required. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The number of transactions in the block as a hexadecimal integer. `null` if no block was found. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_getBlockTransactionCountByHash",
+  "params": ["0x5c330e55a190f82ea486b61e5b12e27dfb4fb3cecfc5746886ef38ca1281bce8"],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x1f"
+}
+```

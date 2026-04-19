@@ -1,0 +1,121 @@
+---
+title: eth_getBlockByNumber
+description: Returns block data by number on Base; on Flashblocks endpoints the pending tag returns the live pre-confirmed block updated every ~200ms.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Returns information about a block identified by its number.
+
+<Aside type="tip">
+**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to fetch the live Flashblock in progress — a real block object refreshed every ~200ms with new pre-confirmed transactions. The response shape is identical; the block is simply not yet sealed.
+</Aside>
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Pass `"pending"` on a Flashblocks endpoint to get the in-progress block. Required. |
+| 2 | `fullTransactions` | boolean | When `true`, returns full transaction objects; when `false`, returns only transaction hashes. Required. |
+
+## Returns
+
+`result` (object or `null` if no block was found):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `number` | string | Block number in hex. `null` when pending. |
+| `hash` | string | Block hash. `null` when pending. |
+| `parentHash` | string | Hash of the parent block. |
+| `nonce` | string | PoW nonce. Always `"0x0000000000000000"` on Base (PoS). |
+| `sha3Uncles` | string | Hash of the uncles list. Always empty on Base. |
+| `logsBloom` | string | Bloom filter for the block's logs. |
+| `transactionsRoot` | string | Root of the transaction trie. |
+| `stateRoot` | string | Root of the final state trie. |
+| `receiptsRoot` | string | Root of the receipts trie. |
+| `miner` | string | Address of the fee recipient (coinbase). |
+| `difficulty` | string | Always `"0x0"` on Base (PoS). |
+| `totalDifficulty` | string | Always `"0x0"` on Base (PoS). |
+| `extraData` | string | Arbitrary data field set by the sequencer. |
+| `size` | string | Block size in bytes (hex). |
+| `gasLimit` | string | Maximum gas allowed in this block (hex). |
+| `gasUsed` | string | Total gas used in this block (hex). |
+| `timestamp` | string | Unix timestamp (hex). |
+| `transactions` | array | Array of transaction hashes or full transaction objects. |
+| `uncles` | array | Always `[]` on Base. |
+| `withdrawals` | array | Always `[]` on Base. |
+| `baseFeePerGas` | string | EIP-1559 base fee per gas (hex). |
+| `blobGasUsed` | string | Total blob gas used (EIP-4844, hex). |
+| `excessBlobGas` | string | Excess blob gas for blob fee calculation (EIP-4844, hex). |
+| `parentBeaconBlockRoot` | string | Parent beacon block root (EIP-4788). |
+| `requestsHash` | string | Hash of requests (EIP-7685). |
+
+## Flashblock-specific response fields
+
+When you query `"pending"` on a Flashblocks endpoint, the response is a live snapshot of the block being built. A few fields behave differently:
+
+| Field | Standard `latest` | Flashblocks `pending` |
+| --- | --- | --- |
+| `number` | Sealed block number | Current block number (being built) |
+| `hash` | Final block hash | Hash of the partial block at this Flashblock index |
+| `gasUsed` | Final gas used | Cumulative gas used up to this Flashblock |
+| `transactions` | All sealed transactions | Transactions pre-confirmed so far |
+| `blobGasUsed` | Final blob gas used | Propagated from cumulative Flashblock state |
+
+## Example
+
+### Request
+
+<Tabs>
+  <TabItem label="Standard (latest sealed block)">
+
+```bash
+curl https://mainnet.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getBlockByNumber",
+    "params": ["latest", false],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+  <TabItem label="Flashblocks (pending, live at ~200ms)">
+
+```bash
+curl https://mainnet-preconf.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getBlockByNumber",
+    "params": ["pending", false],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+</Tabs>
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "number": "0x158a0e9",
+    "hash": "0x5c330e55a190f82ea486b61e5b12e27dfb4fb3cecfc5746886ef38ca1281bce8",
+    "parentHash": "0x9edc29b8b0a1e31d28616e40c16132ad0d58faa8bb952595b557526bdb9a960a",
+    "timestamp": "0x67bf8332",
+    "gasLimit": "0x3938700",
+    "gasUsed": "0xab3f",
+    "baseFeePerGas": "0xfa",
+    "transactions": ["0x7ef8f8a0..."],
+    "withdrawals": [],
+    "miner": "0x4200000000000000000000000000000000000011"
+  }
+}
+```

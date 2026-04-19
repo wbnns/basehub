@@ -1,0 +1,119 @@
+---
+title: Bridges
+description: Third-party bridges for moving assets between Base and Ethereum, Solana, or Bitcoin, plus contract addresses for the Base-Solana bridge.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+Base supports asset transfers from Ethereum, Solana, and Bitcoin through a network of third-party bridge providers. The Base-operated bridge at bridge.base.org is no longer available; the providers below cover the same asset flows.
+
+For frequently asked questions, jump to the [FAQ](#faq).
+
+## Ethereum and Base
+
+### Superbridge
+
+Superbridge moves ETH and other supported assets between Ethereum mainnet (L1) and Base.
+
+Supported networks:
+
+- [Base Mainnet](https://superbridge.app/base)
+- [Base Sepolia (Testnet)](https://superbridge.app/base-sepolia)
+
+### Brid.gg
+
+Brid.gg also bridges ETH and supported assets between Ethereum mainnet (L1) and Base.
+
+Supported networks:
+
+- [Base Mainnet](https://brid.gg/base)
+- [Base Sepolia (Testnet)](https://testnet.brid.gg/base-sepolia)
+
+### Programmatic bridging from Ethereum
+
+The [sample code repository](https://github.com/base-org/guides/tree/main/bridge/native) demonstrates how to bridge ETH and ERC-20s from Ethereum to Base.
+
+<Aside type="caution">
+**Verify ERC-20 token addresses.** Any ERC-20 supported on the network can be bridged. Check the [ethereum-optimism token list](https://github.com/ethereum-optimism/ethereum-optimism.github.io/tree/master/data) for the canonical Base address — for example, the [WETH entry](https://github.com/ethereum-optimism/ethereum-optimism.github.io/blob/master/data/WETH/data.json#L16-L18) must contain a `base` address. Always run a small test transaction first.
+</Aside>
+
+<Aside type="caution">
+The sample implementation only supports deposits to Base. Do not modify it to attempt withdrawals.
+</Aside>
+
+### Token issuers
+
+If you have an ERC-20 deployed on Ethereum and want to make it bridgeable to Base, follow the [bridge-an-L1-token guide](https://docs.base.org/base-chain/quickstart/bridge-token). It walks through deploying via the standard bridge contracts and adding your token to the Superchain token list.
+
+## Solana and Base
+
+The Base-Solana bridge supports two-way token transfers and arbitrary message passing between Base and Solana.
+
+Capabilities include:
+
+- Transferring SOL and SPL tokens to and from Base
+- Sending arbitrary cross-chain messages
+- Deploying wrapped tokens on either side
+- Optional auto-relay for instant settlement
+
+<CardGrid>
+  <Card title="Full documentation" icon="open-book">
+    [Complete bridge guide with code samples and contract addresses](/introduction/base-solana-bridge/)
+  </Card>
+  <Card title="Terminally Onchain" icon="seti:terminal">
+    [Production terminal UI for bridging and contract calls](https://terminallyonchain.com/)
+  </Card>
+</CardGrid>
+
+### Contract addresses
+
+| Network | Contract | Address |
+|---------|----------|---------|
+| Base Mainnet | Bridge | `0x3eff766C76a1be2Ce1aCF2B69c78bCae257D5188` |
+| Base Mainnet | SOL Token | `0x311935Cd80B76769bF2ecC9D8Ab7635b2139cf82` |
+| Solana Mainnet | Bridge Program | `HNCne2FkVaNghhjKXapxJzPaBvAKDG1Ge3gqhZyfVWLM` |
+
+<Aside type="note">
+For testnet addresses and the full implementation walkthrough, see the [Base-Solana bridge documentation](/introduction/base-solana-bridge/).
+</Aside>
+
+## Bitcoin to Base
+
+### Garden
+
+Garden is a fast, non-custodial bridge that moves BTC and supported assets from Ethereum, Solana, and other chains directly to Base.
+
+Supported networks:
+
+- [Base Mainnet](https://app.garden.finance/?output-chain=base&output-asset=cbBTC)
+- [Base Sepolia (Testnet)](https://testnet.garden.finance/?output-chain=base_sepolia&output-asset=USDT)
+
+## Disclaimer
+
+Coinbase Technologies, Inc. links to these independent providers for convenience and accepts no responsibility for their operations. Any interaction with a listed provider is solely between you and that provider.
+
+## FAQ
+
+**Can I still use the bridge on bridge.base.org?**
+
+No. The bridge at bridge.base.org has been deprecated.
+
+**I used bridge.base.org previously — how do I find my deposit or withdrawal?**
+
+Look up your transaction on one of the Superchain Bridges listed above.
+
+**Why was the bridge on bridge.base.org deprecated?**
+
+Base is committed to decentralization and the Superchain. Handing bridging off to community-operated providers strengthens censorship resistance and reduces single points of control.
+
+**Who runs the Superchain Bridges (Garden.finance, Superbridge.app, Brid.gg)?**
+
+Superchain Bridges are operated by independent third parties, not by Coinbase Technologies, Inc. ("Coinbase"). Coinbase does not control or operate them and assumes no responsibility for their performance. Each provider may require you to accept its terms of service and privacy policy — review them before using a bridge. Listing a bridge here is not an endorsement.
+
+**How does the Base-Solana bridge work?**
+
+A validator set verifies cross-chain messages. Bridging from Solana to Base locks the source tokens on Solana and mints wrapped tokens on Base. Bridging from Base to Solana burns the wrapped tokens on Base and releases the originals on Solana. The [full bridge documentation](/introduction/base-solana-bridge/) covers the implementation.
+
+**Where can I get help if I have a question or problem?**
+
+The [Base Discord](https://base.org/discord) is staffed around the clock. Open a ticket in the `#general-support` channel for assistance.

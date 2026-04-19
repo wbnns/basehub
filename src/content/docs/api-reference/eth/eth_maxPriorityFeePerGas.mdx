@@ -1,0 +1,39 @@
+---
+title: eth_maxPriorityFeePerGas
+description: Returns the suggested EIP-1559 priority fee (tip) per gas to pay the sequencer on top of the base fee.
+---
+
+Returns a suggested value for `maxPriorityFeePerGas` to use in an EIP-1559 transaction. The value is the tip paid to the sequencer on top of the base fee.
+
+## Parameters
+
+None.
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The suggested priority fee per gas in wei as a hexadecimal string. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_maxPriorityFeePerGas",
+  "params": [],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x1"
+}
+```

@@ -1,0 +1,80 @@
+---
+title: Network Faucets
+description: Testnet ETH faucets for Base Sepolia from Coinbase Developer Platform, Alchemy, QuickNode, Chainstack, and other providers.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Multiple providers dispense free Base Sepolia testnet ETH (and a few support mainnet drips for contract deployment). Supported assets, claim limits, and authentication requirements vary by provider.
+
+## Coinbase Developer Platform
+
+The [Coinbase Developer Platform Faucet](https://portal.cdp.coinbase.com/products/faucet) hands out up to 0.1 testnet ETH per 24 hours on Base Sepolia, and also drips USDC, EURC, and cbBTC.
+
+<Aside type="note">
+Use the [Portal UI](https://portal.cdp.coinbase.com/products/faucet) or call the faucet [programmatically](https://docs.cdp.coinbase.com/faucets/introduction/quickstart) with the `@coinbase/cdp-sdk`. The [CDP Faucet docs](https://docs.cdp.coinbase.com/faucets/introduction/welcome#evm-compatible) cover claim limits and supported assets.
+</Aside>
+
+## thirdweb
+
+The [thirdweb Faucet](https://thirdweb.com/base-sepolia-testnet) provides free Base Sepolia ETH with a single claim per 24 hours.
+
+<Aside type="note">
+Connect via EOA or social login to claim Base Sepolia funds.
+</Aside>
+
+## Alchemy
+
+The [Alchemy Faucet](https://basefaucet.com/) requires a free Alchemy account and dispenses Base Sepolia testnet ETH.
+
+<Aside type="note">
+Limited to one claim per 24 hours.
+</Aside>
+
+## Bware Labs
+
+The [Bware Labs Faucet](https://bwarelabs.com/faucets) requires no registration and dispenses Base Sepolia ETH.
+
+<Aside type="note">
+Limited to one claim per 24 hours.
+</Aside>
+
+## Chainstack
+
+The [Chainstack Faucet](https://faucet.chainstack.com/) drips Base ETH against your Chainstack platform API key.
+
+<Aside type="note">
+Drips 0.5 ETH every 24 hours.
+</Aside>
+
+## ethfaucet.com
+
+[ethfaucet.com](https://ethfaucet.com/networks/base) provides free Base Sepolia testnet ETH and small mainnet drips for contract deployment. The faucet is operated by [BringID](https://www.bringid.org/).
+
+<Aside type="note">
+Sepolia drips are rate-limited per 24 hours; mainnet ETH can only be claimed once.
+</Aside>
+
+## QuickNode
+
+The [QuickNode Faucet](https://faucet.quicknode.com/drip) is a multi-chain faucet that dispenses Base Sepolia testnet ETH.
+
+<Aside type="note">
+Limited to one drip per network every 12 hours.
+</Aside>
+
+## LearnWeb3
+
+The [LearnWeb3 Faucet](https://learnweb3.io/faucets/base_sepolia) is a multi-chain faucet that dispenses Base Sepolia testnet ETH.
+
+<Aside type="note">
+Limited to one claim per 24 hours.
+</Aside>
+
+## Ethereum Ecosystem
+
+The [Base Sepolia Faucet](https://www.ethereum-ecosystem.com/faucets/base-sepolia) is operated by [Ethereum Ecosystem](https://www.ethereum-ecosystem.com) and requires no login.
+
+<Aside type="note">
+Each wallet can claim up to 0.5 ETH every 24 hours.
+</Aside>

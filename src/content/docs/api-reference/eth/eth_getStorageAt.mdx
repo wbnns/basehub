@@ -1,0 +1,73 @@
+---
+title: eth_getStorageAt
+description: Returns the 32-byte value stored at a contract storage slot on Base; use pending on Flashblocks for pre-confirmed storage reads.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Returns the value held at a storage position for a given contract address.
+
+<Aside type="tip">
+**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to read storage updated by pre-confirmed transactions every ~200ms.
+</Aside>
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `address` | string | The 20-byte address that owns the storage. Required. |
+| 2 | `position` | string | The storage slot position as a hexadecimal integer. Required. |
+| 3 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Required. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The value at the storage position as a 32-byte hex string. |
+
+## Example
+
+### Request
+
+<Tabs>
+  <TabItem label="Standard (latest)">
+
+```bash
+curl https://mainnet.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getStorageAt",
+    "params": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "0x0", "latest"],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+  <TabItem label="Flashblocks (pending, ~200ms)">
+
+```bash
+curl https://mainnet-preconf.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getStorageAt",
+    "params": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "0x0", "pending"],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+</Tabs>
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x0000000000000000000000000000000000000000000000000000000000000001"
+}
+```

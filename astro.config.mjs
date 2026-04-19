@@ -17,7 +17,8 @@ export default defineConfig({
 				'./src/styles/homepage.css',
 			],
 			expressiveCode: {
-				themes: ['github-light', 'github-dark'],
+				themes: ['github-light'],
+				useStarlightDarkModeSwitch: false,
 				styleOverrides: {
 					borderRadius: '8px',
 					borderColor: 'var(--code-border)',
@@ -40,6 +41,34 @@ export default defineConfig({
 			head: [
 				{
 					tag: 'script',
+					content:
+						"document.documentElement.dataset.theme='light';try{localStorage.setItem('starlight-theme','light');}catch(_){}",
+				},
+				{ tag: 'meta', attrs: { property: 'og:site_name', content: 'BaseHub' } },
+				{ tag: 'meta', attrs: { property: 'og:type', content: 'website' } },
+				{ tag: 'meta', attrs: { property: 'og:image', content: 'https://basehub.org/og-default.png' } },
+				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+				{ tag: 'meta', attrs: { property: 'og:image:alt', content: 'BaseHub — technical documentation for Base Chain' } },
+				{ tag: 'meta', attrs: { property: 'og:locale', content: 'en_US' } },
+				{ tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+				{ tag: 'meta', attrs: { name: 'twitter:image', content: 'https://basehub.org/og-default.png' } },
+				{ tag: 'meta', attrs: { name: 'twitter:image:alt', content: 'BaseHub — technical documentation for Base Chain' } },
+				{ tag: 'meta', attrs: { name: 'theme-color', content: '#0000ff' } },
+				{
+					tag: 'script',
+					attrs: { type: 'application/ld+json' },
+					content: JSON.stringify({
+						'@context': 'https://schema.org',
+						'@type': 'WebSite',
+						name: 'BaseHub',
+						url: 'https://basehub.org',
+						description: 'Technical documentation for Base Chain — network reference, RPC APIs, Flashblocks, node operation, and the open-source Rust client.',
+						publisher: { '@type': 'Organization', name: 'BaseHub', url: 'https://basehub.org' },
+					}),
+				},
+				{
+					tag: 'script',
 					attrs: {
 						async: true,
 						defer: true,
@@ -60,16 +89,100 @@ export default defineConfig({
 			},
 			sidebar: [
 				{
-					label: 'Architecture',
+					label: 'Introduction',
 					items: [
-						{ label: 'Overview', slug: 'architecture/overview' },
-						{ label: 'Crate Graph', slug: 'architecture/crate-graph' },
-						{ label: 'Execution Pipeline', slug: 'architecture/execution-pipeline' },
-						{ label: 'Flashblocks Pipeline', slug: 'architecture/flashblocks-pipeline' },
+						{ label: 'Why Base', slug: 'introduction/why-base' },
+						{ label: 'Connecting to Base', slug: 'introduction/connecting-to-base' },
+						{ label: 'Deploy on Base', slug: 'introduction/deploy-on-base' },
+						{ label: 'Base ↔ Solana Bridge', slug: 'introduction/base-solana-bridge' },
 					],
 				},
 				{
-					label: 'Getting Started',
+					label: 'Network',
+					items: [
+						{ label: 'Base Contracts', slug: 'network/base-contracts' },
+						{ label: 'Ecosystem Contracts', slug: 'network/ecosystem-contracts' },
+						{ label: 'Bridges', slug: 'network/bridges' },
+						{ label: 'Network Fees', slug: 'network/network-fees' },
+						{ label: 'Faucets', slug: 'network/network-faucets' },
+						{ label: 'Transaction Finality', slug: 'network/transaction-finality' },
+						{ label: 'Block Building', slug: 'network/block-building' },
+						{ label: 'Base vs. Ethereum', slug: 'network/diffs-ethereum-base' },
+						{ label: 'Configuration Changelog', slug: 'network/configuration-changelog' },
+						{ label: 'Troubleshooting Transactions', slug: 'network/troubleshooting-transactions' },
+					],
+				},
+				{
+					label: 'Flashblocks',
+					items: [
+						{ label: 'Overview', slug: 'flashblocks/overview' },
+						{ label: 'Architecture', slug: 'flashblocks/architecture' },
+						{ label: 'App Integration', slug: 'flashblocks/app-integration' },
+						{ label: 'FAQ', slug: 'flashblocks/faq' },
+					],
+				},
+				{
+					label: 'API Reference',
+					items: [
+						{ label: 'RPC Overview', slug: 'api-reference/rpc-overview' },
+						{
+							label: 'Ethereum JSON-RPC',
+							collapsed: true,
+							items: [
+								{ label: 'eth_blockNumber', slug: 'api-reference/eth/eth_blocknumber' },
+								{ label: 'eth_call', slug: 'api-reference/eth/eth_call' },
+								{ label: 'eth_chainId', slug: 'api-reference/eth/eth_chainid' },
+								{ label: 'eth_estimateGas', slug: 'api-reference/eth/eth_estimategas' },
+								{ label: 'eth_feeHistory', slug: 'api-reference/eth/eth_feehistory' },
+								{ label: 'eth_gasPrice', slug: 'api-reference/eth/eth_gasprice' },
+								{ label: 'eth_getBalance', slug: 'api-reference/eth/eth_getbalance' },
+								{ label: 'eth_getBlockByHash', slug: 'api-reference/eth/eth_getblockbyhash' },
+								{ label: 'eth_getBlockByNumber', slug: 'api-reference/eth/eth_getblockbynumber' },
+								{ label: 'eth_getBlockReceipts', slug: 'api-reference/eth/eth_getblockreceipts' },
+								{ label: 'eth_getBlockTransactionCountByHash', slug: 'api-reference/eth/eth_getblocktransactioncountbyhash' },
+								{ label: 'eth_getBlockTransactionCountByNumber', slug: 'api-reference/eth/eth_getblocktransactioncountbynumber' },
+								{ label: 'eth_getCode', slug: 'api-reference/eth/eth_getcode' },
+								{ label: 'eth_getLogs', slug: 'api-reference/eth/eth_getlogs' },
+								{ label: 'eth_getStorageAt', slug: 'api-reference/eth/eth_getstorageat' },
+								{ label: 'eth_getTransactionByBlockHashAndIndex', slug: 'api-reference/eth/eth_gettransactionbyblockhashandindex' },
+								{ label: 'eth_getTransactionByBlockNumberAndIndex', slug: 'api-reference/eth/eth_gettransactionbyblocknumberandindex' },
+								{ label: 'eth_getTransactionByHash', slug: 'api-reference/eth/eth_gettransactionbyhash' },
+								{ label: 'eth_getTransactionCount', slug: 'api-reference/eth/eth_gettransactioncount' },
+								{ label: 'eth_getTransactionReceipt', slug: 'api-reference/eth/eth_gettransactionreceipt' },
+								{ label: 'eth_maxPriorityFeePerGas', slug: 'api-reference/eth/eth_maxpriorityfeepergas' },
+								{ label: 'eth_sendRawTransaction', slug: 'api-reference/eth/eth_sendrawtransaction' },
+								{ label: 'eth_subscribe', slug: 'api-reference/eth/eth_subscribe' },
+								{ label: 'eth_syncing', slug: 'api-reference/eth/eth_syncing' },
+								{ label: 'eth_unsubscribe', slug: 'api-reference/eth/eth_unsubscribe' },
+								{ label: 'net_version', slug: 'api-reference/eth/net_version' },
+								{ label: 'web3_clientVersion', slug: 'api-reference/eth/web3_clientversion' },
+							],
+						},
+						{
+							label: 'Debug API',
+							collapsed: true,
+							items: [
+								{ label: 'debug_traceBlockByHash', slug: 'api-reference/debug/debug_traceblockbyhash' },
+								{ label: 'debug_traceBlockByNumber', slug: 'api-reference/debug/debug_traceblockbynumber' },
+								{ label: 'debug_traceTransaction', slug: 'api-reference/debug/debug_tracetransaction' },
+							],
+						},
+						{
+							label: 'Flashblocks API',
+							collapsed: true,
+							items: [
+								{ label: 'Overview', slug: 'api-reference/flashblocks/overview' },
+								{ label: 'newFlashblocks', slug: 'api-reference/flashblocks/newflashblocks' },
+								{ label: 'newFlashblockTransactions', slug: 'api-reference/flashblocks/newflashblocktransactions' },
+								{ label: 'pendingLogs', slug: 'api-reference/flashblocks/pendinglogs' },
+								{ label: 'eth_simulateV1', slug: 'api-reference/flashblocks/eth_simulatev1' },
+								{ label: 'base_transactionStatus', slug: 'api-reference/flashblocks/base_transactionstatus' },
+							],
+						},
+					],
+				},
+				{
+					label: 'Run a Node',
 					items: [
 						{ label: 'Prerequisites', slug: 'getting-started/prerequisites' },
 						{ label: 'Building', slug: 'getting-started/building' },
@@ -212,19 +325,12 @@ export default defineConfig({
 					],
 				},
 				{
-					label: 'Specifications',
-					items: [
-						{ label: 'Flashblocks', slug: 'specifications/flashblocks' },
-						{ label: 'Access Lists (FAL)', slug: 'specifications/access-lists' },
-					],
-				},
-				{
 					label: 'Integration Guides',
 					items: [
+						{ label: 'Connecting to Base', slug: 'integration-guides/connecting' },
 						{ label: 'Flashblocks RPC', slug: 'integration-guides/flashblocks-rpc' },
 						{ label: 'Metering RPC', slug: 'integration-guides/metering-rpc' },
 						{ label: 'Transaction Pool', slug: 'integration-guides/txpool' },
-						{ label: 'Connecting to Base', slug: 'integration-guides/connecting' },
 					],
 				},
 				{
@@ -234,8 +340,24 @@ export default defineConfig({
 						{ label: 'Docker', slug: 'node-operations/docker' },
 						{ label: 'Configuration', slug: 'node-operations/configuration' },
 						{ label: 'Monitoring', slug: 'node-operations/monitoring' },
+						{ label: 'Snapshots', slug: 'node-operations/snapshots' },
+						{ label: 'Performance Tuning', slug: 'node-operations/performance-tuning' },
+						{ label: 'Node Providers', slug: 'node-operations/node-providers' },
+						{ label: 'Troubleshooting', slug: 'node-operations/troubleshooting' },
+						{ label: 'Upgrades', slug: 'node-operations/upgrades' },
+						{ label: 'Base v1 Upgrade', slug: 'node-operations/base-v1-upgrade' },
 						{ label: 'Releases', slug: 'node-operations/releases' },
+						{ label: 'Release Process', slug: 'node-operations/release-process' },
 						{ label: 'basectl', slug: 'node-operations/basectl' },
+					],
+				},
+				{
+					label: 'Architecture',
+					items: [
+						{ label: 'Overview', slug: 'architecture/overview' },
+						{ label: 'Crate Graph', slug: 'architecture/crate-graph' },
+						{ label: 'Execution Pipeline', slug: 'architecture/execution-pipeline' },
+						{ label: 'Flashblocks Pipeline', slug: 'architecture/flashblocks-pipeline' },
 					],
 				},
 				{
@@ -250,6 +372,23 @@ export default defineConfig({
 						{ label: 'mempool-rebroadcaster', slug: 'binaries/mempool-rebroadcaster' },
 						{ label: 'websocket-proxy', slug: 'binaries/websocket-proxy' },
 						{ label: 'audit-archiver', slug: 'binaries/audit-archiver' },
+					],
+				},
+				{
+					label: 'Specifications',
+					items: [
+						{ label: 'Flashblocks', slug: 'specifications/flashblocks' },
+						{ label: 'Access Lists (FAL)', slug: 'specifications/access-lists' },
+						{ label: 'P2P', slug: 'specifications/p2p' },
+					],
+				},
+				{
+					label: 'Security',
+					items: [
+						{ label: 'Bug Bounty', slug: 'security/bug-bounty' },
+						{ label: 'Report a Vulnerability', slug: 'security/report-vulnerability' },
+						{ label: 'Security Council', slug: 'security/security-council' },
+						{ label: 'Avoid Malicious Flags', slug: 'security/avoid-malicious-flags' },
 					],
 				},
 				{

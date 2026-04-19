@@ -1,0 +1,50 @@
+---
+title: eth_getBlockByHash
+description: Returns block information for a given 32-byte block hash on Base, with full transaction objects or just transaction hashes.
+---
+
+Returns information about a block identified by its hash.
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `blockHash` | string | The 32-byte block hash. Required. |
+| 2 | `fullTransactions` | boolean | When `true`, returns full transaction objects; when `false`, returns only transaction hashes. Required. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | object \| null | A block object, or `null` if no block was found. See [`eth_getBlockByNumber`](/api-reference/eth/eth_getblockbynumber/) for the full field list. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_getBlockByHash",
+  "params": ["0x5c330e55a190f82ea486b61e5b12e27dfb4fb3cecfc5746886ef38ca1281bce8", false],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "number": "0x158a0e9",
+    "hash": "0x5c330e55a190f82ea486b61e5b12e27dfb4fb3cecfc5746886ef38ca1281bce8",
+    "parentHash": "0x9edc29b8b0a1e31d28616e40c16132ad0d58faa8bb952595b557526bdb9a960a",
+    "timestamp": "0x67bf8332",
+    "gasLimit": "0x3938700",
+    "gasUsed": "0xab3f",
+    "transactions": ["0x7ef8f8a0..."]
+  }
+}
+```

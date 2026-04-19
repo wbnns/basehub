@@ -1,0 +1,182 @@
+---
+title: RPC overview
+description: Full reference for the JSON-RPC and Flashblocks methods exposed by Base nodes across the eth, net, web3, debug, txpool, and base namespaces.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+Base exposes one EVM-compatible JSON-RPC API across two performance tiers. Switch a single endpoint URL and the `pending` block tag to move from 2-second sealed blocks to 200ms pre-confirmations — every other method behaves the same.
+
+## Networks
+
+| Network | Chain ID | Type | Archive |
+| :--- | :--- | :--- | :--- |
+| Mainnet | `8453` | Production | Yes |
+| Sepolia | `84532` | Testnet | Yes |
+
+## Endpoints
+
+<Tabs>
+  <TabItem label="Mainnet">
+    | Tier | HTTP | WSS |
+    | :--- | :--- | :--- |
+    | Standard | `https://mainnet.base.org` | `wss://mainnet.base.org` |
+    | Flashblocks | `https://mainnet-preconf.base.org` | `wss://mainnet-preconf.base.org` |
+  </TabItem>
+  <TabItem label="Sepolia">
+    | Tier | HTTP | WSS |
+    | :--- | :--- | :--- |
+    | Standard | `https://sepolia.base.org` | `wss://sepolia.base.org` |
+    | Flashblocks | `https://sepolia-preconf.base.org` | `wss://sepolia-preconf.base.org` |
+  </TabItem>
+</Tabs>
+
+<Aside type="note">
+The public endpoints above are rate-limited and not suitable for production traffic. Connect through a node provider for production workloads.
+</Aside>
+
+## The Flashblocks tier
+
+Flashblocks endpoints are fully EVM-equivalent — every standard `eth_` method works identically. The difference is what the `pending` block tag returns.
+
+- On **Standard** endpoints, `pending` reflects the transaction pool (unmined state).
+- On **Flashblocks** endpoints, `pending` reflects the **pre-confirmed block currently being built**, refreshed every ~200ms with new batches of sequencer-ordered transactions.
+
+Methods such as `eth_getBalance`, `eth_getStorageAt`, and `eth_call` execute against real sequencer state up to 1.8 seconds before a block seals, with sub-second latency.
+
+## Namespaces
+
+Base nodes implement the standard Ethereum namespaces plus a small set of Base-specific methods.
+
+- **`eth`** — core Ethereum protocol methods for accounts, blocks, transactions, gas, and logs. Available on both Standard and Flashblocks endpoints.
+- **`net`** — network identification (`net_version`).
+- **`web3`** — client identification (`web3_clientVersion`).
+- **`debug`** — replay and tracing utilities for deep transaction inspection. Computationally expensive; availability depends on the node provider.
+- **`txpool`** — inspection of the local mempool.
+- **`base`** — Base-specific helpers, including pre-confirmation status checks (`base_transactionStatus`).
+- **Flashblocks** — pre-confirmation methods (`eth_simulateV1`) and WebSocket streams (`newFlashblockTransactions`, `pendingLogs`, `newFlashblocks`) available only on Flashblocks endpoints.
+
+## Method index
+
+### Ethereum JSON-RPC API
+
+Methods marked with a check mark support the `"pending"` block tag on Flashblocks endpoints.
+
+| Method | Description | Flashblocks `pending` |
+| :--- | :--- | :--- |
+| [eth_blockNumber](/api-reference/eth/eth_blocknumber/) | Current block number | — |
+| [eth_getBalance](/api-reference/eth/eth_getbalance/) | Account ETH balance | yes |
+| [eth_getTransactionCount](/api-reference/eth/eth_gettransactioncount/) | Account nonce / tx count | yes |
+| [eth_getCode](/api-reference/eth/eth_getcode/) | Deployed contract bytecode | yes |
+| [eth_getStorageAt](/api-reference/eth/eth_getstorageat/) | Contract storage slot value | yes |
+| [eth_call](/api-reference/eth/eth_call/) | Execute read-only call | yes |
+| [eth_getBlockByNumber](/api-reference/eth/eth_getblockbynumber/) | Block data by number | yes |
+| [eth_getBlockByHash](/api-reference/eth/eth_getblockbyhash/) | Block data by hash | — |
+| [eth_getBlockReceipts](/api-reference/eth/eth_getblockreceipts/) | All receipts for a block | yes |
+| [eth_getBlockTransactionCountByNumber](/api-reference/eth/eth_getblocktransactioncountbynumber/) | Tx count by block number | yes |
+| [eth_getBlockTransactionCountByHash](/api-reference/eth/eth_getblocktransactioncountbyhash/) | Tx count by block hash | — |
+| [eth_getTransactionByHash](/api-reference/eth/eth_gettransactionbyhash/) | Transaction data by hash | — |
+| [eth_getTransactionByBlockHashAndIndex](/api-reference/eth/eth_gettransactionbyblockhashandindex/) | Tx by block hash and index | — |
+| [eth_getTransactionByBlockNumberAndIndex](/api-reference/eth/eth_gettransactionbyblocknumberandindex/) | Tx by block number and index | — |
+| [eth_getTransactionReceipt](/api-reference/eth/eth_gettransactionreceipt/) | Receipt for a mined tx | — |
+| [eth_sendRawTransaction](/api-reference/eth/eth_sendrawtransaction/) | Submit signed transaction | — |
+| [eth_gasPrice](/api-reference/eth/eth_gasprice/) | Current gas price | — |
+| [eth_maxPriorityFeePerGas](/api-reference/eth/eth_maxpriorityfeepergas/) | Max priority fee estimate | — |
+| [eth_feeHistory](/api-reference/eth/eth_feehistory/) | Historical base fee and rewards | — |
+| [eth_estimateGas](/api-reference/eth/eth_estimategas/) | Estimate gas for a tx | yes |
+| [eth_getLogs](/api-reference/eth/eth_getlogs/) | Query event logs by filter | yes |
+| [eth_chainId](/api-reference/eth/eth_chainid/) | Network chain ID | — |
+| [eth_syncing](/api-reference/eth/eth_syncing/) | Node sync status | — |
+| [net_version](/api-reference/eth/net_version/) | Network version ID | — |
+| [web3_clientVersion](/api-reference/eth/web3_clientversion/) | Client version string | — |
+| [eth_subscribe](/api-reference/eth/eth_subscribe/) | Subscribe to events (WSS) | yes |
+| [eth_unsubscribe](/api-reference/eth/eth_unsubscribe/) | Cancel a subscription (WSS) | — |
+
+### Flashblocks API
+
+Pre-confirmation methods that deliver sub-second transaction signals on Base. These are only available on Flashblocks endpoints and let you read state, simulate bundles, and stream events up to ~1.8 seconds ahead of block sealing.
+
+| Method | Description |
+| --- | --- |
+| [eth_simulateV1](/api-reference/flashblocks/eth_simulatev1/) | Simulate transaction bundles against pre-confirmed state |
+| [base_transactionStatus](/api-reference/flashblocks/base_transactionstatus/) | Check whether a transaction has been received by the mempool |
+| [newFlashblockTransactions](/api-reference/flashblocks/newflashblocktransactions/) | Subscribe to individual pre-confirmed transactions |
+| [pendingLogs](/api-reference/flashblocks/pendinglogs/) | Subscribe to filtered logs from pre-confirmed transactions |
+| [newFlashblocks](/api-reference/flashblocks/newflashblocks/) | Subscribe to the full Flashblock payload stream |
+
+### Debug API
+
+Development and debugging utilities for transaction replay and block inspection. Debug methods replay execution and are computationally expensive — availability and rate limits vary by node provider.
+
+| Method | Description |
+| --- | --- |
+| [debug_traceTransaction](/api-reference/debug/debug_tracetransaction/) | Full EVM execution trace for a transaction |
+| [debug_traceBlockByHash](/api-reference/debug/debug_traceblockbyhash/) | EVM traces for every transaction in a block by hash |
+| [debug_traceBlockByNumber](/api-reference/debug/debug_traceblockbynumber/) | EVM traces for every transaction in a block by number |
+
+## Request and response format
+
+All requests are HTTP `POST` with `Content-Type: application/json`.
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `jsonrpc` | string | Always `"2.0"` |
+| `method` | string | The RPC method name |
+| `params` | array | Method parameters in order |
+| `id` | number \| string | Identifier echoed back in the response |
+
+**Request:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_getBalance",
+  "params": ["0x742d35Cc6634C0532925a3b8D4C9dD0b4f3BaEa", "pending"],
+  "id": 1
+}
+```
+
+**Success response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x1a055690d9db80000"
+}
+```
+
+**Error response:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,
+    "message": "Invalid params"
+  }
+}
+```
+
+## Error codes
+
+| Code | Name | Description |
+| --- | --- | --- |
+| `-32700` | Parse error | Invalid JSON |
+| `-32600` | Invalid request | Not a valid JSON-RPC 2.0 object |
+| `-32601` | Method not found | Method does not exist or is unavailable |
+| `-32602` | Invalid params | Invalid method parameters |
+| `-32603` | Internal error | Internal JSON-RPC error |
+| `-32000` | Server error | Node-specific error (see message) |
+
+## Block parameters
+
+| Value | Standard | Flashblocks |
+| --- | --- | --- |
+| `"latest"` | Most recently sealed block | Most recently sealed block |
+| `"pending"` | Unmined transaction pool state | **Current Flashblock in progress (~200ms resolution)** |
+| `"safe"` | Latest safe block | Latest safe block |
+| `"finalized"` | Latest finalized block | Latest finalized block |
+| `"earliest"` | Genesis block | Genesis block |
+| `"0x<n>"` | Specific block by number | Specific block by number |

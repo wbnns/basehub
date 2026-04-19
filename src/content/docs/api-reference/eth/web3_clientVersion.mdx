@@ -1,0 +1,39 @@
+---
+title: web3_clientVersion
+description: Returns the version string identifying the underlying node client software running the JSON-RPC endpoint.
+---
+
+Returns the version string of the node client software.
+
+## Parameters
+
+None.
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The client version string. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "web3_clientVersion",
+  "params": [],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "op-reth/v1.1.0/linux-x86_64"
+}
+```

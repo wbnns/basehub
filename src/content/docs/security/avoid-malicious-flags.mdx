@@ -1,0 +1,30 @@
+---
+title: Avoid Malicious Flags
+description: Practical steps to keep your Base app from being flagged as malicious — verify contracts, request verification, and follow UX best practices.
+---
+
+Keep your app from being flagged as malicious by verifying contracts, requesting verification with trusted ecosystem sources, and following standard UX practices.
+
+## 1. Verify and reduce the risk of your smart contract
+
+- **Verify the contract source.** Publish verified source code for your contracts on [block explorers](/network/block-explorers/). For example, verification is available on [Etherscan](https://etherscan.io/verifyContract) and [Basescan](https://basescan.org/verifyContract) under "Verify Contract".
+- **Limit user-fund exposure.** Design contracts to keep user funds out of unnecessary risk paths. Request only the minimum amount needed to complete each transaction.
+
+## 2. Submit a verification request
+
+After verifying your contract source, submit a [verification request](https://report.blockaid.io/). Verification helps ecosystem signal providers recognize your app as safe.
+
+## 3. Follow app best practices
+
+- **Accessibility across regions.** Avoid geo-blocking or other access restrictions that lock out specific regions or countries. If legal or compliance requirements force restrictions, note them in the verification request.
+- **Consistent behavior.** Avoid sudden or unexplained UI changes that erode user trust in your app's reliability.
+- **Transparent onchain interactions.** The onchain action should match the UI. A "Mint" button should clearly emit a mint transaction.
+- **Standard sign-in methods.** Offer the standard wallet connection options — WalletConnect, Coinbase Wallet SDK, and the popular browser extension wallets.
+- **Audit your contracts.** Have your contracts audited by a reputable firm, publish the report, and link to it from your app so users can find it. An audit signals that you have invested in securing the codebase.
+
+Following these recommendations significantly reduces the chance of your app being flagged as malicious and helps maintain a secure, trustworthy environment for users.
+
+---
+
+**Still flagged?**
+Coinbase Wallet may produce false positives. Confirm you have completed the actions above first. If your app remains flagged as suspicious or malicious, [report it to Blockaid](https://report.blockaid.io/mistake).

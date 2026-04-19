@@ -1,0 +1,67 @@
+---
+title: eth_getBlockReceipts
+description: Returns every transaction receipt for a block on Base in one call; pair with pending on Flashblocks for pre-confirmed receipts.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Returns every transaction receipt for a given block in a single call.
+
+<Aside type="tip">
+**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to fetch receipts for all pre-confirmed transactions in the current Flashblock.
+</Aside>
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Required. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | array | Array of receipt objects, one per transaction in the block. See [`eth_getTransactionReceipt`](/api-reference/eth/eth_gettransactionreceipt/) for the receipt object shape. |
+
+## Example
+
+### Request
+
+<Tabs>
+  <TabItem label="Standard (latest)">
+
+```bash
+curl https://mainnet.base.org \
+  -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_getBlockReceipts","params":["latest"],"id":1}'
+```
+
+  </TabItem>
+  <TabItem label="Flashblocks (pending)">
+
+```bash
+curl https://mainnet-preconf.base.org \
+  -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_getBlockReceipts","params":["pending"],"id":1}'
+```
+
+  </TabItem>
+</Tabs>
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    {
+      "transactionHash": "0xabc123...",
+      "blockNumber": "0x158a0e9",
+      "status": "0x1",
+      "gasUsed": "0x5208",
+      "type": "0x2"
+    }
+  ]
+}
+```

@@ -1,0 +1,39 @@
+---
+title: net_version
+description: Returns the current network ID as a decimal string. Base Mainnet is 8453 and Base Sepolia is 84532.
+---
+
+Returns the current network ID as a decimal string.
+
+## Parameters
+
+None.
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The network ID as a decimal string. `"8453"` for Base Mainnet, `"84532"` for Base Sepolia. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "net_version",
+  "params": [],
+  "id": 1
+}
+```
+
+### Response (Base Mainnet)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "8453"
+}
+```

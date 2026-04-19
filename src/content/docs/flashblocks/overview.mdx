@@ -1,0 +1,91 @@
+---
+title: Flashblocks Overview
+description: Flashblocks deliver 200ms preconfirmed sub-blocks on Base, streaming state updates 10x faster than the standard 2-second block cadence.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Flashblocks are 200ms preconfirmed sub-blocks streamed by the Base sequencer, giving applications fee-ordered state updates ten times per standard 2-second block.
+
+## What are Flashblocks
+
+Flashblocks add **200ms** incremental state updates to Base, cutting perceived latency for end users.
+
+The mechanism, built with [Flashbots](https://www.flashbots.net/), streams sub-blocks inside the regular 2-second block interval. Apps see preconfirmations from the sequencer well before the full block is gossiped to the network.
+
+<Aside>
+Flashblocks are always live on Base — every block is built by the Flashblocks builder. Apps choose whether to consume preconfirmations or wait for the standard 2-second finality.
+</Aside>
+
+### Key concepts
+
+| Term | Definition |
+|------|------------|
+| **Flashblock** | A 200ms sub-block carrying part of the full block's transactions. |
+| **Preconfirmation** | An ultra-fast signal that a transaction will be included, before the full block is sealed. |
+| **Full Block** | A sequence of 10 Flashblocks combined into the complete 2-second block. |
+
+Each block contains **10 Flashblocks** (indexes 1-10), arriving every 200ms. Index 0 exists but only carries system transactions. See [Gas and transaction sizing](/flashblocks/app-integration/#gas--transaction-sizing) for how the gas budget evolves across the window.
+
+## Architecture
+
+For details on the sequencer system and the Flashblocks infrastructure components (rollup-boost, op-rbuilder, websocket-proxy, and base), see the [Architecture](/flashblocks/architecture/) page.
+
+## Transaction lifecycle
+
+When a transaction is sent to Base, this is the path it takes:
+
+### 1. Submission
+
+```
+User → DNS (mainnet.base.org) → Load Balancer → Proxyd → Mempool
+```
+
+The transaction lands in the private mempool and is added to the txpool as pending.
+
+### 2. Distribution
+
+The mempool keeps P2P connections open with execution layers (op-reth, op-rbuilder), keeping all pending transactions in sync for block building.
+
+### 3. Block building
+
+In each 200ms loop, op-rbuilder selects transactions using:
+
+1. **Transaction fee** — transactions are ordered fee-first (highest first).
+2. **Gas limit and remaining capacity** — Flashblock `j` may use up to `j/10` of the total block gas limit.
+
+<Aside>
+**Dynamic mempool.** The builder runs against a dynamic mempool that keeps accepting new transactions while it builds. This minimizes inclusion latency, but a late-arriving high-fee transaction can land after a previously-committed lower-fee transaction inside the same Flashblock. This is expected — transactions are ordered by fee *at the moment they are selected*.
+</Aside>
+
+### 4. Block building algorithm
+
+For each 2-second block, the builder runs:
+
+```
+FOR each flashblock j FROM 0 TO 10:
+    1. Wait until next 200ms window
+    2. Calculate available gas: (j / 10) × total_block_gas_limit
+    3. Sort pending transactions by fee (descending)
+    4. Select top transactions that fit within available gas
+    5. Execute transactions and update state
+    6. Stream flashblock to websocket-proxy
+```
+
+<Aside>
+**Index 0** carries only system transactions and uses no gas budget. **Indexes 1-10** are the actual Flashblocks that consume from the txpool.
+</Aside>
+
+### 5. Preconfirmation delivery
+
+Once a transaction is included in a Flashblock, the builder streams it to the websocket-proxy. RPC nodes subscribe to that stream, so a Flashblocks-aware RPC method (such as `eth_getTransactionReceipt`) can return preconfirmed data straight from the node's cache.
+
+<Aside>
+The full infrastructure stream schema lives in the [Flashblocks API overview](/api-reference/flashblocks/flashblocks-api-overview/), including the [Flashblock](/api-reference/flashblocks/flashblocks-api-overview/#flashblock-object), [Diff](/api-reference/flashblocks/flashblocks-api-overview/#diff-object), [Metadata](/api-reference/flashblocks/flashblocks-api-overview/#metadata-object), and [Receipt](/api-reference/flashblocks/flashblocks-api-overview/#receipt-object) objects.
+</Aside>
+
+## Further reading
+
+- [FAQ](/flashblocks/faq/) — common questions about Flashblocks.
+- [Block Building](/network/block-building/) — detailed block ordering configuration.
+- [Flashblocks deep dive](https://blog.base.dev/flashblocks-deep-dive) — engineering blog post with implementation details.

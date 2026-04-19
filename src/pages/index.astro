@@ -6,7 +6,7 @@ import { Icon } from '@astrojs/starlight/components';
 <StarlightPage
   frontmatter={{
     title: 'BaseHub',
-    description: 'The Rust client powering Base. Architecture, crates, and integration guides — straight from the source.',
+    description: 'The go-to resource for Base Chain technical information. Network reference, RPC APIs, Flashblocks, node operation, and the Rust client.',
     template: 'splash',
     hero: { tagline: '' },
     pagefind: false,
@@ -14,63 +14,63 @@ import { Icon } from '@astrojs/starlight/components';
 >
   <div class="home">
     <header class="home-hero">
-      <span class="home-eyebrow">Documentation</span>
-      <h1>The Rust client powering Base.</h1>
+      <span class="home-eyebrow">Base Chain documentation</span>
+      <h1>Everything technical about Base, in one place.</h1>
       <p>
-        Architecture, crates, and integration guides for <code>base/base</code> —
-        straight from the source.
+        Network reference, RPC APIs, Flashblocks, node operation,
+        and the open-source Rust client behind <code>base/base</code>.
       </p>
     </header>
 
     <section class="home-cards" aria-label="Documentation sections">
-      <a class="home-card" href="/architecture/overview/">
-        <span class="home-card-icon" aria-hidden="true"><Icon name="puzzle" size="1.125rem" /></span>
-        <h3>Architecture <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>System design, crate map, and the path from L1 to execution.</p>
+      <a class="home-card" href="/introduction/why-base/">
+        <span class="home-card-icon" aria-hidden="true"><Icon name="rocket" size="1.125rem" /></span>
+        <h3>Introduction <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>Why Base, how to connect, and how to deploy your first contract.</p>
+      </a>
+
+      <a class="home-card" href="/network/base-contracts/">
+        <span class="home-card-icon" aria-hidden="true"><Icon name="random" size="1.125rem" /></span>
+        <h3>Network <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>Contracts, bridges, fees, faucets, finality, and chain differences.</p>
+      </a>
+
+      <a class="home-card" href="/api-reference/rpc-overview/">
+        <span class="home-card-icon" aria-hidden="true"><Icon name="list-format" size="1.125rem" /></span>
+        <h3>API reference <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>Every JSON-RPC method on Base, with parameters and examples.</p>
+      </a>
+
+      <a class="home-card" href="/flashblocks/overview/">
+        <span class="home-card-icon" aria-hidden="true"><Icon name="document" size="1.125rem" /></span>
+        <h3>Flashblocks <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>The 200ms preconfirmation protocol — overview, integration, and spec.</p>
       </a>
 
       <a class="home-card" href="/getting-started/prerequisites/">
-        <span class="home-card-icon" aria-hidden="true"><Icon name="rocket" size="1.125rem" /></span>
-        <h3>Getting started <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>Prerequisites, build from source, run a node, spin up a devnet.</p>
-      </a>
-
-      <a class="home-card" href="/crates/overview/">
-        <span class="home-card-icon" aria-hidden="true"><Icon name="list-format" size="1.125rem" /></span>
-        <h3>Crate reference <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>Seventy-plus crates across consensus, execution, builder, and proof.</p>
-      </a>
-
-      <a class="home-card" href="/specifications/flashblocks/">
-        <span class="home-card-icon" aria-hidden="true"><Icon name="document" size="1.125rem" /></span>
-        <h3>Specifications <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>Flashblocks 200ms preconfirmation protocol and access lists.</p>
-      </a>
-
-      <a class="home-card" href="/integration-guides/connecting/">
-        <span class="home-card-icon" aria-hidden="true"><Icon name="random" size="1.125rem" /></span>
-        <h3>Integration guides <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>Connect to Base, stream Flashblocks, work with the txpool.</p>
-      </a>
-
-      <a class="home-card" href="/node-operations/deployment/">
         <span class="home-card-icon" aria-hidden="true"><Icon name="setting" size="1.125rem" /></span>
-        <h3>Node operations <span class="home-arrow" aria-hidden="true">→</span></h3>
-        <p>Deployment, Docker, configuration, monitoring, and releases.</p>
+        <h3>Run a node <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>Build, deploy, and operate a Base node — Docker, config, monitoring.</p>
+      </a>
+
+      <a class="home-card" href="/architecture/overview/">
+        <span class="home-card-icon" aria-hidden="true"><Icon name="puzzle" size="1.125rem" /></span>
+        <h3>Architecture &amp; crates <span class="home-arrow" aria-hidden="true">→</span></h3>
+        <p>System design and seventy-plus Rust crates inside <code>base/base</code>.</p>
       </a>
     </section>
 
     <section class="home-feature" aria-label="Build with Base">
-      <a class="home-card home-card--feature" href="/getting-started/building/">
+      <a class="home-card home-card--feature" href="/introduction/connecting-to-base/">
         <div class="home-card-body">
-          <span class="home-card-eyebrow">Run a node</span>
-          <h3>Build base-reth-node from source <span class="home-arrow" aria-hidden="true">→</span></h3>
-          <p>Compile the full execution client with a single Cargo command.</p>
+          <span class="home-card-eyebrow">Connect</span>
+          <h3>Talk to Base in one line <span class="home-arrow" aria-hidden="true">→</span></h3>
+          <p>Mainnet and Sepolia public endpoints, ready for any RPC client.</p>
         </div>
-        <pre class="home-card-snippet"><code>cargo install --path bin/base-reth-node</code></pre>
+        <pre class="home-card-snippet"><code>cast block-number --rpc-url https://mainnet.base.org</code></pre>
       </a>
 
-      <a class="home-card home-card--feature" href="/integration-guides/flashblocks-rpc/">
+      <a class="home-card home-card--feature" href="/flashblocks/app-integration/">
         <div class="home-card-body">
           <span class="home-card-eyebrow">Stream Flashblocks</span>
           <h3>Subscribe to 200ms preconfirmations <span class="home-arrow" aria-hidden="true">→</span></h3>
@@ -81,14 +81,14 @@ import { Icon } from '@astrojs/starlight/components';
     </section>
 
     <section class="home-popular">
-      <h2>Get started fast</h2>
+      <h2>Popular references</h2>
       <ul>
-        <li><a href="/getting-started/building/">Build from source <span aria-hidden="true">→</span></a></li>
-        <li><a href="/getting-started/docker/">Run with Docker <span aria-hidden="true">→</span></a></li>
-        <li><a href="/specifications/flashblocks/">Flashblocks spec <span aria-hidden="true">→</span></a></li>
-        <li><a href="/integration-guides/flashblocks-rpc/">Flashblocks RPC <span aria-hidden="true">→</span></a></li>
-        <li><a href="/node-operations/configuration/">Node configuration <span aria-hidden="true">→</span></a></li>
-        <li><a href="/architecture/execution-pipeline/">Execution pipeline <span aria-hidden="true">→</span></a></li>
+        <li><a href="/network/base-contracts/">Base contracts <span aria-hidden="true">→</span></a></li>
+        <li><a href="/network/network-fees/">Fee model <span aria-hidden="true">→</span></a></li>
+        <li><a href="/network/diffs-ethereum-base/">Base vs. Ethereum <span aria-hidden="true">→</span></a></li>
+        <li><a href="/api-reference/eth/eth_getlogs/">eth_getLogs <span aria-hidden="true">→</span></a></li>
+        <li><a href="/flashblocks/overview/">Flashblocks overview <span aria-hidden="true">→</span></a></li>
+        <li><a href="/security/bug-bounty/">Bug bounty <span aria-hidden="true">→</span></a></li>
       </ul>
     </section>
   </div>

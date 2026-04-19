@@ -1,0 +1,47 @@
+---
+title: eth_getBlockTransactionCountByNumber
+description: Returns the transaction count for a Base block by number; on Flashblocks endpoints pending counts pre-confirmed transactions in the live Flashblock.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Returns the number of transactions in a block matching the given block number.
+
+<Aside type="tip">
+**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to count the pre-confirmed transactions in the current Flashblock.
+</Aside>
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Required. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The number of transactions in the block as a hexadecimal integer. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_getBlockTransactionCountByNumber",
+  "params": ["latest"],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x1f"
+}
+```

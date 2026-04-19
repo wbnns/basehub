@@ -74,9 +74,10 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* -------------------- LIGHT MODE -------------------- */
+/* -------------------- LIGHT MODE (only) -------------------- */
 :root,
-:root[data-theme='light'] {
+:root[data-theme='light'],
+:root[data-theme='dark'] {
   color-scheme: light;
 
   --sl-color-accent-low: #dee6ff;
@@ -124,53 +125,10 @@
   --code-frame-bg: #fbfcfd;
 }
 
-/* -------------------- DARK MODE -------------------- */
-:root[data-theme='dark'] {
-  color-scheme: dark;
-
-  --sl-color-accent-low: #001b5a;
-  --sl-color-accent-tint: #0a1230;
-  --sl-color-accent: var(--base-cerulean);
-  --sl-color-accent-high: #a8c4ff;
-
-  --sl-color-white: #ffffff;
-  --sl-color-gray-1: var(--base-gray-10);
-  --sl-color-gray-2: var(--base-gray-30);
-  --sl-color-gray-3: var(--base-gray-50);
-  --sl-color-gray-4: var(--base-gray-60);
-  --sl-color-gray-5: var(--base-gray-80);
-  --sl-color-gray-6: #1a1c1f;
-  --sl-color-gray-7: #121315;
-  --sl-color-black: var(--base-black);
-
-  --sl-color-text: var(--base-gray-10);
-  --sl-color-text-accent: var(--base-cerulean);
-  --sl-color-bg: var(--base-black);
-  --sl-color-bg-nav: rgba(10, 11, 13, 0.85);
-  --sl-color-bg-sidebar: var(--base-black);
-  --sl-color-bg-inline-code: #16181b;
-  --sl-color-hairline-light: #1f2227;
-  --sl-color-hairline: #1f2227;
-  --sl-color-hairline-shade: var(--base-gray-80);
-
-  /* Callouts */
-  --callout-info-border: #2a3d7a;
-  --callout-info-bg: #0e1633;
-  --callout-info-text: #b8c7ff;
-  --callout-tip-border: #1d4d3c;
-  --callout-tip-bg: #0c1c17;
-  --callout-tip-text: #6ed6b1;
-  --callout-caution-border: #5a3f0e;
-  --callout-caution-bg: #1d1608;
-  --callout-caution-text: #f3cf95;
-  --callout-danger-border: #5a1c16;
-  --callout-danger-bg: #1d0c0a;
-  --callout-danger-text: #f0aaa6;
-
-  /* Code chrome */
-  --code-bg: #0d0e10;
-  --code-border: #1f2227;
-  --code-frame-bg: #0d0e10;
+/* Hide the theme switcher — site is light-mode only */
+starlight-theme-select,
+.social-icons + starlight-theme-select {
+  display: none !important;
 }
 
 /* -------------------- Base typography -------------------- */

@@ -1,0 +1,47 @@
+---
+title: eth_getTransactionByBlockNumberAndIndex
+description: Returns transaction data on Base by pairing a block number or tag with the transaction's zero-based index inside that block.
+---
+
+Returns information about a transaction identified by a block number and the transaction's index position within that block.
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Required. |
+| 2 | `index` | string | The transaction index position as a hexadecimal integer. Required. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | object \| null | A transaction object, or `null` if not found. See [`eth_getTransactionByHash`](/api-reference/eth/eth_gettransactionbyhash/) for the full field list. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_getTransactionByBlockNumberAndIndex",
+  "params": ["latest", "0x0"],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "hash": "0x7ef8f8a0...",
+    "blockNumber": "0x158a0e9",
+    "transactionIndex": "0x0",
+    "type": "0x7e"
+  }
+}
+```

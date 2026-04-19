@@ -1,0 +1,98 @@
+---
+title: eth_simulateV1
+description: Simulates one or more transaction bundles against the current pre-confirmed Flashblock state, with state overrides and optional transfer tracing.
+---
+
+Simulates one or more transaction bundles against the current pre-confirmed Flashblock state. Supports state overrides, multi-block simulation, and optional transfer tracing.
+
+Only available on Flashblocks endpoints: `https://mainnet-preconf.base.org` / `https://sepolia-preconf.base.org`.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `simulationPayload` | object | Yes | The simulation configuration. |
+| `blockParameter` | string | Yes | Use `"pending"` to simulate against the current Flashblock state. |
+
+The `simulationPayload` object accepts:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `blockStateCalls` | array | Yes | Array of block state call objects. Each object represents one simulated block. |
+| `traceTransfers` | boolean | No | If `true`, ETH transfer events are included as logs in the result. Defaults to `false`. |
+| `validation` | boolean | No | If `true`, transaction validation (nonce, balance) is enforced. Defaults to `false`. |
+
+Each entry in `blockStateCalls` accepts:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `calls` | array | Array of transaction call objects to simulate within this block. |
+| `stateOverrides` | object | Per-address state overrides applied before simulation (for example, balance, nonce, code, storage). Optional. |
+| `blockOverrides` | object | Block-level overrides (for example, `number`, `timestamp`). Optional. |
+
+## Returns
+
+`result` is an array of simulated block results, one per entry in `blockStateCalls`. Each block result has:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `calls` | array | Array of individual call results. |
+
+Each entry in `calls` has:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status` | string | `"0x1"` for success, `"0x0"` for failure. |
+| `gasUsed` | string | Gas used as a hexadecimal integer. |
+| `returnData` | string | Hex-encoded return data. |
+| `logs` | array | Logs emitted (including ETH transfer logs if `traceTransfers` is `true`). |
+| `error` | string | Revert reason if the call failed. Optional. |
+
+## Example
+
+### Request
+
+```bash
+curl https://sepolia-preconf.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_simulateV1",
+    "params": [
+      {
+        "blockStateCalls": [
+          {
+            "calls": [{"to": "0x...", "data": "0x..."}],
+            "stateOverrides": {}
+          }
+        ],
+        "traceTransfers": true,
+        "validation": true
+      },
+      "pending"
+    ],
+    "id": 1
+  }'
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    {
+      "calls": [
+        {
+          "status": "0x1",
+          "gasUsed": "0x5208",
+          "returnData": "0x",
+          "logs": []
+        }
+      ]
+    }
+  ]
+}
+```

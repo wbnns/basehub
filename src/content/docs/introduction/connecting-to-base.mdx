@@ -1,0 +1,123 @@
+---
+title: Connecting to Base
+description: Network parameters, RPC endpoints, and wallet setup for connecting to Base Mainnet and Base Sepolia testnet.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Connect to Base Mainnet or the Sepolia testnet using the public RPC endpoints, then configure any EVM-compatible wallet to use the network.
+
+## Base Mainnet
+
+| Name | Value |
+| :--- | :--- |
+| Network Name | Base Mainnet |
+| Description | The public mainnet for Base. |
+| RPC Endpoint | [https://mainnet.base.org](https://mainnet.base.org) — rate limited, not for production. |
+| Flashblocks RPC Endpoint | [https://mainnet-preconf.base.org](https://mainnet-preconf.base.org) — rate limited, not for production. |
+| Chain ID | 8453 |
+| Currency Symbol | ETH |
+| Block Explorer | [https://base.blockscout.com/](https://base.blockscout.com/) |
+
+## Base Testnet (Sepolia)
+
+| Name | Value |
+| :--- | :--- |
+| Network Name | Base Sepolia |
+| Description | The public testnet for Base. |
+| RPC Endpoint | [https://sepolia.base.org](https://sepolia.base.org) — rate limited, not for production. |
+| Flashblocks RPC Endpoint | [https://sepolia-preconf.base.org](https://sepolia-preconf.base.org) — rate limited, not for production. |
+| Chain ID | 84532 |
+| Currency Symbol | ETH |
+| Block Explorer | [https://sepolia-explorer.base.org](https://sepolia-explorer.base.org) |
+
+<Aside>
+Protocol and network smart contract deployments for L1 and L2 are catalogued on the [Base Contracts](/network/base-contracts/) page.
+</Aside>
+
+<Aside type="tip">
+Production workloads should connect through one of the [node providers](/node-operations/node-providers/) or [run a Base node](/node-operations/run-a-base-node/) directly.
+</Aside>
+
+## Using Base with your wallet
+
+### Coinbase Wallet
+
+The [Coinbase Wallet](https://chrome.google.com/webstore/detail/coinbase-wallet-extension/hnfanknocfeofbddgcijnmhnfnkdnaad?hl=en) browser extension supports Base out of the box.
+
+To switch to Base in Coinbase Wallet:
+
+1. Open the Coinbase Wallet extension and sign in.
+2. Connect to an app from within the wallet.
+3. Click the network icon in the top right to open the network menu.
+4. Choose **Base**.
+
+The active network now points at Base.
+
+### Other wallets
+
+Base works as a custom network in any EVM-compatible wallet, including [MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn).
+
+#### MetaMask
+
+To add Base as a custom network in MetaMask:
+
+1. Open the MetaMask extension.
+2. Click the network dropdown at the top of the extension.
+3. Click **Add network**.
+4. Click **Add a network manually**.
+5. Enter the Base mainnet values:
+
+   | Name | Value |
+   | :--- | :--- |
+   | Network Name | Base Mainnet |
+   | Description | The public mainnet for Base. |
+   | RPC Endpoint | [https://mainnet.base.org](https://mainnet.base.org) |
+   | Chain ID | 8453 |
+   | Currency Symbol | ETH |
+   | Block Explorer | [https://base.blockscout.com/](https://base.blockscout.com/) |
+
+6. Click **Save**.
+
+Base now appears in the network dropdown.
+
+## Testnet
+
+#### Coinbase Wallet supports Base Sepolia by default
+
+To use Base Sepolia in Coinbase Wallet:
+
+1. Open the Coinbase Wallet extension and sign in.
+2. Connect to an app.
+3. Click the network icon at the top right.
+4. Click **More networks**.
+5. Open the **Testnets** tab.
+6. Choose **Base Sepolia**.
+
+The active network is now the Base testnet.
+
+#### Other wallets
+
+Base Sepolia can also be added as a custom network in any EVM-compatible wallet such as [MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn).
+
+#### MetaMask
+
+To add Base Sepolia in MetaMask:
+
+1. Open the MetaMask extension.
+2. Click the network dropdown.
+3. Click **Add network**.
+4. Click **Add a network manually**.
+5. Enter the Base Sepolia values:
+
+   | Name | Value |
+   | :--- | :--- |
+   | Network Name | Base Sepolia |
+   | RPC Endpoint | [https://sepolia.base.org](https://sepolia.base.org) |
+   | Chain ID | 84532 |
+   | Currency Symbol | ETH |
+   | Block Explorer | [https://sepolia-explorer.base.org](https://sepolia-explorer.base.org) |
+
+6. Click **Save**.
+
+Base Sepolia is now selectable from the network dropdown.

@@ -1,0 +1,82 @@
+---
+title: Network Fees
+description: How Base fees are split between L2 execution and L1 data, plus the minimum base fee, EIP-1559 parameters, and the GasPriceOracle.
+---
+
+Every Base transaction pays an L2 execution fee plus an L1 security fee — the cost of posting transaction data back to Ethereum. The L1 component is typically the larger of the two.
+
+## How fees work
+
+The L1 fee fluctuates with Ethereum gas conditions. If your transaction timing is flexible, submitting during quieter L1 windows (such as weekends) can reduce overall cost.
+
+The L2 fee responds to demand on Base itself, using the same EIP-1559 mechanism Ethereum uses. For background, see Coinbase's [EIP-1559 explainer](https://help.coinbase.com/en/coinbase/getting-started/crypto-education/eip-1559).
+
+For lower-level details on fee composition, refer to the [OP Stack fee documentation](https://docs.optimism.io/stack/transactions/fees).
+
+## Minimum base fee
+
+The [Jovian upgrade](https://docs.optimism.io/notices/upgrade-17) introduced a minimum base fee — a floor that prevents the L2 base fee from collapsing during quiet periods.
+
+Base Mainnet's minimum base fee is currently 5,000,000 wei (0.005 gwei). The value may be adjusted over time as data accumulates. As a reference point, a 0.005 gwei base fee costs about $0.002 for a 200,000-gas transaction at an ETH price of $2,000.
+
+### Benefits
+
+- **Faster inclusion.** Without a floor, low-activity periods drove the base fee toward zero, and demand spikes could then take a long time to clear the resulting backlog. With a floor, transactions clear faster and most users do not need to manually bump priority fees.
+- **More predictable fees.** Base fees sit at or near the minimum during normal operation and rise above it during congestion — a surge-pricing pattern.
+- **Spam mitigation.** Very low fees make spam transactions cheap. The floor prices out that activity while keeping legitimate use affordable.
+
+### Current configuration
+
+| Network      | Minimum base fee |
+|--------------|------------------|
+| Base Mainnet | 5,000,000 wei (0.005 gwei) |
+| Base Sepolia | 5,000,000 wei (0.005 gwei) |
+
+The [configuration changelog](/network/configuration-changelog/) tracks every change to the minimum base fee and other parameters.
+
+## EIP-1559 fee parameters
+
+Base uses the OP Stack implementation of EIP-1559 to adjust the L2 base fee in response to demand. Two parameters drive the dynamics.
+
+### Elasticity multiplier
+
+The **elasticity multiplier** sets the maximum block gas relative to the target. With elasticity 6, a block can hold up to 6× the target gas, absorbing short demand spikes.
+
+### Base fee change denominator
+
+The **base fee change denominator** controls how aggressively the base fee moves between blocks. Larger denominators yield smoother changes; with a denominator of 125, the fee adjusts more gradually than under lower values.
+
+### Maximum rate of change
+
+Per-block change is capped at:
+
+**Max increase per block = (Elasticity − 1) / Denominator**
+
+With the current parameters (Elasticity = 6, Denominator = 125):
+
+- Maximum increase per block: (6 − 1) / 125 = **4%**
+- Minimum time to double the base fee: 18 blocks × 2 seconds = **36 seconds**
+
+The smoothed adjustment limits fee volatility during traffic spikes while still letting the network track sustained demand.
+
+### Current configuration
+
+| Network      | Elasticity | Denominator | Max change per block |
+|--------------|------------|-------------|----------------------|
+| Base Mainnet | 6          | 125         | 4%                   |
+| Base Sepolia | 6          | 125         | 4%                   |
+
+## Querying the L1 fee
+
+The **GasPriceOracle** predeploy at `0x420000000000000000000000000000000000000F` (see [Contract Addresses](/network/base-contracts/)) lets callers estimate the L1 component before signing.
+
+| Method | Returns |
+| ------ | ------- |
+| `getL1Fee(bytes)` | Exact L1 fee for a fully serialized (RLP-encoded) transaction |
+| `getL1FeeUpperBound(uint256 txSize)` | Upper-bound L1 fee estimated from approximate transaction byte length |
+| `l1BaseFee()` | Current Ethereum L1 base fee as observed by Base |
+| `blobBaseFee()` | Current EIP-4844 blob base fee |
+| `baseFeeScalar()` | Scalar applied to the L1 base fee component |
+| `blobBaseFeeScalar()` | Scalar applied to the blob base fee component |
+
+Use `getL1FeeUpperBound` for a quick estimate before the transaction is fully built. Use `getL1Fee` with the complete serialized transaction for an exact pre-sign value.

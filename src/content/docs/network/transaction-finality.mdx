@@ -1,0 +1,70 @@
+---
+title: Transaction Finality
+description: The four finality stages for Base L2 transactions and the 7-day window that applies only to withdrawals back to Ethereum.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Finality is the point at which a Base transaction becomes irreversible. The behavior differs for transactions that update L2 state versus transactions that withdraw funds from Base L2 to Ethereum L1.
+
+<Aside type="note">
+**Only withdrawals from Base to Ethereum require a 7-day wait.** Regular L2 transactions — swaps, transfers, contract calls — do not.
+</Aside>
+
+## Finality for Base L2 transactions
+
+This section covers every Base transaction except withdrawals back to Ethereum.
+
+Finality is layered: each successive stage strengthens the security guarantee.
+
+### Flashblock inclusion: ~200ms
+
+After about 200 milliseconds, the Base sequencer includes the transaction in a preconfirmation block (a Flashblock).
+
+Reorg probability is below 0.001%. Flashblocks reorg less than 0.001% of the time; the [public stats page](https://base.org/stats) records the reorg history.
+
+### L2 block inclusion: ~2s
+
+After roughly 2 seconds, the sequencer has packaged the transaction into a sealed L2 block and propagated it to validator nodes.
+
+Reorg probability is effectively 0%. Only one Base L2 block has ever reorged, accounting for 0.0000003% of transactions. The data is visible on [Blockscout](https://base.blockscout.com/blocks?tab=reorgs).
+
+### L1 batch inclusion: ~2m
+
+After about 2 minutes, a Base batch containing the transaction has been posted to Ethereum.
+
+Reorg probability is effectively 0%. No L2 blocks that have been batched to Ethereum L1 have ever reorged. **An Ethereum L1 reorg does not force a Base L2 reorg.** The sequencer and validator nodes maintain a configurable lag from the L1 tip, so typical L1 reorgs have no impact. If a deeper L1 reorg occurs, Base can resubmit batch data without altering the sequenced L2 blocks.
+
+### L1 batch finality: ~20m
+
+The Ethereum batch carrying the transaction is older than 2 epochs (64 L1 blocks).
+
+Reorg probability is effectively 0%. L2 blocks past L1 batch finality enjoy the same protection as Ethereum-finalized blocks and are practically impossible to reverse.
+
+## Finality for withdrawals
+
+**Withdrawals from Base to Ethereum must wait 7 days before funds can be released to the L1 recipient.** The delay enables Base's Fault Proof system to provide strong security for bridged funds.
+
+### What happens during the 7 days
+
+When a withdrawal is initiated, the funds are debited from the Base account immediately. A permissionless "proposer" must then provide Ethereum with proof that Base contains the withdrawal.
+
+Ethereum cannot independently confirm Base state — they are separate chains — so a 7-day window opens during which a permissionless "challenger" may dispute a proposal it considers malicious. If no challenge arrives, the withdrawal can be proven against the finalized output root and released on L1. If a challenge is filed, the proposer and challenger play the Fault Dispute Game, escalating bonds until a winner emerges. A winning proposer locks in the output root for use in withdrawal proofs; a winning challenger invalidates the output proposal.
+
+The system is secure as long as a single honest party participates. Base will always run an honest proposer and an honest challenger.
+
+A successful challenge does not reorg the L2 chain. The output proposal is marked invalid, and any withdrawals proven against it must be re-proven against a different, valid output root.
+
+## FAQ
+
+**If Ethereum reorgs, will Base reorg?**
+
+Almost never. Base resubmits batch data to Ethereum transparently while the L2 chain continues forward.
+
+**How long do deposit transactions take to finalize?**
+
+Deposits are initiated on Ethereum and are typically picked up by the Base sequencer within 3 minutes.
+
+**If a challenger wins a dispute game, will the L2 chain reorg?**
+
+No. The challenged output proposal is marked invalid, and any actions that depended on its output root must use a valid replacement. In practice, withdrawals proven against the invalid proposal must be re-proven against a different one.

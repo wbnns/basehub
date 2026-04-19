@@ -1,0 +1,39 @@
+---
+title: eth_blockNumber
+description: Returns the latest block number on Base — the most recent block the node has imported, encoded as a hexadecimal string.
+---
+
+Returns the number of the most recently mined block.
+
+## Parameters
+
+None.
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The current block number as a hexadecimal string. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_blockNumber",
+  "params": [],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x158a0e9"
+}
+```

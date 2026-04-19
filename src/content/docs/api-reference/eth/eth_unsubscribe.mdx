@@ -1,0 +1,51 @@
+---
+title: eth_unsubscribe
+description: Cancels an active WebSocket subscription created with eth_subscribe and invalidates the subscription ID.
+---
+
+Cancels a subscription created with [`eth_subscribe`](/api-reference/eth/eth_subscribe/). The subscription ID is no longer valid after this call.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `subscriptionId` | string | Yes | The subscription ID returned by `eth_subscribe`. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | boolean | `true` if the subscription was successfully cancelled, `false` if the subscription ID was not found. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "eth_unsubscribe",
+  "params": ["0x1887ec8b9589ccad00000000000532da"]
+}
+```
+
+### Response (success)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": true
+}
+```
+
+### Response (not found)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": false
+}
+```

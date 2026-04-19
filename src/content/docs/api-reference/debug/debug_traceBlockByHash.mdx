@@ -1,0 +1,65 @@
+---
+title: debug_traceBlockByHash
+description: Replays every transaction in a block identified by hash and returns an EVM execution trace for each one.
+---
+
+Replays all transactions in a block identified by its hash and returns an execution trace for each.
+
+Debug methods replay every transaction in the block and are computationally expensive. Availability varies by node provider.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `blockHash` | string | Yes | The 32-byte block hash. |
+| `traceOptions` | object | No | Optional trace configuration. Accepts the same fields as [`debug_traceTransaction`](/api-reference/debug/debug_traceTransaction/). |
+
+## Returns
+
+`result` is an array of trace result objects, one per transaction in the block.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `txHash` | string | The transaction hash. |
+| `result` | object | The execution trace for this transaction. Same format as [`debug_traceTransaction`](/api-reference/debug/debug_traceTransaction/). |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "debug_traceBlockByHash",
+  "params": [
+    "0x3a4e8c5d7f2b1a6e9d0c4f8b3e7a2d5c8f1b4e7a0d3c6f9b2e5a8d1c4f7b0e3",
+    { "tracer": "callTracer" }
+  ],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    {
+      "txHash": "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+      "result": {
+        "type": "CALL",
+        "from": "0xd3cda913deb6f4967b2ef66ae97de114a83bcc01",
+        "to": "0x4200000000000000000000000000000000000006",
+        "value": "0x2c68af0bb14000",
+        "gas": "0x5208",
+        "gasUsed": "0x5208",
+        "input": "0x",
+        "output": "0x",
+        "calls": []
+      }
+    }
+  ]
+}
+```

@@ -1,0 +1,61 @@
+---
+title: Block Building
+description: How Base orders transactions inside blocks, including Flashblocks 200ms preconfirmations and the per-transaction gas cap enforced by the mempool.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Base block ordering is independent of the user-facing experience: the sequencer can build sub-block updates without exposing them, and the underlying ordering rules continue to apply.
+
+## Current configuration
+
+| Network      | Active configuration                                                                  | Upcoming |
+|--------------|---------------------------------------------------------------------------------------|----------|
+| Base Mainnet | [Flashblocks](#flashblocks) and [per-transaction gas maximum](#per-transaction-gas-maximum) |          |
+| Base Sepolia | [Flashblocks](#flashblocks) and [per-transaction gas maximum](#per-transaction-gas-maximum) |          |
+
+The [configuration changelog](/network/configuration-changelog/) records every change to block building parameters and other network-level settings.
+
+## Flashblocks
+
+Blocks are produced by [op-rbuilder](https://github.com/flashbots/op-rbuilder), with a fresh priority fee auction running every **200ms**. The auction shortens effective block times from 2 seconds to 200 milliseconds via preconfirmations.
+
+<Aside type="note">
+For a deeper architectural walkthrough, see the [Flashblocks overview](/flashblocks/overview/).
+</Aside>
+
+Three properties distinguish Flashblocks from vanilla ordering:
+
+1. **Timing** — The builder emits one Flashblock every 200ms, sealing a slice of the eventual block. Once a Flashblock is broadcast, its ordering is final; later transactions with higher priority fees cannot displace transactions already committed to an earlier Flashblock.
+
+2. **Gas allocation** — Each Flashblock has a progressively larger gas budget. Flashblock 1 may consume up to one tenth of the block gas limit, Flashblock 2 up to two tenths, and so on through Flashblock 10, which may use the full limit.
+
+   | Flashblock | Available gas |
+   |------------|---------------|
+   | 1 | ~14M gas (1/10) |
+   | 2 | ~28M gas (2/10) |
+   | 3 | ~42M gas (3/10) |
+   | ... | ... |
+   | 10 | ~140M gas (full) |
+
+   <Aside type="caution">
+   A transaction that needs more than ~14M gas cannot land in Flashblock 1 and will wait for a later Flashblock. Track inclusion latency if your application submits large transactions.
+   </Aside>
+
+3. **Dynamic mempool** — The builder keeps accepting new transactions while a Flashblock is being assembled. This minimizes inclusion latency, but transactions are ordered by fee *at the moment of selection*, not against every transaction that arrived during the 200ms window. A high-fee transaction that arrives late may appear after a lower-fee transaction that was already committed.
+
+   <Aside type="note">
+   This is an intentional trade-off — faster inclusion at the cost of occasionally violating strict priority gas auction (PGA) ordering inside a Flashblock. The [Flashblocks FAQ](/flashblocks/faq/) covers the implications in more detail.
+   </Aside>
+
+## Per-transaction gas maximum
+
+Base caps individual transactions at **25,000,000 gas**. Any transaction submitting a higher gas limit is **rejected by the mempool before it can be included**. `eth_sendTransaction` and `eth_sendRawTransaction` return a JSON-RPC error such as `exceeds maximum per-transaction gas limit`. This cap does **not** alter the block gas limit or the block validity rules.
+
+Fusaka's [EIP 7825](https://eips.ethereum.org/EIPS/eip-7825) **will** modify the block validity conditions and lower the per-transaction gas cap to 16,777,216 gas (2^24). OP Stack chains are expected to adopt the change around January 2026.
+
+Smart-account bundlers must size their bundles to remain under the cap.
+
+## Vanilla ordering
+
+Under the legacy configuration, [op-geth](https://github.com/ethereum-optimism/op-geth) builds a block every 2 seconds and orders transactions inside the block by priority fee. See the [reference implementation](https://github.com/ethereum-optimism/op-geth/blob/optimism/miner/worker.go#L627).

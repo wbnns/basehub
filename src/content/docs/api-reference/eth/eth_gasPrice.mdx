@@ -1,0 +1,39 @@
+---
+title: eth_gasPrice
+description: Returns the current gas price on Base in wei as a hexadecimal string; for EIP-1559 fee estimation use eth_maxPriorityFeePerGas and eth_feeHistory.
+---
+
+Returns the current gas price in wei. For EIP-1559 transactions, prefer [`eth_maxPriorityFeePerGas`](/api-reference/eth/eth_maxpriorityfeepergas/) and [`eth_feeHistory`](/api-reference/eth/eth_feehistory/) instead.
+
+## Parameters
+
+None.
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The current gas price in wei as a hexadecimal string. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_gasPrice",
+  "params": [],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0xfa"
+}
+```

@@ -1,0 +1,184 @@
+---
+title: Flashblocks API overview
+description: Flashblocks-specific RPC methods, WebSocket subscriptions, and the infrastructure stream schema for Base pre-confirmations.
+---
+
+Flashblocks endpoints expose every standard Ethereum JSON-RPC method along with a set of pre-confirmation-specific additions. Together they let you read state, simulate transactions, and stream events against sequencer-ordered data up to ~1.8 seconds before a block seals.
+
+All [standard Ethereum JSON-RPC methods](/api-reference/rpc-overview/) work identically on Flashblocks endpoints. Pass the `"pending"` block tag to resolve against pre-confirmed state instead of the transaction pool. See the [Overview](/api-reference/rpc-overview/) for endpoint URLs and a full description of the two tiers.
+
+## HTTP methods
+
+| Method | Description |
+| --- | --- |
+| [`eth_simulateV1`](/api-reference/flashblocks/eth_simulateV1/) | Simulate transaction bundles against pre-confirmed state. |
+| [`base_transactionStatus`](/api-reference/flashblocks/base_transactionStatus/) | Check whether a transaction has been received by the node mempool. |
+
+## WebSocket subscriptions
+
+On a Flashblocks WSS endpoint, `eth_subscribe` with `newHeads` emits a new event approximately every 200ms per Flashblock instead of every 2 seconds. Three additional subscription types are exclusive to Flashblocks endpoints:
+
+| Subscription | Description |
+| --- | --- |
+| [`newFlashblockTransactions`](/api-reference/flashblocks/newFlashblockTransactions/) | Stream individual transactions as they are pre-confirmed (~200ms each). |
+| [`pendingLogs`](/api-reference/flashblocks/pendingLogs/) | Stream filtered event logs from pre-confirmed transactions. |
+| [`newFlashblocks`](/api-reference/flashblocks/newFlashblocks/) | Stream full Flashblock payload objects from the sequencer. |
+
+## Infrastructure stream
+
+The raw Flashblocks infrastructure stream is the upstream WebSocket feed consumed by Flashblocks-aware RPC nodes. It emits a new message approximately every 200ms as the sequencer pre-confirms transactions.
+
+Applications should not connect directly to the infrastructure stream — these endpoints are reserved for node operators. App developers should use the [WebSocket subscription methods](#websocket-subscriptions) above through a Flashblocks-aware RPC provider.
+
+| Network | Raw stream URL |
+| --- | --- |
+| Mainnet | `wss://mainnet.flashblocks.base.org/ws` |
+| Sepolia | `wss://sepolia.flashblocks.base.org/ws` |
+
+### Flashblock object
+
+The root structure of each infrastructure stream message.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `payload_id` | string | Unique identifier for the block being built. Remains consistent across all Flashblocks within a single full block. |
+| `index` | number | Flashblock index within the current block. Starts at 0 (system transactions only). User transactions begin at index 1. Typically reaches 9–10 per block, but may exceed 10 during sequencer timing drift. |
+| `base` | Base Object | Block header properties. **Only present when `index` is `0`.** See [Base object](#base-object). |
+| `diff` | Diff Object | Incremental block state changes for this Flashblock. Present in every message. See [Diff object](#diff-object). |
+| `metadata` | Metadata Object | Supplemental data. **Unstable — fields may change without notice.** See [Metadata object](#metadata-object). |
+
+### Base object
+
+Contains full block header properties. Only present in the `index: 0` message (the first Flashblock of each full block).
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `parent_hash` | string | Hash of the parent block. |
+| `fee_recipient` | string | Address receiving transaction fees (coinbase). |
+| `block_number` | string | Block number in hex. |
+| `gas_limit` | string | Maximum gas allowed in this block (hex). |
+| `timestamp` | string | Unix timestamp of block creation (hex). |
+| `base_fee_per_gas` | string | EIP-1559 base fee per gas (hex). |
+| `prev_randao` | string | Previous RANDAO value used for on-chain randomness. |
+| `extra_data` | string | Arbitrary data field set by the sequencer. |
+
+### Diff object
+
+Contains the incremental block state changes for this specific Flashblock. Present in every message.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `state_root` | string | Merkle root of the state trie after applying this Flashblock's transactions. |
+| `block_hash` | string | Hash of the partial block at this Flashblock index. Changes with each Flashblock as more transactions are pre-confirmed. |
+| `gas_used` | string | Cumulative gas used up to and including this Flashblock (hex). |
+| `blob_gas_used` | string | Cumulative blob gas used (EIP-4844, hex). |
+| `transactions` | string[] | Array of RLP-encoded transactions included in this Flashblock. |
+| `withdrawals` | array | Validator withdrawals (always empty on Base L2). |
+| `receipts_root` | string | Merkle root of transaction receipts. |
+| `logs_bloom` | string | Bloom filter for logs in this Flashblock. |
+| `withdrawals_root` | string | Merkle root of withdrawals. |
+
+### Metadata object
+
+The `metadata` object is not stable. Fields may be added, modified, or removed without prior notice. Do not build production dependencies on it — use the [`diff`](#diff-object) object or query finalized block data via standard RPC instead.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `block_number` | number | Block number as a decimal integer. |
+| `new_account_balances` | object | Map of addresses to their updated ETH balances (hex). Only includes accounts whose balances changed in this Flashblock. |
+| `receipts` | object | Map of transaction hashes to their [Receipt](#receipt-object) objects. |
+
+### Receipt object
+
+The abbreviated transaction receipt included in `metadata.receipts`. Check the `type` field to determine the transaction type.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | string | Transaction type: `0x0` Legacy, `0x1` Access List, `0x2` EIP-1559, `0x7e` Deposit (L1→L2). |
+| `status` | string | Transaction status: `0x1` for success, `0x0` for failure. |
+| `cumulativeGasUsed` | string | Total gas used in the block up to and including this transaction (hex). |
+| `logs` | Log[] | Array of event logs emitted by the transaction. See [Log object](#log-object). |
+| `logsBloom` | string | Bloom filter for the logs in this receipt. |
+| `transactionIndex` | string | Index of the transaction within the block (hex). |
+
+### Log object
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `address` | string | Contract address that emitted the event. |
+| `topics` | string[] | Array of indexed event parameters. Topic 0 is typically the event signature hash. |
+| `data` | string | ABI-encoded non-indexed event parameters. |
+
+### Complete examples
+
+Index 0 — includes the `base` object (block header):
+
+```json
+{
+  "payload_id": "0x03997352d799c31a",
+  "index": 0,
+  "base": {
+    "parent_hash": "0x9edc29b8b0a1e31d28616e40c16132ad0d58faa8bb952595b557526bdb9a960a",
+    "fee_recipient": "0x4200000000000000000000000000000000000011",
+    "block_number": "0x158a0e9",
+    "gas_limit": "0x3938700",
+    "timestamp": "0x67bf8332",
+    "base_fee_per_gas": "0xfa"
+  },
+  "diff": {
+    "state_root": "0x208fd63edc0681161105f27d03daf9f8c726d8c94e584a3c0696c98291c24333",
+    "block_hash": "0x5c330e55a190f82ea486b61e5b12e27dfb4fb3cecfc5746886ef38ca1281bce8",
+    "gas_used": "0xab3f",
+    "transactions": ["0x7ef8f8a0b4afc0b7ce10e150801bbaf08ac33fecb0f38311793abccb022120d321c6d276..."],
+    "withdrawals": []
+  },
+  "metadata": {
+    "block_number": 22585577,
+    "new_account_balances": {
+      "0x000f3df6d732807ef1319fb7b8bb8522d0beac02": "0x0"
+    },
+    "receipts": {
+      "0x07d7f06b06fea714c1d1d446efa2790c6970aa74ee006186a32b5b7dd8ca2d82": {
+        "type": "0x7e",
+        "status": "0x1",
+        "cumulativeGasUsed": "0xab3f",
+        "logs": [],
+        "logsBloom": "0x00000000...",
+        "transactionIndex": "0x0"
+      }
+    }
+  }
+}
+```
+
+Index 1–N (diff only) — no `base` object:
+
+```json
+{
+  "payload_id": "0x03997352d799c31a",
+  "index": 4,
+  "diff": {
+    "state_root": "0x7a8f45038665072f382730e689f4a1561835c9987fca8942fa95872fb9367eaa",
+    "block_hash": "0x9b32f7a14cbd1efc8c2c5cad5eb718ec9e0c5da92c3ba7080f8d4c49d660c332",
+    "gas_used": "0x1234f",
+    "transactions": ["0x02f90133...", "0x02f90196..."],
+    "withdrawals": []
+  },
+  "metadata": {
+    "block_number": 22585577,
+    "new_account_balances": {
+      "0x4200000000000000000000000000000000000015": "0x1234"
+    },
+    "receipts": {
+      "0x7c69632dc315f13a...": {
+        "type": "0x2",
+        "status": "0x1",
+        "cumulativeGasUsed": "0x1234f",
+        "logs": [],
+        "logsBloom": "0x00000000...",
+        "transactionIndex": "0x1"
+      }
+    }
+  }
+}
+```

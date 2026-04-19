@@ -1,0 +1,72 @@
+---
+title: eth_getCode
+description: Returns the deployed bytecode at an address on Base; use pending on Flashblocks to detect newly deployed contracts before block finalization.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Returns the compiled bytecode at a given address. Returns `"0x"` for externally owned accounts (EOAs).
+
+<Aside type="tip">
+**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to detect contract deployments before the block seals.
+</Aside>
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `address` | string | The 20-byte address to query. Required. |
+| 2 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Required. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The bytecode at the address as a hex string. `"0x"` if there is no code. |
+
+## Example
+
+### Request
+
+<Tabs>
+  <TabItem label="Standard (latest)">
+
+```bash
+curl https://mainnet.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getCode",
+    "params": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "latest"],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+  <TabItem label="Flashblocks (pending, ~200ms)">
+
+```bash
+curl https://mainnet-preconf.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_getCode",
+    "params": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "pending"],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+</Tabs>
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x608060405234801561001057600080fd5b50..."
+}
+```

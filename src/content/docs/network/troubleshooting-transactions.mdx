@@ -1,0 +1,111 @@
+---
+title: Troubleshooting Transactions
+description: Diagnose pending, rejected, failed, or slow Base transactions, with fixes for fee, nonce, gas, and Flashblocks issues.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This guide walks through the common reasons Base transactions stall, fail, or revert, and explains how to fix each one.
+
+## Pending transactions
+
+If a transaction is sitting in the mempool longer than expected, work through the following.
+
+### `maxFeePerGas` too low
+
+If your `maxFeePerGas` is below the current base fee, the transaction stays pending until the base fee drops below your value.
+
+**Fix:** `maxFeePerGas` must cover both the base fee and the priority fee. Because the base fee can move between blocks, set `maxFeePerGas` high enough to remain valid even if the base fee climbs while the transaction is queued. A common formula:
+
+```
+maxFeePerGas = baseFee * 2 + maxPriorityFeePerGas
+```
+
+This pattern (used by [ethers.js](https://github.com/ethers-io/ethers.js/blob/98c49d091eb84a9146dfba8476f18e4c3e3d1d31/src.ts/providers/abstract-provider.ts#L945-L950)) provides headroom for the base fee to double before the transaction becomes uneconomical. You only pay the actual base fee at inclusion, not the maximum.
+
+<Aside type="note">
+Base enforces a [minimum base fee](/network/network-fees/#minimum-base-fee). Transactions with `maxFeePerGas` below that floor will never be included.
+</Aside>
+
+### Priority fee too low
+
+When the network is busy, transactions compete for inclusion via priority fees. Submitting a low priority fee against active demand delays inclusion.
+
+**Fix:** Most users wait for congestion to ease. For time-sensitive transactions, query `eth_maxPriorityFeePerGas` for an estimate that should outbid recent transactions.
+
+<Aside type="note">
+When [DA throttling](https://docs.optimism.io/chain-operators/guides/configuration/batcher#batcher-sequencer-throttling) is active, no RPC accounts for it when estimating priority fees. Even high-fee transactions may be delayed while the sequencer caps L2 throughput to manage L1 data availability.
+</Aside>
+
+### Nonce gap
+
+A pending transaction at nonce N blocks every transaction at nonce N+1 or higher, regardless of fees.
+
+**Fix:** Wait for the pending transaction, or replace it by submitting a new transaction with the same nonce and a fee bump of at least 10% on both `maxPriorityFeePerGas` and `maxFeePerGas`.
+
+### Nonce too low
+
+Submitting a transaction with a nonce that has already been used results in a rejection.
+
+**Fix:** Query the next available nonce with `eth_getTransactionCount` and the `pending` tag.
+
+## Rejected transactions
+
+### Gas limit exceeds the maximum
+
+Base enforces a [per-transaction gas maximum](/network/block-building/#per-transaction-gas-maximum) of **25,000,000 gas**. Higher limits are rejected by the mempool before inclusion.
+
+**Error:** `exceeds maximum per-transaction gas limit`
+
+**Fix:** Reduce the gas limit to 25,000,000 or lower. If the transaction genuinely needs more gas, split it into multiple transactions.
+
+## Included but failed transactions
+
+### Out of gas
+
+The transaction exhausted its gas during execution.
+
+**Fix:** Increase the gas limit. Estimate with `eth_estimateGas` and add a safety margin (for example, 20%) to absorb variability.
+
+### Reverted by contract
+
+Contract logic triggered a revert.
+
+**Fix:** Inspect the transaction on [Basescan](https://basescan.org) to find the revert reason. Common causes include failed `require` checks, arithmetic errors, and invalid state transitions.
+
+## Slow confirmations
+
+### Confirmation tiers
+
+Base produces an L2 block every 2 seconds, while [Flashblocks](/flashblocks/app-integration/) emit preconfirmations every 200ms.
+
+| Confirmation level | Time | Description |
+|--------------------|------|-------------|
+| Flashblock preconfirmation | ~200ms | Transaction included in a preconfirmation |
+| L2 block inclusion | ~2s | Transaction included in a sealed L2 block |
+| L1 batch inclusion | ~2m | Transaction posted to Ethereum |
+| L1 finality | ~20m | Ethereum batch is finalized |
+
+See [Transaction Finality](/network/transaction-finality/) for the full breakdown.
+
+### Use a Flashblocks-aware endpoint
+
+For the fastest possible confirmation, point your client at the Flashblocks RPC endpoint:
+
+| Network | Flashblocks RPC |
+|---------|-----------------|
+| Mainnet | `https://mainnet-preconf.base.org` |
+| Sepolia | `https://sepolia-preconf.base.org` |
+
+These endpoints return receipts as soon as the transaction lands in a Flashblock instead of waiting for the full L2 block.
+
+## Debugging tools
+
+- **[Basescan](https://basescan.org)** — Inspect status, logs, and revert reasons
+- **[Tenderly](https://tenderly.co)** — Simulate and debug transactions
+- **`eth_call`** — Test contract calls without submitting a transaction
+- **`eth_estimateGas`** — Estimate gas usage before submitting
+
+## Getting help
+
+If you are still stuck, ask in the `#developer-chat` channel on the [Base Discord](https://base.org/discord).

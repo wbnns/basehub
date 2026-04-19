@@ -1,0 +1,76 @@
+---
+title: Snapshots
+description: Restore Base nodes from official Reth and proofs snapshots for Base Mainnet and Base Sepolia to skip the initial sync window.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Restoring from a snapshot drastically reduces initial Base node sync time. Snapshots are refreshed regularly.
+
+## Restoring from a snapshot
+
+These steps assume you are inside the cloned `node` directory (the one containing `docker-compose.yml`).
+
+1. **Prepare the data directory.**
+   - **Before launching Docker for the first time**, create the host directory that will be mapped into the container. The path must match the `volumes` entry in `docker-compose.yml`:
+
+     ```bash
+     mkdir ./reth-data
+     ```
+
+   - If a previous run left an existing data directory, **stop the node first** (`docker compose down`), wipe the contents (for example, `rm -rf ./reth-data/*`), then continue.
+
+2. **Download the snapshot.** Pick the row that matches your network and client, and download into the `node` directory using `wget` or equivalent.
+
+   | Network  | Snapshot type        | Download command (`wget …`)                                                                                       |
+   | -------- | -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+   | Testnet  | Archive (recommended)| `wget -c https://sepolia-reth-archive-snapshots.base.org/$(curl https://sepolia-reth-archive-snapshots.base.org/latest)` |
+   | Testnet  | Pruned               | `wget -c https://sepolia-reth-pruned-snapshots.base.org/$(curl https://sepolia-reth-pruned-snapshots.base.org/latest)` |
+   | Mainnet  | Archive (recommended)| `wget -c https://mainnet-reth-archive-snapshots.base.org/$(curl https://mainnet-reth-archive-snapshots.base.org/latest)` |
+   | Mainnet  | Pruned               | `wget -c https://mainnet-reth-pruned-snapshots.base.org/$(curl https://mainnet-reth-pruned-snapshots.base.org/latest)` |
+
+   <Aside type="note">
+   Make sure you have enough free disk space for both the archive (`.tar.gz` / `.tar.zst`) and the extracted contents — extraction yields significantly more data than the archive itself.
+   </Aside>
+
+3. **Extract the snapshot.** Replace `snapshot-filename` with the actual download:
+
+   ```bash
+   tar -xzvf <snapshot-filename.tar.gz>
+
+   # For .tar.zst
+   tar -I zstd -xvf <snapshot-filename.tar.zst>
+   ```
+
+4. **Move the data into place.** Extraction typically produces a `reth/` directory.
+
+   - Move its contents into the data directory created in step 1:
+
+     ```bash
+     mv ./reth/* ./reth-data/
+     rm -rf ./reth    # remove the now-empty extracted folder
+     ```
+
+   - The chain data subdirectories (`chaindata`, `nodes`, `segments`, etc.) must sit directly under `./reth-data` — not in a nested folder.
+
+5. **Start the node.** Return to the root of your Base node folder and bring it up:
+
+   ```bash
+   cd ..
+   docker compose up --build
+   ```
+
+   The node should pick up syncing from the last block recorded in the snapshot.
+
+6. **Verify and clean up.** Tail the logs (`docker compose logs -f <service_name>`) or use the [sync monitoring](/getting-started/running/) command to confirm the node starts at the snapshot's block height. Once verified, delete the downloaded archive (`.tar.gz`) to reclaim disk space.
+
+## Proofs snapshots
+
+If you run the [historical proofs ExEx](/getting-started/running/), proof database snapshots are available so you can skip the 24–48 hour backfill.
+
+| Network | Download command (`wget …`) |
+| ------- | --------------------------- |
+| Testnet | `wget -c https://sepolia-reth-proofs-snapshots.base.org/$(curl https://sepolia-reth-proofs-snapshots.base.org/latest)` |
+| Mainnet | `wget -c https://mainnet-reth-proofs-snapshots.base.org/$(curl https://mainnet-reth-proofs-snapshots.base.org/latest)` |
+
+The restore process matches the steps above — follow [Restoring from a snapshot](#restoring-from-a-snapshot) using this archive.

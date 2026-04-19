@@ -1,0 +1,213 @@
+---
+title: App Integration
+description: Integrate Flashblocks for 200ms confirmations using the pending RPC tag with Wagmi, Viem, Ethers, and Flashblocks-aware node providers.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Choose the integration that matches your app's needs and connect through a Flashblocks-aware RPC endpoint.
+
+| Use case | Recommended approach | Documentation |
+|----------|----------------------|---------------|
+| **Apps needing instant UX** | Flashblocks-aware RPC with the `pending` tag. | [API Reference](/api-reference/flashblocks/flashblocks-api-overview/) |
+| **Infrastructure providers** | Host Flashblocks-aware RPC nodes. | [Enable Flashblocks](/node-operations/run-a-base-node/#enable-flashblocks) |
+| **Standard apps** | Continue using regular RPCs. | [JSON-RPC API Reference](/api-reference/rpc-overview/) |
+
+<Aside type="tip">
+Avoid hard dependencies on the WebSocket stream. RPC behavior is stable and falls back automatically to regular blocks if Flashblocks become unavailable.
+</Aside>
+
+## RPC endpoints
+
+For HTTP and WebSocket endpoint URLs, see the [Flashblocks API reference](/api-reference/flashblocks/flashblocks-api-overview/). Public endpoints are rate-limited; for production, route through a Flashblocks-enabled provider such as Alchemy, QuickNode, or dRPC.
+
+## Performance characteristics
+
+| Metric | Value |
+|--------|-------|
+| Flashblock build time (P50) | ~10ms |
+| Preconfirmation latency | ~200ms |
+| Full block time | 2 seconds |
+| Flashblocks per block | 10 |
+| Reorg rate | < 0.1% |
+
+## Gas and transaction sizing
+
+The gas budget is **cumulative**, not per-Flashblock. Each Flashblock unlocks an additional 1/10 of the total block gas:
+
+| Flashblock | Cumulative gas available |
+|------------|--------------------------|
+| 1 | 1/10 of block limit (~18.75M gas) |
+| 2 | 2/10 of block limit (~37.5M gas) |
+| 3 | 3/10 of block limit (~56.25M gas) |
+| ... | ... |
+| 10 | Full block limit (~187.5M gas) |
+
+<Aside type="tip">
+**Unused gas carries forward.** If Flashblock 1 only uses 0.3/10 of the budget, Flashblock 2 can use up to 1.7/10 (the cumulative 2/10 limit minus what was already consumed).
+</Aside>
+
+**Implications for large transactions:**
+
+- Transactions exceeding 1/10 of block gas (~18.75M) may not land in the first Flashblock — they wait for enough cumulative capacity.
+- A separate **per-transaction max gas limit** applies on Base, distinct from Flashblock capacity.
+- For best inclusion latency, keep individual transactions below ~18.75M gas so they qualify for the first Flashblock.
+
+## Reliability and fallback
+
+Base targets a **< 0.1% Flashblock reorg rate** — the share of preconfirmations that were streamed but missed inclusion in the final block. This is rare, but apps should plan for it.
+
+<Aside type="caution">
+**Build in fallback logic.** Treat preconfirmations as strong signals, not guarantees. For critical operations, confirm against finalized block data. Live reorg metrics are at [base.org/stats](https://base.org/stats).
+</Aside>
+
+If Flashblocks become unavailable, the sequencer keeps running and confirmation falls back to standard 2-second blocks. Apps should handle both modes.
+
+## Library examples
+
+A Flashblocks-aware RPC endpoint is required to use Flashblocks with these libraries.
+
+### [Wagmi](https://wagmi.sh)
+
+To use Flashblocks with Wagmi, set the `basePreconf` chain in the Wagmi config (see `config.ts`).
+
+<Tabs>
+<TabItem label="Example.tsx">
+
+```tsx
+import { useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
+
+function SendTransaction() {
+  const { data: hash, sendTransaction } = useSendTransaction();
+  const { data: receipt } = useWaitForTransactionReceipt({ hash });
+
+  return (
+    <div>
+      <button 
+        onClick={() => sendTransaction({ 
+          to: "0x...", 
+          value: parseEther('0.0001'),
+        })}
+      >
+        Send Transaction
+      </button>
+      {hash && <div>Hash: {hash}</div>}
+      {receipt && <div>Included on block number: {receipt.blockNumber}</div>}
+    </div>
+  )
+}
+```
+
+</TabItem>
+<TabItem label="App.tsx">
+
+```tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { WagmiProvider, useAccount } from 'wagmi'
+import { config } from './config'
+import { Example } from './Example'
+
+const queryClient = new QueryClient()
+
+function App() {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}> 
+        <Example />
+      </QueryClientProvider> 
+    </WagmiProvider>
+  )
+}
+```
+
+</TabItem>
+<TabItem label="config.ts">
+
+```tsx
+import { createConfig, http } from "wagmi";
+import { baseSepoliaPreconf } from "wagmi/chains";
+import { baseAccount } from "wagmi/connectors";
+
+export const config = createConfig({
+  chains: [baseSepoliaPreconf],
+  connectors: [baseAccount()],
+  transports: {
+    [baseSepoliaPreconf.id]: http(),
+  },
+});
+```
+
+</TabItem>
+</Tabs>
+
+### [Viem](https://viem.sh)
+
+```ts
+import { createWalletClient, http, parseEther, publicActions } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { baseSepoliaPreconf } from "viem/chains";
+
+// Create client with the Flashblocks-aware chain.
+const account = privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`);
+const client = createWalletClient({
+  account,
+  chain: baseSepoliaPreconf,
+  transport: http(),
+})
+  .extend(publicActions);
+
+const submissionTime = new Date();
+console.log(`Submitting transaction at: ${submissionTime.toISOString()}`);
+
+// Send transaction.
+const hash = await client.sendTransaction({
+  to: "0x...",
+  value: parseEther('0.0001'),
+});
+console.log(`Transaction hash: ${hash}`);
+
+// Wait for transaction to be included.
+const receipt = await client.waitForTransactionReceipt({ hash });
+const confirmTime = new Date();
+
+console.log(`Transaction included at: ${confirmTime.toISOString()}`);
+console.log(`Time difference: ${confirmTime - submissionTime}ms`);
+```
+
+### [Ethers](https://github.com/ethers-io/ethers.js)
+
+```jsx
+  const providerA = new ethers.JsonRpcProvider(
+    "https://sepolia-preconf.base.org"
+  );
+
+  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, providerA);
+
+  try {
+    // Create a simple transaction (sending 0.001 ETH to a random address)
+    const tx = {
+      to: "<SOME ADDRESS>",
+      value: ethers.parseEther("0.0000001"),
+    };
+
+    // Submit transaction
+    const submissionTime = new Date();
+    const transaction = await wallet.sendTransaction(tx);
+
+    console.log(`Submitting transaction at: ${submissionTime.toISOString()}`);
+    console.log(`Transaction hash: ${transaction.hash}`);
+
+    await transaction.wait(0); // Make sure to set the confirmation count to 0
+
+    console.log("Transaction confirmed");
+    const confirmationTime = new Date();
+    console.log(`Transaction confirmed at: ${confirmationTime.toISOString()}`);
+    console.log(`Time difference: ${confirmationTime - submissionTime}ms`);
+  }
+```
+
+Confirmation times against this endpoint should be substantially lower than the standard RPC.
+
+## Support
+
+For feedback, support, or questions about Flashblocks, reach the team in the `#developer-chat` channel on the [Base Discord](https://base.org/discord).

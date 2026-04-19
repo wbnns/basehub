@@ -1,0 +1,51 @@
+---
+title: debug_traceBlockByNumber
+description: Returns EVM execution traces for every transaction in a block identified by its block number or block tag.
+---
+
+Returns the EVM execution traces for all transactions in a block identified by its number.
+
+Debug methods replay every transaction in the block and are computationally expensive. Availability varies by node provider.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `block` | string | Yes | A block number in hex, or one of `"latest"`, `"earliest"`, `"safe"`, `"finalized"`. |
+| `tracerConfig` | object | No | Optional tracer configuration. See [`debug_traceTransaction`](/api-reference/debug/debug_traceTransaction/) for available options. |
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | array | Array of trace objects, one per transaction in the block. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "debug_traceBlockByNumber",
+  "params": ["latest", {"tracer": "callTracer"}],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": [
+    {
+      "result": {
+        "type": "CALL",
+        "gasUsed": "0xab3f"
+      }
+    }
+  ]
+}
+```

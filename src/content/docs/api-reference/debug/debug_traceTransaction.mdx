@@ -1,0 +1,143 @@
+---
+title: debug_traceTransaction
+description: Replays a transaction and returns its full EVM execution trace, with opcode-level gas, stack, memory, and storage detail.
+---
+
+Replays a transaction and returns its complete EVM execution trace, including every opcode executed, gas consumed at each step, stack contents, and storage changes.
+
+Debug methods replay transactions and are computationally expensive. Availability and rate limits vary by node provider — avoid calling them in hot paths.
+
+## Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `transactionHash` | string | Yes | The 32-byte transaction hash to trace. |
+| `traceOptions` | object | No | Optional tracing configuration. |
+
+The `traceOptions` object accepts:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tracer` | string | Built-in tracer name. `"callTracer"` returns a call tree. `"prestateTracer"` returns the pre-execution account state. Omit to use the default struct log tracer. |
+| `tracerConfig` | object | Options for the selected tracer. For `"callTracer"`, `\{ "onlyTopCall": true \}` skips internal calls. |
+| `disableStorage` | boolean | If `true`, omits storage capture from struct logs. Reduces response size. Defaults to `false`. |
+| `disableMemory` | boolean | If `true`, omits memory capture from struct logs. Reduces response size. Defaults to `false`. |
+| `disableStack` | boolean | If `true`, omits stack capture from struct logs. Defaults to `false`. |
+| `timeout` | string | Execution timeout as a Go duration string (for example, `"10s"`, `"30s"`). Defaults to `"5s"`. |
+
+## Returns
+
+`result` is the execution trace. The shape depends on the `tracer` option.
+
+### Default struct log trace
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `gas` | number | Total gas provided for the transaction. |
+| `failed` | boolean | Whether the transaction failed (reverted). |
+| `returnValue` | string | Hex-encoded return value from the execution. |
+| `structLogs` | array | Array of struct log entries, one per EVM opcode executed. |
+
+Each entry in `structLogs` contains:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `pc` | number | Program counter position. |
+| `op` | string | EVM opcode name (for example, `"PUSH1"`, `"SLOAD"`). |
+| `gas` | number | Remaining gas at this step. |
+| `gasCost` | number | Gas cost of this opcode. |
+| `depth` | number | Call depth (1 = top-level call). |
+| `stack` | array | EVM stack values at this step. |
+| `memory` | array | EVM memory contents as 32-byte chunks. |
+| `storage` | object | Contract storage changes at this step (slot to value). |
+
+### callTracer result
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | string | Call type: `"CALL"`, `"STATICCALL"`, `"DELEGATECALL"`, or `"CREATE"`. |
+| `from` | string | Sender address. |
+| `to` | string | Recipient address. |
+| `value` | string | ETH value sent with the call. |
+| `gas` | string | Gas provided for the call. |
+| `gasUsed` | string | Gas actually consumed. |
+| `input` | string | Call data sent. |
+| `output` | string | Return data from the call. |
+| `error` | string | Error message if the call reverted. Optional. |
+| `calls` | array | Array of nested call objects for internal calls. |
+
+## Example
+
+### Request (default struct log)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "debug_traceTransaction",
+  "params": [
+    "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+    {}
+  ],
+  "id": 1
+}
+```
+
+### Request (callTracer)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "debug_traceTransaction",
+  "params": [
+    "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+    { "tracer": "callTracer" }
+  ],
+  "id": 1
+}
+```
+
+### Response (default)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "gas": 21000,
+    "failed": false,
+    "returnValue": "",
+    "structLogs": [
+      {
+        "pc": 0,
+        "op": "PUSH1",
+        "gas": 21000,
+        "gasCost": 3,
+        "depth": 1,
+        "stack": [],
+        "memory": [],
+        "storage": {}
+      }
+    ]
+  }
+}
+```
+
+### Response (callTracer)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "type": "CALL",
+    "from": "0xd3cda913deb6f4967b2ef66ae97de114a83bcc01",
+    "to": "0x4200000000000000000000000000000000000006",
+    "value": "0x2c68af0bb14000",
+    "gas": "0x5208",
+    "gasUsed": "0x5208",
+    "input": "0x",
+    "output": "0x",
+    "calls": []
+  }
+}
+```

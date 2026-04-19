@@ -1,0 +1,159 @@
+---
+title: Base Azul Upgrade
+description: Migrate Base nodes to base-reth-node and base-consensus ahead of the Azul network upgrade, with environment variable mappings and timelines.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The Base Azul upgrade activates Osaka features on Base alongside the TEE/ZK proof systems and requires every node operator to migrate to Base-native clients.
+
+<Aside type="caution">
+Only `base-reth-node` (EL) and `base-consensus` (CL) support Azul. Nodes running `op-node`, `op-geth`, `op-reth`, `nethermind`, or `kona` will not survive the upgrade and must be migrated before activation.
+</Aside>
+
+The full scope is documented in the [Azul specification](https://specs.base.org/upgrades/azul/overview).
+
+## Activation timeline
+
+| Network | Date | Timestamp |
+|---------|------|-----------|
+| Sepolia | April 20, 2026 18:00 UTC | `1776708000` |
+| Mainnet | Early May 2026 | TBD |
+
+## Required software
+
+| Layer | Software | Version |
+|-------|----------|---------|
+| Execution (EL) | [`base-reth-node`](https://github.com/base/base/releases/tag/v0.7.0) | v0.7.0+ |
+| Consensus (CL) | [`base-consensus`](https://github.com/base/base/releases/tag/v0.7.0) | v0.7.0+ |
+
+<Aside type="note">
+Both binaries ship from the [base/node](https://github.com/base/node/releases) repository, where the bulk of configuration is preset and overridable via environment variables. See `.env.mainnet` and `.env.sepolia` for the complete option set.
+
+If you build from [base/base](https://github.com/base/base/releases) directly, update your `base-consensus` configuration to use the new `BASE_NODE_*` environment variables. `base-reth-node` continues to honor existing Reth tooling and flags.
+</Aside>
+
+## Migrating the execution layer
+
+### From OP Reth
+
+If you already run OP Reth via [base/node](https://github.com/base/node), updating to the latest release switches you to `base-reth-node` automatically. Your existing `./reth-data` directory is fully compatible — no resync or snapshot restore required.
+
+1. Stop the node:
+
+   ```bash
+   docker compose down
+   ```
+
+2. Pull the latest [base/node](https://github.com/base/node):
+
+   ```bash
+   git pull origin main
+   ```
+
+3. Start the node:
+
+   ```bash
+   docker compose up
+   ```
+
+4. Confirm the client version with `web3_clientVersion` — the response should include `base` (for example, `reth/v1.11.3-.../base/v0.7.0`).
+
+### From other clients
+
+`op-geth` and `nethermind` are no longer supported. You must restart from a clean `base-reth-node` setup.
+
+1. Stop the node:
+
+   ```bash
+   docker compose down
+   ```
+
+2. Pull the latest [base/node](https://github.com/base/node):
+
+   ```bash
+   git pull origin main
+   ```
+
+3. Remove the existing client data directory (for example, `./geth-data` or `./nethermind-data`).
+
+4. Edit `.env.mainnet` or `.env.sepolia` to match your preferences.
+
+5. Bootstrap from a [Reth snapshot](/node-operations/snapshots/) to skip a full sync.
+
+6. Start the node:
+
+   ```bash
+   docker compose up
+   ```
+
+## Migrating the consensus layer
+
+Replace `op-node` with `base-consensus` by updating your environment variables.
+
+1. Set `USE_BASE_CONSENSUS=true` in your `.env` file.
+
+2. Update `.env` with the new `BASE_NODE_*` variables (see the mapping below).
+
+3. Restart:
+
+   ```bash
+   docker compose up
+   ```
+
+4. Verify:
+   - Tail consensus logs: `docker compose logs -f node`
+   - Confirm sync status: `optimism_syncStatus` continues to work
+
+### Environment variable mapping
+
+If you use [base/node](https://github.com/base/node), most variables are already populated in `.env.mainnet` and `.env.sepolia`. If you build from [base/base](https://github.com/base/base), use the table below to translate `op-node` variables to `base-consensus`. Most are optional. Run `base-consensus node --help` for the full list.
+
+| `op-node` | `base-consensus` |
+|-----------|-------------------|
+| `OP_NODE_NETWORK` | `BASE_NODE_NETWORK` |
+| `OP_NODE_ROLLUP_CONFIG` | `BASE_NODE_ROLLUP_CONFIG` |
+| — | `BASE_NODE_LOG_VERBOSITY` |
+| — | `BASE_NODE_LOG_FORMAT` |
+| `OP_NODE_L1_ETH_RPC` | `BASE_NODE_L1_ETH_RPC` |
+| `OP_NODE_L1_BEACON` | `BASE_NODE_L1_BEACON` |
+| `OP_NODE_L1_TRUST_RPC` | `BASE_NODE_L1_TRUST_RPC` |
+| `OP_NODE_L2_ENGINE_RPC` | `BASE_NODE_L2_ENGINE_RPC` |
+| `OP_NODE_L2_ENGINE_AUTH` | `BASE_NODE_L2_ENGINE_AUTH` |
+| — | `BASE_NODE_L2_ENGINE_AUTH_ENCODED` |
+| `OP_NODE_P2P_BOOTNODES` | `BASE_NODE_P2P_BOOTNODES` |
+| `OP_NODE_P2P_LISTEN_IP` | `BASE_NODE_P2P_LISTEN_IP` |
+| `OP_NODE_P2P_LISTEN_TCP_PORT` | `BASE_NODE_P2P_LISTEN_TCP_PORT` |
+| `OP_NODE_P2P_LISTEN_UDP_PORT` | `BASE_NODE_P2P_LISTEN_UDP_PORT` |
+| `OP_NODE_P2P_ADVERTISE_IP` | `BASE_NODE_P2P_ADVERTISE_IP` |
+| `OP_NODE_P2P_ADVERTISE_TCP` | `BASE_NODE_P2P_ADVERTISE_TCP_PORT` |
+| `OP_NODE_P2P_ADVERTISE_UDP` | `BASE_NODE_P2P_ADVERTISE_UDP_PORT` |
+| `OP_NODE_P2P_PRIV_PATH` | `BASE_NODE_P2P_PRIV_PATH` |
+| `OP_NODE_P2P_PEER_SCORING` | `BASE_NODE_P2P_SCORING` |
+| `OP_NODE_P2P_PEER_BANNING` | `BASE_NODE_P2P_BAN_PEERS` |
+| `OP_NODE_P2P_PEER_BANNING_THRESHOLD` | `BASE_NODE_P2P_BAN_THRESHOLD` |
+| `OP_NODE_P2P_PEER_BANNING_DURATION` | `BASE_NODE_P2P_BAN_DURATION` |
+| `OP_NODE_METRICS_ENABLED` | `BASE_NODE_METRICS_ENABLED` |
+| `OP_NODE_METRICS_ADDR` | `BASE_NODE_METRICS_ADDR` |
+| `OP_NODE_METRICS_PORT` | `BASE_NODE_METRICS_PORT` |
+| `OP_NODE_RPC_ADDR` | `BASE_NODE_RPC_ADDR` |
+| `OP_NODE_RPC_PORT` | `BASE_NODE_RPC_PORT` |
+| `OP_NODE_RPC_ENABLE_ADMIN` | `BASE_NODE_RPC_ENABLE_ADMIN` |
+| `OP_NODE_RPC_ADMIN_STATE` | `BASE_NODE_RPC_ADMIN_STATE` |
+| `OP_NODE_SAFEDB_PATH` | `BASE_NODE_SAFEDB_PATH` |
+| `OP_NODE_SYNCMODE` | — |
+| `OP_NODE_VERIFIER_L1_CONFS` | — |
+| `OP_NODE_L2_ENGINE_KIND` | — |
+| `OP_NODE_L1_RPC_KIND` | — |
+| `OP_NODE_L1_BEACON_FETCH_ALL_SIDECARS` | — |
+| `OP_NODE_L1_BEACON_FALLBACKS` | — |
+| `OP_NODE_ROLLUP_LOAD_PROTOCOL_VERSIONS` | — |
+| `OP_NODE_P2P_STATIC` | — |
+| `OP_NODE_P2P_DISABLE` | — |
+| `OP_NODE_P2P_NAT` | — |
+
+## FAQ
+
+- **Do I need to resync?** No, if you already run OP Reth — existing data is compatible.
+- **What if I'm on `op-geth` or `nethermind`?** Switch to `base-reth-node` and bootstrap from a [Reth snapshot](/node-operations/snapshots/).
+- **Do OP namespace RPCs still work?** Yes, all existing RPCs remain supported.

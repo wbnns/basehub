@@ -1,0 +1,108 @@
+---
+title: eth_call
+description: Executes a read-only message call against Base state without broadcasting a transaction; pair with pending on Flashblocks for pre-confirmed reads.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Runs a message call immediately against node state without broadcasting a transaction or consuming on-chain gas. Use it to read contract state or simulate calls.
+
+<Aside type="tip">
+**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to simulate against the current pre-confirmed block state, refreshed every ~200ms.
+</Aside>
+
+<Aside type="note">
+**`eth_call "pending"` block context on Flashblocks nodes:** block-context properties (`block.number`, `block.timestamp`, `block.basefee`) may reflect a block several behind tip due to how nodes cache historical Flashblocks. See the [Flashblocks FAQ](/flashblocks/faq/#why-does-eth_call-pending-report-a-block-context-several-blocks-behind-tip) for details.
+</Aside>
+
+## Parameters
+
+### `transaction` (object, required)
+
+The transaction call object.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `from` | string | Address the call is sent from. Optional; defaults to the zero address. |
+| `to` | string | Address the call is directed to. Required. |
+| `gas` | string | Gas provided for the call as a hexadecimal integer. Defaults to a high limit if omitted. |
+| `gasPrice` | string | Gas price in wei as a hexadecimal integer. For legacy transactions. Optional. |
+| `maxFeePerGas` | string | EIP-1559 maximum total fee per gas. Optional. |
+| `maxPriorityFeePerGas` | string | EIP-1559 maximum priority fee per gas. Optional. |
+| `value` | string | Value transferred in wei as a hexadecimal integer. Optional. |
+| `data` | string | ABI-encoded call data: the 4-byte function selector followed by encoded arguments. Optional. |
+
+### `block` (string, required)
+
+Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Pass `"pending"` on a Flashblocks endpoint to call against pre-confirmed state.
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The return value of the call as a hex-encoded byte array. |
+
+## Error codes
+
+| Code | Message | Description |
+| --- | --- | --- |
+| `-32000` | execution reverted | The call reverted. The `data` field in the error object contains the ABI-encoded revert reason when available. |
+
+## Example
+
+### Request
+
+<Tabs>
+  <TabItem label="Standard (latest)">
+
+```bash
+curl https://mainnet.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_call",
+    "params": [
+      {
+        "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "data": "0x70a082310000000000000000000000004200000000000000000000000000000000000006"
+      },
+      "latest"
+    ],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+  <TabItem label="Flashblocks (pending, ~200ms)">
+
+```bash
+curl https://mainnet-preconf.base.org \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "eth_call",
+    "params": [
+      {
+        "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "data": "0x70a082310000000000000000000000004200000000000000000000000000000000000006"
+      },
+      "pending"
+    ],
+    "id": 1
+  }'
+```
+
+  </TabItem>
+</Tabs>
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x0000000000000000000000000000000000000000000000000000000005f5e100"
+}
+```

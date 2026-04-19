@@ -1,0 +1,51 @@
+---
+title: eth_chainId
+description: Returns the EIP-695 chain ID for the connected Base network — 0x2105 for Mainnet and 0x14a34 for Sepolia.
+---
+
+Returns the chain ID of the current network, per [EIP-695](https://eips.ethereum.org/EIPS/eip-695).
+
+## Parameters
+
+None.
+
+## Returns
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `result` | string | The chain ID as a hexadecimal string. `"0x2105"` (8453) for Base Mainnet and `"0x14a34"` (84532) for Base Sepolia. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_chainId",
+  "params": [],
+  "id": 1
+}
+```
+
+### Response
+
+Base Mainnet:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x2105"
+}
+```
+
+Base Sepolia:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": "0x14a34"
+}
+```

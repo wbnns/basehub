@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://basehub.org/sitemap-index.xml

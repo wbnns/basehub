@@ -1,0 +1,56 @@
+---
+title: eth_feeHistory
+description: Returns historical base fees, gas-used ratios, and priority-fee percentile rewards across a range of Base blocks for fee estimation.
+---
+
+Returns historical gas data for a contiguous range of blocks, including per-block base fees and the distribution of priority fees. Useful for building EIP-1559 fee-estimation strategies.
+
+## Parameters
+
+| Position | Name | Type | Description |
+| --- | --- | --- | --- |
+| 1 | `blockCount` | string \| number | Number of blocks to return. Decimal or hexadecimal integer. The maximum is typically 1024. Required. |
+| 2 | `newestBlock` | string | The highest block to include, as a block number in hex or a block tag (`"latest"`, `"pending"`, etc.). Required. |
+| 3 | `rewardPercentiles` | array | Array of percentile values (0–100) to sample from each block's priority fees. For example, `[25, 50, 75]` returns the 25th, 50th, and 75th percentile priority fees. Required. |
+
+## Returns
+
+`result` (object):
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `oldestBlock` | string | The oldest block number in the result set (hex). |
+| `baseFeePerGas` | array | Base fees per gas for each block, plus one extra entry for the next pending block. |
+| `gasUsedRatio` | array | Gas-used to gas-limit ratios for each block (0.0 to 1.0). |
+| `reward` | array | Two-dimensional array of priority-fee percentiles per block, matching the requested percentile values. |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_feeHistory",
+  "params": ["0xa", "latest", [25, 50, 75]],
+  "id": 1
+}
+```
+
+### Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "oldestBlock": "0x158a0e0",
+    "baseFeePerGas": ["0xf5", "0xf7", "0xfa", "0xfc", "0xf8", "0xf5", "0xf2", "0xf0", "0xef", "0xf1", "0xf3"],
+    "gasUsedRatio": [0.45, 0.62, 0.38, 0.71, 0.55, 0.49, 0.43, 0.37, 0.52, 0.64],
+    "reward": [
+      ["0x1", "0x1", "0x2"],
+      ["0x1", "0x1", "0x1"]
+    ]
+  }
+}
+```

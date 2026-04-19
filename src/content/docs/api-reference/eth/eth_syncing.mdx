@@ -1,0 +1,43 @@
+---
+title: eth_syncing
+description: Returns the sync status of the node. Returns false when the node is fully synced, otherwise an object describing sync progress.
+---
+
+Returns the sync status of the node. Returns `false` when the node is fully synced.
+
+## Parameters
+
+None.
+
+## Returns
+
+`result` is `false` if the node is fully synced. Otherwise it is a sync status object with the following fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `startingBlock` | string | Block at which the sync started (hex). |
+| `currentBlock` | string | Current block being processed (hex). |
+| `highestBlock` | string | Estimated highest block (hex). |
+
+## Example
+
+### Request
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_syncing",
+  "params": [],
+  "id": 1
+}
+```
+
+### Response (synced)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": false
+}
+```
