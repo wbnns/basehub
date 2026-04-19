@@ -11,7 +11,7 @@ export default defineConfig({
 			logo: {
 				src: './src/assets/basehub-logo.png',
 			},
-			customCss: ['./src/styles/homepage.css'],
+			customCss: ['./src/styles/theme.css', './src/styles/homepage.css'],
 			head: [
 				{
 					tag: 'script',

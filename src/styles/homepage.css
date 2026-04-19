@@ -1,355 +1,169 @@
 /* ============================================================
-   BaseHub Homepage — WSJ-style newspaper layout
-   Scoped under .homepage — zero leakage to docs pages.
-   Uses Starlight CSS variables for automatic dark/light theming.
+   BaseHub homepage — Stripe-style cards layout.
+   Scoped under .home to prevent leakage into docs pages.
    ============================================================ */
 
-/* --- Root --- */
-.homepage {
+.home {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1rem 4rem;
   color: var(--sl-color-text);
-  font-size: 0.925rem;
-  line-height: 1.6;
 }
 
-/* --- Rules --- */
-.homepage .hp-rule-heavy {
-  border: none;
-  border-top: 3px solid var(--sl-color-text);
-  margin: 1.5rem 0 0;
+/* -------------------- Hero -------------------- */
+.home .home-hero {
+  padding: 2.5rem 0 2rem;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+  margin-bottom: 3rem;
 }
 
-.homepage .hp-rule {
-  border: none;
-  border-top: 1px solid var(--sl-color-gray-5);
-  margin: 2.5rem 0;
+.home .home-hero h1 {
+  font-family: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.75rem;
+  color: var(--sl-color-text);
 }
 
-.homepage .hp-rule-thin {
-  border: none;
-  border-top: 1px solid var(--sl-color-gray-5);
-  margin: 0.4rem 0 0.75rem;
-}
-
-/* --- Links --- */
-.homepage a {
-  color: var(--sl-color-text-accent);
-  text-decoration: none;
-}
-
-.homepage a:hover {
-  text-decoration: underline;
-}
-
-.homepage .hp-text-link {
-  font-size: 0.875rem;
-  color: var(--sl-color-text-accent);
-}
-
-/* --- Column heading --- */
-.homepage .hp-col-heading {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--sl-color-gray-2);
-  margin: 0;
-}
-
-/* --- Link lists --- */
-.homepage .hp-link-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.homepage .hp-link-list li {
-  padding: 0.3rem 0;
-  font-size: 0.875rem;
+.home .home-hero p {
+  font-size: 1.125rem;
   line-height: 1.5;
   color: var(--sl-color-gray-2);
+  max-width: 40rem;
+  margin: 0;
 }
 
-.homepage .hp-link-list li a {
-  font-weight: 600;
+.home .home-hero code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.95em;
+  background: var(--sl-color-bg-inline-code);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
 }
 
-/* ======================
-   1. MASTHEAD
-   ====================== */
-.homepage .hp-masthead {
-  padding-top: 2rem;
+/* -------------------- Cards grid -------------------- */
+.home .home-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 4rem;
 }
 
-.homepage .hp-masthead-title {
-  font-size: 2.25rem;
-  font-weight: 800;
-  line-height: 1.1;
+.home .home-card {
+  display: block;
+  padding: 1.5rem 1.5rem 1.75rem;
+  background: var(--sl-color-bg);
+  border: 1px solid var(--sl-color-hairline-light);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home .home-card:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+}
+
+.home .home-card h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
   margin: 0 0 0.5rem;
   color: var(--sl-color-text);
 }
 
-.homepage .hp-masthead-desc {
-  font-size: 1.05rem;
-  color: var(--sl-color-gray-2);
-  margin: 0 0 0.75rem;
-  line-height: 1.5;
-}
-
-.homepage .hp-masthead-desc code {
-  font-size: 0.95em;
-  background: var(--sl-color-gray-6);
-  padding: 0.1em 0.35em;
-  border-radius: 3px;
-}
-
-.homepage .hp-masthead-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--sl-color-gray-3);
-}
-
-.homepage .hp-meta-sep {
-  display: inline-block;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--sl-color-gray-4);
-}
-
-/* ======================
-   2. LEAD + SIDEBAR
-   ====================== */
-.homepage .hp-lead-sidebar {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2.5rem;
-  padding-top: 2rem;
-}
-
-.homepage .hp-lead h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.25;
-  margin: 0 0 0.75rem;
-  color: var(--sl-color-text);
-}
-
-.homepage .hp-lead h2 a {
-  color: inherit;
-}
-
-.homepage .hp-lead h2 a:hover {
-  color: var(--sl-color-text-accent);
-}
-
-.homepage .hp-lead > p {
-  margin: 0 0 1.25rem;
-  color: var(--sl-color-gray-2);
-}
-
-.homepage .hp-ascii-diagram {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  overflow-x: auto;
-  padding: 1rem;
-  margin: 0 0 1rem;
-  background: var(--sl-color-gray-6);
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 4px;
-  color: var(--sl-color-text);
-}
-
-.homepage .hp-sidebar {
-  border-left: 1px solid var(--sl-color-gray-5);
-  padding-left: 2rem;
-}
-
-.homepage .hp-sidebar .hp-col-heading {
-  margin-top: 1.5rem;
-}
-
-.homepage .hp-sidebar .hp-col-heading:first-child {
-  margin-top: 0;
-}
-
-.homepage .hp-code-block {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
-  font-size: 0.78rem;
-  line-height: 1.55;
-  padding: 0.75rem 1rem;
-  margin: 0 0 1.25rem;
-  background: var(--sl-color-gray-6);
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 4px;
-  overflow-x: auto;
-  color: var(--sl-color-text);
-  white-space: pre;
-}
-
-/* ======================
-   3. THREE-COLUMN MIDDLE
-   ====================== */
-.homepage .hp-three-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 2rem;
-}
-
-.homepage .hp-col-bordered {
-  border-left: 1px solid var(--sl-color-gray-5);
-  padding-left: 2rem;
-}
-
-/* ======================
-   4. CRATE REFERENCE INDEX
-   ====================== */
-.homepage .hp-crate-index h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0 0 1.25rem;
-  color: var(--sl-color-text);
-}
-
-.homepage .hp-crate-meta {
-  font-size: 0.875rem;
+.home .home-card .home-arrow {
   font-weight: 400;
+  color: var(--sl-color-accent);
+  transition: transform 0.15s ease;
+}
+
+.home .home-card:hover .home-arrow {
+  transform: translateX(2px);
+}
+
+.home .home-card p {
+  font-size: 0.9375rem;
+  line-height: 1.5;
   color: var(--sl-color-gray-2);
+  margin: 0;
 }
 
-.homepage .hp-crate-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+/* -------------------- Popular list -------------------- */
+.home .home-popular {
+  padding-top: 2rem;
+  border-top: 1px solid var(--sl-color-hairline-light);
 }
 
-.homepage .hp-crate-group h4 {
-  font-size: 0.875rem;
+.home .home-popular h2 {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 0.75rem;
   font-weight: 700;
-  margin: 0 0 0.4rem;
-  color: var(--sl-color-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  margin: 0 0 1rem;
 }
 
-.homepage .hp-crate-group ul {
+.home .home-popular ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 2rem;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.homepage .hp-crate-group li {
-  padding: 0.1rem 0;
-  font-size: 0.8rem;
-  line-height: 1.45;
+.home .home-popular li {
+  padding: 0.25rem 0;
 }
 
-.homepage .hp-crate-group code {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
-  font-size: 0.85em;
+.home .home-popular a {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--sl-color-text-accent);
+  text-decoration: none;
 }
 
-/* ======================
-   5. FOOTER ROW
-   ====================== */
-.homepage .hp-footer-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2.5rem;
-  padding-bottom: 3rem;
+.home .home-popular a:hover {
+  text-decoration: underline;
 }
 
-.homepage .hp-footer-side {
-  border-left: 1px solid var(--sl-color-gray-5);
-  padding-left: 2rem;
-}
-
-.homepage .hp-footer-side p {
-  font-size: 0.875rem;
-  color: var(--sl-color-gray-2);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.homepage .hp-footer-side code {
-  font-size: 0.9em;
-  background: var(--sl-color-gray-6);
-  padding: 0.1em 0.3em;
-  border-radius: 3px;
-}
-
-/* ======================
-   RESPONSIVE
-   ====================== */
-
-/* Tablet: 50-72rem */
-@media (max-width: 72rem) {
-  .homepage .hp-crate-grid {
-    grid-template-columns: repeat(3, 1fr);
+/* -------------------- Responsive -------------------- */
+@media (max-width: 60rem) {
+  .home .home-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .home .home-popular ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Mobile: <50rem */
-@media (max-width: 50rem) {
-  .homepage .hp-lead-sidebar {
+@media (max-width: 40rem) {
+  .home .home-hero h1 {
+    font-size: 2rem;
+  }
+  .home .home-cards,
+  .home .home-popular ul {
     grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  .homepage .hp-sidebar {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--sl-color-gray-5);
-    padding-top: 1.5rem;
-  }
-
-  .homepage .hp-three-col {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  .homepage .hp-col-bordered {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--sl-color-gray-5);
-    padding-top: 1.5rem;
-  }
-
-  .homepage .hp-crate-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .homepage .hp-footer-row {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  .homepage .hp-footer-side {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--sl-color-gray-5);
-    padding-top: 1.5rem;
-  }
-
-  .homepage .hp-masthead-title {
-    font-size: 1.75rem;
   }
 }
 
-/* ======================
-   STARLIGHT OVERRIDES (scoped)
-   ====================== */
-
-/* Hide the Starlight-generated hero section (duplicate title + empty tagline) */
+/* -------------------- Starlight splash overrides -------------------- */
 [data-has-hero] .hero {
   display: none !important;
 }
 
-/* Collapse the gap Starlight's splash template adds above content */
 [data-has-hero] .content-panel {
   padding-top: 0;
 }
@@ -358,7 +172,6 @@
   padding-top: 0;
 }
 
-/* Remove default content max-width */
-.homepage .sl-markdown-content {
+.home .sl-markdown-content {
   max-width: none;
 }

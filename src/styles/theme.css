@@ -1,0 +1,112 @@
+/* ============================================================
+   BaseHub global theme — Base brand colors + typography.
+   Fallback fonts per base/brand-kit: Inter Tight, Inter, Roboto Mono.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Base brand — neutrals */
+  --base-white: #ffffff;
+  --base-gray-10: #eef0f3;
+  --base-gray-15: #dee1e7;
+  --base-gray-30: #b1b7c3;
+  --base-gray-50: #717886;
+  --base-gray-60: #5b616e;
+  --base-gray-80: #32353d;
+  --base-black: #0a0b0d;
+
+  /* Base brand — accents */
+  --base-blue: #0000ff;
+  --base-blue-hover: #0000cc;
+  --base-cerulean: #3c8aff;
+
+  /* Fonts */
+  --sl-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --sl-font-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* -------------------- LIGHT MODE (default) -------------------- */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --sl-color-accent-low: #dee6ff;
+  --sl-color-accent: var(--base-blue);
+  --sl-color-accent-high: var(--base-blue-hover);
+
+  --sl-color-white: var(--base-black);
+  --sl-color-gray-1: var(--base-gray-80);
+  --sl-color-gray-2: var(--base-gray-60);
+  --sl-color-gray-3: var(--base-gray-50);
+  --sl-color-gray-4: var(--base-gray-30);
+  --sl-color-gray-5: var(--base-gray-15);
+  --sl-color-gray-6: var(--base-gray-10);
+  --sl-color-gray-7: #f6f7f9;
+  --sl-color-black: var(--base-white);
+
+  --sl-color-text: var(--base-black);
+  --sl-color-text-accent: var(--base-blue);
+  --sl-color-bg: var(--base-white);
+  --sl-color-bg-nav: var(--base-white);
+  --sl-color-bg-sidebar: var(--base-white);
+  --sl-color-bg-inline-code: var(--base-gray-10);
+  --sl-color-hairline-light: var(--base-gray-15);
+  --sl-color-hairline: var(--base-gray-15);
+  --sl-color-hairline-shade: var(--base-gray-30);
+}
+
+/* -------------------- DARK MODE -------------------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --sl-color-accent-low: #001b5a;
+  --sl-color-accent: var(--base-cerulean);
+  --sl-color-accent-high: #a8c4ff;
+
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: var(--base-gray-10);
+  --sl-color-gray-2: var(--base-gray-30);
+  --sl-color-gray-3: var(--base-gray-50);
+  --sl-color-gray-4: var(--base-gray-60);
+  --sl-color-gray-5: var(--base-gray-80);
+  --sl-color-gray-6: #1a1c1f;
+  --sl-color-gray-7: #121315;
+  --sl-color-black: var(--base-black);
+
+  --sl-color-text: var(--base-gray-10);
+  --sl-color-text-accent: var(--base-cerulean);
+  --sl-color-bg: var(--base-black);
+  --sl-color-bg-nav: var(--base-black);
+  --sl-color-bg-sidebar: var(--base-black);
+  --sl-color-bg-inline-code: #1a1c1f;
+  --sl-color-hairline-light: var(--base-gray-80);
+  --sl-color-hairline: var(--base-gray-80);
+  --sl-color-hairline-shade: var(--base-gray-60);
+}
+
+/* -------------------- Tighter typography -------------------- */
+html {
+  font-size: 15px;
+}
+
+body {
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  letter-spacing: -0.005em;
+}
+
+h1, h2, h3, h4, h5, h6,
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+  font-family: 'Inter Tight', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+/* Denser sidebar like Stripe */
+starlight-sidebar-state-persist ul li a,
+.sidebar-content a {
+  font-size: 0.8125rem;
+}

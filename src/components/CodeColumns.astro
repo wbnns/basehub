@@ -1,0 +1,44 @@
+---
+/**
+ * Stripe-style two-column layout: prose on the left, code pinned on the right.
+ * Usage in MDX:
+ *   import CodeColumns from '../../../components/CodeColumns.astro';
+ *
+ *   <CodeColumns>
+ *     <div>Prose here…</div>
+ *     ```bash
+ *     git clone ...
+ *     ```
+ *   </CodeColumns>
+ */
+---
+
+<div class="code-columns">
+  <slot />
+</div>
+
+<style>
+  .code-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2rem;
+    margin: 1.5rem 0;
+    align-items: start;
+  }
+
+  .code-columns > :nth-child(2) {
+    position: sticky;
+    top: calc(var(--sl-nav-height, 3.5rem) + 1.5rem);
+    align-self: start;
+  }
+
+  @media (max-width: 50rem) {
+    .code-columns {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .code-columns > :nth-child(2) {
+      position: static;
+    }
+  }
+</style>
