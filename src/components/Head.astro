@@ -1,0 +1,54 @@
+---
+import Default from '@astrojs/starlight/components/Head.astro';
+
+const { entry } = Astro.locals.starlightRoute;
+const url = new URL(Astro.url.pathname, Astro.site);
+const title = entry?.data?.title ?? 'BaseHub';
+const description =
+  entry?.data?.description ??
+  'Technical documentation for Base Chain.';
+
+const isDoc = entry?.id && entry.id !== 'index';
+const markdownUrl = isDoc ? `${Astro.site}${entry.id}.md` : null;
+
+const jsonLd = isDoc
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'TechArticle',
+      headline: title,
+      description,
+      url: url.href,
+      mainEntityOfPage: url.href,
+      inLanguage: 'en',
+      isPartOf: {
+        '@type': 'WebSite',
+        name: 'BaseHub',
+        url: 'https://basehub.org',
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'BaseHub',
+        url: 'https://basehub.org',
+        logo: {
+          '@type': 'ImageObject',
+          url: 'https://basehub.org/og-default.png',
+        },
+      },
+      image: 'https://basehub.org/og-default.png',
+      encoding: markdownUrl
+        ? { '@type': 'MediaObject', contentUrl: markdownUrl, encodingFormat: 'text/markdown' }
+        : undefined,
+    }
+  : null;
+---
+
+<Default><slot /></Default>
+{jsonLd && (
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+)}
+{markdownUrl && (
+  <>
+    <link rel="alternate" type="text/markdown" href={markdownUrl} title={`${title} (Markdown)`} />
+    <meta name="basehub:markdown" content={markdownUrl} />
+  </>
+)}

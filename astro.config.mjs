@@ -87,6 +87,10 @@ export default defineConfig({
 			editLink: {
 				baseUrl: 'https://github.com/wbnns/basehub/edit/main/',
 			},
+			components: {
+				Head: './src/components/Head.astro',
+				Footer: './src/components/Footer.astro',
+			},
 			sidebar: [
 				{
 					label: 'Introduction',

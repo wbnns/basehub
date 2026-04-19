@@ -1,0 +1,109 @@
+---
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const { entry, hasSidebar } = Astro.locals.starlightRoute;
+const isDoc = !!entry?.id && entry.id !== 'index';
+const url = new URL(Astro.url.pathname, Astro.site);
+const markdownUrl = isDoc ? `${Astro.site}${entry.id}.md` : null;
+
+const askPrompt = isDoc
+  ? `I'm reading the BaseHub documentation page "${entry.data.title}" at ${url.href}. The raw markdown is at ${markdownUrl}. Please use it as authoritative context and help me with the following: `
+  : '';
+
+const claudeUrl = isDoc
+  ? `https://claude.ai/new?q=${encodeURIComponent(askPrompt)}`
+  : null;
+const chatgptUrl = isDoc
+  ? `https://chat.openai.com/?q=${encodeURIComponent(askPrompt)}`
+  : null;
+---
+
+{isDoc && markdownUrl && (
+  <aside class="bh-agent-actions" aria-label="Use this page with an AI agent">
+    <span class="bh-agent-actions__label">Use with an agent</span>
+    <div class="bh-agent-actions__row">
+      <a class="bh-agent-actions__btn" href={markdownUrl}>View as Markdown</a>
+      <a class="bh-agent-actions__btn" href={claudeUrl} target="_blank" rel="noopener">Open in Claude</a>
+      <a class="bh-agent-actions__btn" href={chatgptUrl} target="_blank" rel="noopener">Open in ChatGPT</a>
+      <button
+        class="bh-agent-actions__btn"
+        type="button"
+        data-bh-copy={markdownUrl}
+        aria-label="Copy Markdown URL"
+      >Copy MD URL</button>
+    </div>
+    <p class="bh-agent-actions__hint">
+      Every BaseHub page exposes raw Markdown — append <code>.md</code> to the URL. See <a href="/llms.txt">/llms.txt</a> and <a href="/llms-full.txt">/llms-full.txt</a> for the full agent index.
+    </p>
+  </aside>
+)}
+
+<Default><slot /></Default>
+
+<script>
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement | null;
+    const btn = target?.closest<HTMLElement>('[data-bh-copy]');
+    if (!btn) return;
+    const value = btn.getAttribute('data-bh-copy');
+    if (!value) return;
+    navigator.clipboard?.writeText(value).then(() => {
+      const original = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => {
+        if (btn.textContent === 'Copied') btn.textContent = original;
+      }, 1500);
+    });
+  });
+</script>
+
+<style>
+  .bh-agent-actions {
+    margin: 2.5rem 0 1.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 10px;
+    background: var(--sl-color-gray-7, #f5f6f8);
+  }
+  .bh-agent-actions__label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-2);
+    margin-bottom: 0.625rem;
+  }
+  .bh-agent-actions__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .bh-agent-actions__btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 6px;
+    background: var(--sl-color-bg, #fff);
+    color: var(--sl-color-text);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 120ms ease, color 120ms ease;
+  }
+  .bh-agent-actions__btn:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent);
+  }
+  .bh-agent-actions__hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--sl-color-gray-2);
+  }
+  .bh-agent-actions__hint code {
+    font-size: 0.8125em;
+  }
+</style>
