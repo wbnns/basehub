@@ -14,12 +14,19 @@ import { Icon } from '@astrojs/starlight/components';
 >
   <div class="home">
     <header class="home-hero">
-      <span class="home-eyebrow">Base Chain documentation</span>
-      <h1>Everything technical about Base, in one place.</h1>
+      <span class="home-eyebrow">The agent hub for Base Chain</span>
+      <h1>Base docs, built for agents.</h1>
       <p>
-        Network reference, RPC APIs, Flashblocks, node operation,
+        Every page as raw Markdown. Plus <code>llms.txt</code>, a JSON index,
+        and an MCP server. Network, RPC APIs, Flashblocks, node operation,
         and the open-source Rust client behind <code>base/base</code>.
       </p>
+      <ul class="home-endpoints" aria-label="Agent endpoints">
+        <li><a href="/llms.txt"><code>/llms.txt</code></a></li>
+        <li><a href="/llms-full.txt"><code>/llms-full.txt</code></a></li>
+        <li><a href="/api/pages.json"><code>/api/pages.json</code></a></li>
+        <li><a href="https://github.com/wbnns/basehub/tree/main/mcp">MCP server</a></li>
+      </ul>
     </header>
 
     <section class="home-cards" aria-label="Documentation sections">
