@@ -517,6 +517,11 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
   box-shadow: none;
 }
 
+/* Right TOC rail: drop the vertical hairline that bleeds into the header */
+.right-sidebar {
+  border-inline-start: 0 !important;
+}
+
 /* Site title: keep the link, drop the accent color */
 .site-title {
   color: var(--sl-color-text) !important;
