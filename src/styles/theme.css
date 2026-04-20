@@ -574,43 +574,18 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
 }
 
 /* -------------------- Search modal (Pagefind dialog) --------------------
-   Starlight's default dialog is full-screen, dark, square. Reshape it
-   into a centered, light, rounded modal with sensible mobile fallback. */
+   Mobile keeps Starlight's full-screen sheet (with the cancel button
+   that's only rendered below md). Desktop gets a centered, light,
+   rounded modal with a fit-to-content height. */
+
+/* --- Universal: visual chrome + safety overrides for both viewports --- */
 site-search dialog {
-  margin: auto !important;
-  width: min(640px, calc(100vw - 2rem)) !important;
-  min-width: 0 !important;
-  max-width: min(640px, calc(100vw - 2rem)) !important;
-  height: fit-content !important;
-  min-height: 0 !important;
-  max-height: min(720px, calc(100vh - 6rem)) !important;
-  border-radius: 12px !important;
-  border: 1px solid var(--sl-color-hairline-light) !important;
   background-color: var(--sl-color-bg) !important;
-  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.18),
-              0 8px 16px -8px rgba(15, 23, 42, 0.12) !important;
-  padding: 0 !important;
-  overflow: hidden !important;
 }
-
-/* Force column flex so the dialog's main axis is vertical: its height
-   is then driven by the dialog-frame's content (capped by max-height)
-   instead of the cross-axis stretch behaviour of the default row flex. */
-site-search dialog[open] {
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-/* The dialog-frame becomes the scroll container — sized by its content
-   when there's room, allowed to shrink + scroll when the dialog hits
-   its max-height (long result lists). */
-site-search dialog .dialog-frame {
-  flex: 0 1 auto !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
+site-search dialog::backdrop {
+  background-color: rgba(15, 23, 42, 0.42) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  backdrop-filter: blur(6px) !important;
 }
 site-search dialog .pagefind-ui,
 site-search dialog .pagefind-ui__drawer,
@@ -637,15 +612,62 @@ site-search dialog[data-bh-empty] .pagefind-ui__drawer {
   display: none !important;
 }
 
-site-search dialog::backdrop {
-  background-color: rgba(15, 23, 42, 0.42) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
-  backdrop-filter: blur(6px) !important;
+/* --- Mobile: keep Starlight's full-screen behaviour, just restyle. --- */
+@media (max-width: 49.999rem) {
+  site-search dialog {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+  site-search dialog .dialog-frame {
+    padding: 1rem !important;
+    gap: 1rem !important;
+  }
+  /* Cancel button (mobile-only) is positioned absolute at top-right;
+     give the input area room so they don't overlap. */
+  site-search dialog .search-container {
+    padding-top: 2.5rem;
+  }
 }
 
-site-search dialog .dialog-frame {
-  padding: 0.75rem 1rem 1rem !important;
-  gap: 0.75rem !important;
+/* --- Desktop (≥ 50rem): centered, rounded, fit-to-content modal. --- */
+@media (min-width: 50rem) {
+  site-search dialog {
+    margin: auto !important;
+    width: min(640px, calc(100vw - 2rem)) !important;
+    min-width: 0 !important;
+    max-width: min(640px, calc(100vw - 2rem)) !important;
+    height: fit-content !important;
+    min-height: 0 !important;
+    max-height: min(720px, calc(100vh - 6rem)) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--sl-color-hairline-light) !important;
+    box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.18),
+                0 8px 16px -8px rgba(15, 23, 42, 0.12) !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Force column flex so the dialog's main axis is vertical: its height
+     is then driven by the dialog-frame's content (capped by max-height)
+     instead of the cross-axis stretch behaviour of the default row flex. */
+  site-search dialog[open] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* The dialog-frame becomes the scroll container — sized by its content
+     when there's room, allowed to shrink + scroll when the dialog hits
+     its max-height (long result lists). */
+  site-search dialog .dialog-frame {
+    flex: 0 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    padding: 0.75rem 1rem 1rem !important;
+    gap: 0.75rem !important;
+  }
 }
 
 /* Pagefind input area */
