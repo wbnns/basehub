@@ -55,6 +55,9 @@ export default defineConfig({
 				{ tag: 'meta', attrs: { name: 'twitter:image', content: 'https://basehub.org/og-default.png' } },
 				{ tag: 'meta', attrs: { name: 'twitter:image:alt', content: 'BaseHub — technical documentation for Base Chain' } },
 				{ tag: 'meta', attrs: { name: 'theme-color', content: '#0000ff' } },
+				{ tag: 'link', attrs: { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' } },
+				{ tag: 'link', attrs: { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16.png' } },
+				{ tag: 'link', attrs: { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' } },
 				{
 					tag: 'script',
 					attrs: { type: 'application/ld+json' },

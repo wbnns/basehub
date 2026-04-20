@@ -419,13 +419,24 @@ starlight-sidebar-state-persist > ul,
 .sidebar-content > ul > li > details > summary > .group-label > span,
 .sidebar-content > ul > li > span.large {
   font-family: var(--font-display);
-  font-size: 0.6875rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase;
-  color: var(--sl-color-gray-3) !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--sl-color-text) !important;
   padding: 0.4rem 0.625rem !important;
   margin-top: 1rem !important;
+}
+
+/* Nested group labels (e.g. API Reference > Ethereum JSON-RPC):
+   one step smaller than the parent, lighter weight */
+.sidebar-content ul ul .group-label > span,
+.sidebar-content ul ul span.large {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--sl-color-gray-2) !important;
 }
 
 .sidebar-content > ul > li:first-child > details > summary > .group-label > span,
@@ -467,6 +478,18 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
 
 /* Use Starlight's native caret; just refine its color */
 .sidebar-content details > summary svg {
+  color: var(--sl-color-gray-3);
+}
+
+/* -------------------- Pagination (Prev / Next) -------------------- */
+.pagination-links a { padding: 0.875rem 1rem !important; }
+.pagination-links .link-title {
+  font-size: 1rem !important;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.pagination-links a > span:first-child:not(.link-title) {
+  font-size: 0.75rem;
   color: var(--sl-color-gray-3);
 }
 
