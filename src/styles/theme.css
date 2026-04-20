@@ -653,6 +653,62 @@ site-search dialog .dialog-frame {
   outline-color: var(--sl-color-accent) !important;
 }
 
+/* Empty-state panel — curated quick links shown in the search dialog
+   while the input is empty. Injected by the global script in Footer.astro. */
+.bh-search-empty {
+  display: none;
+  padding: 1rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--sl-color-hairline-light);
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+site-search dialog[data-bh-empty] .bh-search-empty {
+  display: grid;
+}
+.bh-search-empty h3 {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  margin: 0 0 0.5rem;
+}
+.bh-search-empty ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.bh-search-empty li {
+  margin: 0;
+}
+.bh-search-empty a {
+  display: block;
+  padding: 0.4rem 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: 6px;
+  color: var(--sl-color-text);
+  text-decoration: none;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.bh-search-empty a:hover {
+  background: var(--sl-color-gray-7);
+  color: var(--sl-color-accent);
+}
+.bh-search-empty code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.85em;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+@media (max-width: 30rem) {
+  .bh-search-empty {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
 /* Re-balance the header so the search lives in a true center column
    regardless of title or right-group widths. Default Starlight grid
    is [title][1fr search][auto right] — that left-anchors the search.
