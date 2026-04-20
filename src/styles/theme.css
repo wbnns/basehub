@@ -578,9 +578,10 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
    into a centered, light, rounded modal with sensible mobile fallback. */
 site-search dialog {
   margin: auto !important;
-  width: min(640px, calc(100% - 2rem)) !important;
-  max-width: 640px !important;
-  height: max-content !important;
+  width: min(640px, calc(100vw - 2rem)) !important;
+  min-width: 0 !important;
+  max-width: min(640px, calc(100vw - 2rem)) !important;
+  height: auto !important;
   min-height: 0 !important;
   max-height: min(720px, calc(100vh - 6rem)) !important;
   border-radius: 12px !important;
@@ -592,18 +593,35 @@ site-search dialog {
   overflow: hidden !important;
 }
 
-/* Stop Starlight's dialog frame and Pagefind UI from stretching to
-   fill the dialog — let everything size to its own content instead. */
+/* The dialog-frame is the scroll container: it fills the dialog width
+   and lets the curated panel + results share the available height
+   without ever pushing the dialog wider than 640px. */
 site-search dialog .dialog-frame {
+  width: 100% !important;
+  min-width: 0 !important;
   height: auto !important;
   min-height: 0 !important;
-  flex: 0 0 auto !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
 }
 site-search dialog .pagefind-ui,
 site-search dialog .pagefind-ui__drawer,
-site-search dialog .pagefind-ui__results-area {
-  height: auto !important;
+site-search dialog .pagefind-ui__results-area,
+site-search dialog .pagefind-ui__form {
+  width: 100% !important;
+  min-width: 0 !important;
   min-height: 0 !important;
+}
+/* Result tiles must wrap / clip long content (contract addresses,
+   payloads) instead of stretching the dialog. */
+site-search dialog .pagefind-ui__result,
+site-search dialog .pagefind-ui__result-title,
+site-search dialog .pagefind-ui__result-nested,
+site-search dialog .pagefind-ui__result-excerpt {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
 }
 /* When the input is empty, hide Pagefind's empty drawer entirely so the
    curated panel sits flush against the search input. */
