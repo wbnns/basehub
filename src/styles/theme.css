@@ -541,6 +541,13 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
 .social-icons a:hover {
   color: var(--sl-color-text) !important;
 }
+/* Kill Starlight's social-icons::after divider — it pointed at the
+   theme select, which is hidden in light-mode-only mode. */
+.social-icons::after {
+  display: none !important;
+  content: none !important;
+  border: 0 !important;
+}
 
 /* Search button: borderless fill, just a soft background */
 .header site-search button[data-open-modal] {
