@@ -573,17 +573,27 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
   border: 0 !important;
 }
 
-/* Center the search column within the header grid */
+/* Re-balance the header so the search lives in a true center column
+   regardless of title or right-group widths. Default Starlight grid
+   is [title][1fr search][auto right] — that left-anchors the search.
+   We swap to [1fr][auto search][1fr] so the search box hits the
+   horizontal center of the viewport. */
 @media (min-width: 50rem) {
-  .header site-search {
-    justify-self: center;
-    width: 100%;
-    max-width: 28rem;
-    display: flex;
-    justify-content: center;
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
   }
-  .header site-search button[data-open-modal] {
-    margin: 0 auto;
+  .header > .title-wrapper { justify-self: start; }
+  .header > .right-group { justify-self: end; }
+  /* Middle column is the second direct div in Header.astro — it has
+     no semantic class, so target by position. */
+  .header > div:nth-child(2) {
+    justify-self: center;
+    width: min(28rem, 100%);
+  }
+  .header > div:nth-child(2) site-search,
+  .header > div:nth-child(2) site-search button[data-open-modal] {
+    width: 100% !important;
+    max-width: none !important;
   }
 }
 
