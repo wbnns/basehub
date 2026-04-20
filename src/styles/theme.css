@@ -516,6 +516,42 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
   border-bottom: 1px solid var(--sl-color-hairline-light);
 }
 
+/* Site title: keep the link, drop the accent color */
+.site-title {
+  color: var(--sl-color-text) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.site-title:hover { color: var(--sl-color-accent) !important; }
+:root[data-theme='dark'] .site-title { color: var(--sl-color-white) !important; }
+:root[data-theme='dark'] .site-title:hover { color: var(--sl-color-accent) !important; }
+
+/* Social icons: neutral gray, not accent */
+.social-icons a {
+  color: var(--sl-color-gray-2) !important;
+}
+.social-icons a:hover {
+  color: var(--sl-color-text) !important;
+}
+
+/* Search button: align with hairline + neutral tokens */
+.header site-search button[data-open-modal] {
+  background-color: var(--sl-color-bg) !important;
+  border-color: var(--sl-color-hairline-light) !important;
+  color: var(--sl-color-gray-2) !important;
+  border-radius: 8px !important;
+  height: 2.25rem;
+}
+.header site-search button[data-open-modal]:hover {
+  border-color: var(--sl-color-gray-3) !important;
+  color: var(--sl-color-text) !important;
+}
+.header site-search button[data-open-modal] kbd {
+  background-color: var(--sl-color-gray-7) !important;
+  border: 1px solid var(--sl-color-hairline-light) !important;
+  color: var(--sl-color-gray-2) !important;
+}
+
 /* -------------------- LinkCard polish -------------------- */
 .sl-link-card {
   border-radius: 8px !important;
