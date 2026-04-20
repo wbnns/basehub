@@ -580,7 +580,8 @@ site-search dialog {
   margin: auto !important;
   width: min(640px, calc(100% - 2rem)) !important;
   max-width: 640px !important;
-  height: auto !important;
+  height: max-content !important;
+  min-height: 0 !important;
   max-height: min(720px, calc(100vh - 6rem)) !important;
   border-radius: 12px !important;
   border: 1px solid var(--sl-color-hairline-light) !important;
@@ -589,6 +590,25 @@ site-search dialog {
               0 8px 16px -8px rgba(15, 23, 42, 0.12) !important;
   padding: 0 !important;
   overflow: hidden !important;
+}
+
+/* Stop Starlight's dialog frame and Pagefind UI from stretching to
+   fill the dialog — let everything size to its own content instead. */
+site-search dialog .dialog-frame {
+  height: auto !important;
+  min-height: 0 !important;
+  flex: 0 0 auto !important;
+}
+site-search dialog .pagefind-ui,
+site-search dialog .pagefind-ui__drawer,
+site-search dialog .pagefind-ui__results-area {
+  height: auto !important;
+  min-height: 0 !important;
+}
+/* When the input is empty, hide Pagefind's empty drawer entirely so the
+   curated panel sits flush against the search input. */
+site-search dialog[data-bh-empty] .pagefind-ui__drawer {
+  display: none !important;
 }
 
 site-search dialog::backdrop {
