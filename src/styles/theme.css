@@ -572,6 +572,20 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
   border: 0 !important;
 }
 
+/* Center the search column within the header grid */
+@media (min-width: 50rem) {
+  .header site-search {
+    justify-self: center;
+    width: 100%;
+    max-width: 28rem;
+    display: flex;
+    justify-content: center;
+  }
+  .header site-search button[data-open-modal] {
+    margin: 0 auto;
+  }
+}
+
 /* Search button: borderless fill, just a soft background */
 .header site-search button[data-open-modal] {
   background-color: var(--sl-color-gray-7) !important;
