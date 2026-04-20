@@ -429,14 +429,15 @@ starlight-sidebar-state-persist > ul,
 }
 
 /* Nested group labels (e.g. API Reference > Ethereum JSON-RPC):
-   one step smaller than the parent, lighter weight */
+   match the leaf-link size; lighter weight keeps them a tier below
+   the parent group label visually. */
 .sidebar-content ul ul .group-label > span,
 .sidebar-content ul ul span.large {
-  font-size: 0.75rem !important;
+  font-size: 0.8125rem !important;
   font-weight: 500 !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
-  color: var(--sl-color-gray-2) !important;
+  color: var(--sl-color-text) !important;
 }
 
 .sidebar-content > ul > li:first-child > details > summary > .group-label > span,
