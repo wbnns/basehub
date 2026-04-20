@@ -573,6 +573,86 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
   border: 0 !important;
 }
 
+/* -------------------- Search modal (Pagefind dialog) --------------------
+   Starlight's default dialog is full-screen, dark, square. Reshape it
+   into a centered, light, rounded modal with sensible mobile fallback. */
+site-search dialog {
+  margin: auto !important;
+  width: min(640px, calc(100% - 2rem)) !important;
+  max-width: 640px !important;
+  height: auto !important;
+  max-height: min(720px, calc(100vh - 6rem)) !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--sl-color-hairline-light) !important;
+  background-color: var(--sl-color-bg) !important;
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.18),
+              0 8px 16px -8px rgba(15, 23, 42, 0.12) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+site-search dialog::backdrop {
+  background-color: rgba(15, 23, 42, 0.42) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+site-search dialog .dialog-frame {
+  padding: 0.75rem 1rem 1rem !important;
+  gap: 0.75rem !important;
+}
+
+/* Pagefind input area */
+#starlight__search .pagefind-ui__form {
+  --pagefind-ui-text: var(--sl-color-text);
+  --pagefind-ui-background: var(--sl-color-gray-7);
+  --pagefind-ui-border: transparent;
+  --pagefind-ui-primary: var(--sl-color-accent);
+  --pagefind-ui-tag: var(--sl-color-gray-2);
+  --pagefind-ui-border-width: 0;
+  --pagefind-ui-border-radius: 8px;
+  --pagefind-ui-image-border-radius: 6px;
+  --pagefind-ui-font: var(--sl-font);
+}
+
+#starlight__search .pagefind-ui__search-input {
+  color: var(--sl-color-text) !important;
+  background-color: var(--sl-color-gray-7) !important;
+  border-radius: 8px !important;
+  border: 0 !important;
+  font-size: 1rem !important;
+  padding: 0.625rem 1rem 0.625rem 2.5rem !important;
+}
+
+#starlight__search .pagefind-ui__search-input::placeholder {
+  color: var(--sl-color-gray-3) !important;
+}
+
+#starlight__search .pagefind-ui__form::before {
+  --pagefind-ui-text: var(--sl-color-gray-2);
+}
+
+/* Result tiles */
+#starlight__search .pagefind-ui__result-title:not(:where(.pagefind-ui__result-nested *)),
+#starlight__search .pagefind-ui__result-nested {
+  background-color: var(--sl-color-gray-7) !important;
+  color: var(--sl-color-text) !important;
+}
+
+#starlight__search .pagefind-ui__result-title a,
+#starlight__search .pagefind-ui__result-nested a {
+  color: var(--sl-color-text) !important;
+}
+
+#starlight__search .pagefind-ui__result-excerpt {
+  color: var(--sl-color-gray-2) !important;
+}
+
+#starlight__search .pagefind-ui__result-title:not(:where(.pagefind-ui__result-nested *)):hover,
+#starlight__search .pagefind-ui__result-nested:hover {
+  outline-color: var(--sl-color-accent) !important;
+}
+
 /* Re-balance the header so the search lives in a true center column
    regardless of title or right-group widths. Default Starlight grid
    is [title][1fr search][auto right] — that left-anchors the search.
