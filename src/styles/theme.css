@@ -581,7 +581,7 @@ site-search dialog {
   width: min(640px, calc(100vw - 2rem)) !important;
   min-width: 0 !important;
   max-width: min(640px, calc(100vw - 2rem)) !important;
-  height: auto !important;
+  height: fit-content !important;
   min-height: 0 !important;
   max-height: min(720px, calc(100vh - 6rem)) !important;
   border-radius: 12px !important;
@@ -593,13 +593,21 @@ site-search dialog {
   overflow: hidden !important;
 }
 
-/* The dialog-frame is the scroll container: it fills the dialog width
-   and lets the curated panel + results share the available height
-   without ever pushing the dialog wider than 640px. */
+/* Force column flex so the dialog's main axis is vertical: its height
+   is then driven by the dialog-frame's content (capped by max-height)
+   instead of the cross-axis stretch behaviour of the default row flex. */
+site-search dialog[open] {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* The dialog-frame becomes the scroll container — sized by its content
+   when there's room, allowed to shrink + scroll when the dialog hits
+   its max-height (long result lists). */
 site-search dialog .dialog-frame {
+  flex: 0 1 auto !important;
   width: 100% !important;
   min-width: 0 !important;
-  height: auto !important;
   min-height: 0 !important;
   max-height: 100% !important;
   overflow-y: auto !important;
