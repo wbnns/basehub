@@ -71,13 +71,13 @@ jobs:
           python3 -m pip install --quiet pyyaml
           python3 .github/scripts/render-pr-body.py
 
-      - name: Open paraphrase PR
+      - name: Open or update upstream-sync PR
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           branch: chore/upstream-sync
           commit-message: "chore: refresh upstream snapshot"
-          title: "chore: upstream Base sources changed — re-paraphrase needed"
+          title: "chore: upstream changes detected"
           body-path: .upstream-state/pr-body.md
           add-paths: |
             .upstream-state/last-sync.txt

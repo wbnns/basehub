@@ -7,7 +7,7 @@ export const collections = {
 		loader: docsLoader(),
 		schema: docsSchema({
 			extend: z.object({
-				// Upstream files this page paraphrases, used by .github/workflows/sync-upstream.yml
+				// Upstream files this page is derived from, used by .github/workflows/sync-upstream.yml
 				// to surface per-page change lists when upstream content moves. Format:
 				// "<upstream>:<path>" where upstream is one of base/base, base/docs,
 				// blog.base.dev, status.base.org. RSS guids use "blog.base.dev:guid=<id>" or
