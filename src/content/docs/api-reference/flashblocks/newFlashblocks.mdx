@@ -1,6 +1,8 @@
 ---
 title: newFlashblocks
 description: Subscribe to the full Flashblock payload stream and receive each pre-confirmed block delta as the sequencer builds it, every ~200ms.
+sources:
+- base/docs:docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 ---
 
 Subscribe via `eth_subscribe` to receive full block state updates as each Flashblock is built. Each message contains the accumulated pre-confirmed state for the block in progress.

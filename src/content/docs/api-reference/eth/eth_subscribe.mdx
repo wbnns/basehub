@@ -1,6 +1,8 @@
 ---
 title: eth_subscribe
 description: Opens a real-time WebSocket subscription. Flashblocks endpoints add three subscription types and emit newHeads roughly every 200ms.
+sources:
+- base/docs:docs/base-chain/api-reference/ethereum-json-rpc-api/eth_subscribe.mdx
 ---
 
 Opens a real-time event subscription over a WebSocket connection. Returns a subscription ID; events arrive as `eth_subscription` notifications without the client needing to poll.
