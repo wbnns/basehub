@@ -84,6 +84,12 @@
   font-size: 0.8125rem;
 }
 
+.home .home-endpoint-desc {
+  color: var(--sl-color-gray-3);
+  font-size: 0.8125rem;
+  margin-left: 0.25rem;
+}
+
 .home .home-hero code {
   font-family: var(--sl-font-mono);
   font-size: 0.95em;

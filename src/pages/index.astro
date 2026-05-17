@@ -17,15 +17,18 @@ import { Icon } from '@astrojs/starlight/components';
       <span class="home-eyebrow">Agent hub for Base</span>
       <h1>Base docs for agents</h1>
       <p>
-        Every page as raw Markdown. Plus <code>llms.txt</code>, a JSON index,
-        and an MCP server. Network, RPC APIs, Flashblocks, node operation,
-        and the open-source Rust client behind <code>base/base</code>.
+        Every page is reachable as raw Markdown — append <code>.md</code> to
+        any URL. The endpoints below are built for ingestion: an index of
+        every page, the full corpus in one file, a JSON manifest, and an MCP
+        server for tool-call access. Covers network reference, JSON-RPC,
+        Flashblocks, node operation, and the Rust client behind
+        <code>base/base</code>.
       </p>
       <ul class="home-endpoints" aria-label="Agent endpoints">
-        <li><a href="/llms.txt"><code>/llms.txt</code></a></li>
-        <li><a href="/llms-full.txt"><code>/llms-full.txt</code></a></li>
-        <li><a href="/api/pages.json"><code>/api/pages.json</code></a></li>
-        <li><a href="https://github.com/wbnns/basehub/tree/main/mcp">MCP server</a></li>
+        <li><a href="/llms.txt"><code>/llms.txt</code></a> <span class="home-endpoint-desc">— page index</span></li>
+        <li><a href="/llms-full.txt"><code>/llms-full.txt</code></a> <span class="home-endpoint-desc">— full corpus</span></li>
+        <li><a href="/api/pages.json"><code>/api/pages.json</code></a> <span class="home-endpoint-desc">— JSON manifest</span></li>
+        <li><a href="https://github.com/wbnns/basehub/tree/main/mcp">MCP server</a> <span class="home-endpoint-desc">— tool-call access</span></li>
       </ul>
     </header>
 
