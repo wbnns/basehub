@@ -46,6 +46,7 @@ jobs:
             echo "no prior snapshot — first run"
             echo "changed=true" >> "$GITHUB_OUTPUT"
             cp .upstream-state/snapshot.txt .upstream-state/last-sync.txt
+            echo "(first run — no prior snapshot to diff against)" > .upstream-state/diff.txt
           elif ! diff -q .upstream-state/last-sync.txt .upstream-state/snapshot.txt > /dev/null; then
             echo "changes detected"
             echo "changed=true" >> "$GITHUB_OUTPUT"
