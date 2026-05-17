@@ -19,3 +19,9 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# transient upstream sync artifacts (snapshot.txt is built each run;
+# pr-body.md is rendered each run; only last-sync.txt and diff.txt
+# are committed by CI)
+.upstream-state/snapshot.txt
+.upstream-state/pr-body.md
