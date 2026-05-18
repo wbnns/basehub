@@ -6,7 +6,7 @@ import { Icon } from '@astrojs/starlight/components';
 <StarlightPage
   frontmatter={{
     title: 'Reference for Agents on Base',
-    description: 'Every page is reachable as raw Markdown by appending .md to the URL.',
+    description: 'Every doc page is reachable as raw Markdown by appending .md to its URL.',
     template: 'splash',
     hero: { tagline: '' },
     pagefind: false,
@@ -17,7 +17,7 @@ import { Icon } from '@astrojs/starlight/components';
       <span class="home-eyebrow">Reference for Agents on Base</span>
       <h1>BaseHub</h1>
       <p>
-        Append <code>.md</code> to any URL for the raw page.
+        Append <code>.md</code> to any doc URL for raw Markdown. The endpoints below are agent-targeted feeds.
       </p>
       <ul class="home-endpoints" aria-label="Agent endpoints">
         <li><a href="/llms.txt"><code>/llms.txt</code></a> <span class="home-endpoint-desc">— page index</span></li>
