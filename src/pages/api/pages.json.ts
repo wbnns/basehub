@@ -21,7 +21,7 @@ export const GET: APIRoute = async () => {
       site: 'BaseHub',
       url: SITE,
       description:
-        'Base docs for agents. Every page as raw Markdown, plus llms.txt, a JSON index, and an MCP server. Network reference, RPC APIs, Flashblocks, node operation, and the open-source Rust client behind base/base.',
+        'BaseHub — reference for agents on Base. Every page is reachable as raw Markdown by appending .md to the URL. Also exposes /llms.txt (page index), /llms-full.txt (full corpus), and the basehub-mcp server.',
       generated_at: new Date().toISOString(),
       page_count: pages.length,
       llms_index: `${SITE}/llms.txt`,

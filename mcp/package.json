@@ -1,12 +1,36 @@
 {
   "name": "basehub-mcp",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
-  "description": "MCP server exposing BaseHub docs to AI agents (Claude Desktop, Cursor, etc.)",
+  "description": "MCP server exposing BaseHub — reference for agents on Base. Search and fetch raw-Markdown pages from basehub.org via Claude Desktop, Cursor, or any stdio MCP client.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "base",
+    "base-chain",
+    "ethereum",
+    "documentation",
+    "agents",
+    "llm"
+  ],
+  "homepage": "https://basehub.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wbnns/basehub.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/wbnns/basehub/issues"
+  },
+  "license": "MIT",
+  "author": "wbnns",
   "bin": {
     "basehub-mcp": "./server.js"
   },
+  "files": [
+    "server.js",
+    "README.md"
+  ],
   "scripts": {
     "start": "node server.js"
   },
