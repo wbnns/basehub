@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # Daily rebuild so the build-time-mirrored /feeds/*.xml endpoints
-  # (blog + statuspage RSS) stay fresh between code pushes.
+  # Daily rebuild at 00:00 UTC so the build-time-mirrored /feeds/*.xml
+  # endpoints (blog + statuspage RSS) stay fresh between code pushes.
   schedule:
-    - cron: '37 10 * * *'
+    - cron: '0 0 * * *'
 
 permissions:
   contents: read

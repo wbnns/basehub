@@ -45,7 +45,7 @@ npm run build    # production build to dist/
 - [Astro](https://astro.build) + [Starlight](https://starlight.astro.build) static site, deployed to GitHub Pages
 - 178 docs pages under `src/content/docs/`, organized into 13 sections
 - Generated endpoints live as Astro routes in `src/pages/` (the `.txt`, `.json`, and `.xml` files)
-- Deployed via `.github/workflows/deploy.yml` on every push to `main`, plus a daily cron at 10:37 UTC so the mirrored RSS feeds stay fresh
+- Deployed via `.github/workflows/deploy.yml` on every push to `main`, plus a daily cron at 00:00 UTC so the mirrored RSS feeds stay fresh
 
 ## Upstream sync
 
