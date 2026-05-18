@@ -84,8 +84,7 @@ export default defineConfig({
 				},
 			],
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/base/base' },
-				{ icon: 'discord', label: 'Discord', href: 'https://discord.gg/buildonbase' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/wbnns/basehub' },
 			],
 			editLink: {
 				baseUrl: 'https://github.com/wbnns/basehub/edit/main/',
