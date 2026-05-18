@@ -6,7 +6,7 @@ const url = new URL(Astro.url.pathname, Astro.site);
 const title = entry?.data?.title ?? 'BaseHub';
 const description =
   entry?.data?.description ??
-  'Technical documentation for Base Chain.';
+  'Reference for agents on Base.';
 
 const isDoc = entry?.id && entry.id !== 'index';
 const markdownUrl = isDoc ? `${Astro.site}${entry.id}.md` : null;

@@ -1,0 +1,74 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Page not found',
+    description: 'That URL does not exist on basehub.org. Try the page index, the home page, or search.',
+    template: 'splash',
+    hero: { tagline: '' },
+    pagefind: false,
+  }}
+>
+  <div class="not-found">
+    <span class="not-found-eyebrow">404</span>
+    <h1>Page not found</h1>
+    <p>
+      That URL does not exist on <code>basehub.org</code>. The page may have
+      moved or never existed. Try one of these:
+    </p>
+    <ul class="not-found-links">
+      <li><a href="/">Home</a> — the top of BaseHub</li>
+      <li><a href="/llms.txt"><code>/llms.txt</code></a> — index of every page</li>
+      <li><a href="/api/pages.json"><code>/api/pages.json</code></a> — JSON manifest with every URL</li>
+      <li><a href="https://github.com/wbnns/basehub/issues/new">Open an issue</a> — if you got here from a link that should work</li>
+    </ul>
+  </div>
+</StarlightPage>
+
+<style>
+  .not-found {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 4rem 1rem 6rem;
+  }
+  .not-found-eyebrow {
+    display: inline-block;
+    font-family: var(--font-display, inherit);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3);
+    margin-bottom: 0.75rem;
+  }
+  .not-found h1 {
+    font-size: clamp(2.25rem, 5vw, 3rem);
+    line-height: 1.1;
+    margin: 0 0 1rem;
+  }
+  .not-found p {
+    color: var(--sl-color-gray-2);
+    margin: 0 0 1.5rem;
+  }
+  .not-found-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .not-found-links li {
+    margin: 0;
+    color: var(--sl-color-gray-3);
+  }
+  .not-found-links a {
+    color: var(--sl-color-text);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .not-found-links a:hover {
+    color: var(--sl-color-accent);
+  }
+</style>
