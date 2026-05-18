@@ -1,74 +1,23 @@
 ---
 title: Contributing
-description: Open issues, pick up help-wanted work, and submit pull requests against the base/base repository.
+description: BaseHub is a personal project; issues and pull requests are off. Reach out on X.
 ---
 
-## Ways to Contribute
+BaseHub is a personal project. Issues and pull requests on this repository are intentionally turned off — contributions aren't accepted through GitHub.
 
-1. **Opening issues:** Report bugs or request features in the [issue tracker](https://github.com/base/base/issues).
-2. **Adding context:** Provide screenshots, logs, and code snippets to existing issues.
-3. **Resolving issues:** Open pull requests that fix issues.
+If you've spotted a bug, want to suggest content, or have feedback on the agent endpoints, DM [@wbnns on X](https://x.com/wbnns) and I'll take a look.
 
-## What We Accept from External Contributors
-
-- **Small, focused changes:** One-liner fixes, typo corrections, small bug fixes
-- **Issues labeled `help wanted`:** Look for unassigned issues [with this label](https://github.com/base/base/issues?q=state%3Aopen%20label%3AM-help-wanted)
-- **Bug reports:** Well-documented bug reports with reproduction steps
-
-## Before Starting Work
-
-If you're considering a larger contribution (new features, refactors, architectural changes), **open an issue first** to discuss your proposal. This ensures alignment with project goals and prevents wasted effort.
-
-Only work on issues that are assigned to you. Comment on an issue to request assignment.
-
-## Making Changes
-
-1. Fork the repository and create your branch from `main`
-2. Follow the existing code style
-3. Add or update tests as appropriate
-4. Run all checks locally:
+## Running it locally
 
 ```bash
-just ci
+npm install
+npm run dev      # http://localhost:4321 with HMR
+npm run build    # production build into dist/
+npx astro check  # type check
 ```
 
-This runs: formatting checks, clippy, tests, dependency auditing, link checking, and no-std verification.
+Node 20+ required.
 
-## Development Commands
+## License
 
-```bash
-# Fix formatting and clippy issues
-just fix
-
-# Run checks (format, udeps, clippy, tests, deny)
-just check
-
-# Run tests
-just test
-
-# Build contracts (needed before tests)
-just build-contracts
-```
-
-See the [Development Workflow](/getting-started/development/) guide for more details.
-
-## Opening a Pull Request
-
-1. Link to the related issue
-2. Describe what your changes do and why
-3. Keep your PR up to date with the `main` branch
-4. Respond to feedback and requests for changes
-
-## Submitting a Bug Report
-
-Include:
-- The Base version you are on (and that it is up to date)
-- Relevant logs and error messages
-- Concrete steps to reproduce the bug
-- Any relevant configuration
-
-## Getting Help
-
-- Open a discussion in the [repository](https://github.com/base/base)
-- Comment on the relevant issue
-- Check existing [documentation](https://docs.base.org/) and issues first
+The site and the [`@wbnns/base-mcp`](https://www.npmjs.com/package/@wbnns/base-mcp) package are MIT-licensed (see [`LICENSE`](https://github.com/wbnns/basehub/blob/main/LICENSE)) — fork and adapt freely.
