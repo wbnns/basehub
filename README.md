@@ -60,4 +60,4 @@ It diffs against the committed `.upstream-state/last-sync.txt` and opens a PR on
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE)
