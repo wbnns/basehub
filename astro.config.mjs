@@ -66,7 +66,7 @@ export default defineConfig({
 						'@type': 'WebSite',
 						name: 'BaseHub',
 						url: 'https://basehub.org',
-						description: 'BaseHub — reference for agents on Base. Every page is reachable as raw Markdown by appending .md to the URL.',
+						description: 'Every page is reachable as raw Markdown by appending .md to the URL.',
 						publisher: { '@type': 'Organization', name: 'BaseHub', url: 'https://basehub.org' },
 					}),
 				},
