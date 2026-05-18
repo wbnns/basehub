@@ -28,13 +28,13 @@ export const GET: APIRoute = async () => {
       llms_full: `${SITE}/llms-full.txt`,
       feeds: [
         {
-          name: 'engineering blog',
+          name: 'eng blog mirror',
           url: `${SITE}/feeds/blog.xml`,
           upstream: 'https://api.paragraph.com/blogs/rss/@blog.base.dev',
           type: 'application/rss+xml',
         },
         {
-          name: 'network status',
+          name: 'network status mirror',
           url: `${SITE}/feeds/status.xml`,
           upstream: 'https://base-l2.statuspage.io/history.rss',
           type: 'application/rss+xml',
