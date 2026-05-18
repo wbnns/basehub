@@ -11,8 +11,8 @@ Live at **[basehub.org](https://basehub.org)**.
 - `/llms.txt` — page index in the [llms.txt](https://llmstxt.org/) format
 - `/llms-full.txt` — the full Markdown corpus in a single file
 - `/api/pages.json` — JSON manifest of every page, plus the URLs of the agent feeds and mirrors
-- `/feeds/blog.xml` — build-time mirror of the [Base engineering blog](https://blog.base.dev) RSS
-- `/feeds/status.xml` — build-time mirror of the [Base statuspage](https://base-l2.statuspage.io) RSS
+- `/feeds/blog.xml` — build-time mirror of the official [Base engineering blog](https://blog.base.dev) RSS
+- `/feeds/status.xml` — build-time mirror of the official [Base statuspage](https://base-l2.statuspage.io) RSS
 - `<page>.md` — raw Markdown for any individual page (e.g. `/api-reference/eth/eth_blocknumber.md`)
 
 ## MCP server
