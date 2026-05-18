@@ -1,6 +1,6 @@
 # Contributing to BaseHub
 
-BaseHub is a personal project. Issues and pull requests on this repository are intentionally turned off — contributions aren't accepted through GitHub.
+Issues and pull requests on this repository are intentionally turned off — contributions aren't accepted through GitHub.
 
 If you've spotted a bug, want to suggest content, or have feedback on the agent endpoints, DM [@wbnns on X](https://x.com/wbnns) and I'll take a look.
 
