@@ -25,7 +25,7 @@
   "license": "MIT",
   "author": "wbnns",
   "bin": {
-    "base-mcp": "./server.js"
+    "base-mcp": "server.js"
   },
   "files": [
     "server.js",
