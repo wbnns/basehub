@@ -53,8 +53,8 @@ The `.github/workflows/sync-upstream.yml` workflow runs daily at 09:17 UTC and s
 
 - [`base/base`](https://github.com/base/base) — the Rust node implementation and protocol specs
 - [`base/docs`](https://github.com/base/docs) — the user-facing Base documentation
-- The Base engineering blog (RSS)
-- The Base statuspage (RSS)
+- The [Base engineering blog](https://api.paragraph.com/blogs/rss/@blog.base.dev) (RSS)
+- The [Base statuspage](https://base-l2.statuspage.io/history.rss) (RSS)
 
 It diffs against the committed `.upstream-state/last-sync.txt` and opens a PR on `chore/upstream-sync` listing the changed entries along with the BaseHub pages that reference them (via each page's `sources:` frontmatter array). A maintainer reviews and edits the affected pages.
 
