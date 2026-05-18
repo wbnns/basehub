@@ -27,7 +27,7 @@ const svg = `<?xml version="1.0" encoding="UTF-8"?>
     <text x="80" y="128" font-size="22" font-weight="600" letter-spacing="4" fill-opacity="0.85">REFERENCE FOR AGENTS ON BASE</text>
 
     <text x="80" y="345" font-size="128" font-weight="700">BaseHub</text>
-    <text x="80" y="405" font-size="30" font-weight="400" fill-opacity="0.9">Every page is reachable as raw Markdown — append .md to the URL.</text>
+    <text x="80" y="405" font-size="30" font-weight="400" fill-opacity="0.9">Every page is reachable as raw Markdown — append .md to the URL</text>
 
     <text x="80" y="572" font-size="22" font-weight="500" fill-opacity="0.7">basehub.org</text>
   </g>
