@@ -11,7 +11,7 @@ export const GET: APIRoute = async () => {
   const parts: string[] = [
     '# BaseHub — full content',
     '',
-    `> Base docs for agents — full Markdown corpus, concatenated. ${sorted.length} pages. See /llms.txt for the index.`,
+    `> BaseHub — reference for agents on Base. Full Markdown corpus, concatenated. ${sorted.length} pages. See /llms.txt for the index.`,
     '',
     `Source: ${SITE}`,
     `Index: ${SITE}/llms.txt`,

@@ -16,7 +16,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
   "mcpServers": {
     "basehub": {
       "command": "npx",
-      "args": ["-y", "basehub-mcp"]
+      "args": ["-y", "@wbnns/base-mcp"]
     }
   }
 }

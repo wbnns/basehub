@@ -58,9 +58,9 @@ export const GET: APIRoute = async () => {
   const lines: string[] = [
     '# BaseHub',
     '',
-    '> Base docs for agents. Every page as raw Markdown, plus llms.txt, a JSON index, and an MCP server. Network reference, RPC APIs, Flashblocks, node operation, and the open-source Rust client behind base/base.',
+    '> BaseHub — reference for agents on Base. Every page is reachable as raw Markdown by appending .md to the URL.',
     '',
-    'BaseHub is the agent hub for Base Chain. Every page below is available as raw markdown by appending `.md` to the URL (e.g. `/introduction/why-base.md`). The full corpus is at `/llms-full.txt`, a JSON index of all pages is at `/api/pages.json`, and an MCP server is published at `https://github.com/wbnns/basehub/tree/main/mcp`.',
+    'BaseHub is the reference for agents on Base. Every page below is available as raw Markdown by appending `.md` to the URL (e.g. `/introduction/why-base.md`). The full corpus is at `/llms-full.txt`, a JSON index of all pages is at `/api/pages.json`, and the MCP server is published at `https://www.npmjs.com/package/@wbnns/base-mcp`.',
     '',
   ];
 
