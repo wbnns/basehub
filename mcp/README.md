@@ -1,4 +1,4 @@
-# basehub-mcp
+# @wbnns/base-mcp
 
 A Model Context Protocol (MCP) server that exposes BaseHub — the reference for agents on Base — to AI clients. Backed by the public endpoints on `basehub.org` (no scraping, no API key).
 
@@ -26,7 +26,7 @@ Restart Claude Desktop. The two tools appear under the `basehub` server.
 
 ## Use with Cursor / other stdio MCP clients
 
-Point any stdio-based MCP client at `npx -y basehub-mcp`.
+Point any stdio-based MCP client at `npx -y @wbnns/base-mcp`.
 
 ## Run from source
 
@@ -37,7 +37,7 @@ npm install
 node server.js
 ```
 
-Then in your MCP client config, swap `npx -y basehub-mcp` for `node /absolute/path/to/basehub/mcp/server.js`.
+Then in your MCP client config, swap `npx -y @wbnns/base-mcp` for `node /absolute/path/to/basehub/mcp/server.js`.
 
 ## Configuration
 

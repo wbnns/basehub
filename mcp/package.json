@@ -1,5 +1,5 @@
 {
-  "name": "basehub-mcp",
+  "name": "@wbnns/base-mcp",
   "version": "0.1.0",
   "type": "module",
   "description": "MCP server exposing BaseHub — reference for agents on Base. Search and fetch raw-Markdown pages from basehub.org via Claude Desktop, Cursor, or any stdio MCP client.",
@@ -25,7 +25,7 @@
   "license": "MIT",
   "author": "wbnns",
   "bin": {
-    "basehub-mcp": "./server.js"
+    "base-mcp": "./server.js"
   },
   "files": [
     "server.js",
