@@ -4,7 +4,7 @@ Reference for agents on Base. Every documentation page is reachable as raw Markd
 
 Live at **[basehub.org](https://basehub.org)**.
 
-> **BaseHub is an open source, independent community reference for agents.** Not affiliated with or endorsed by Coinbase or any related entity.
+**BaseHub is an open source, independent community reference for agents.** Not affiliated with or endorsed by Coinbase or any related entity.
 
 ## Agent endpoints
 
