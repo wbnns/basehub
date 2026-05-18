@@ -26,6 +26,20 @@ export const GET: APIRoute = async () => {
       page_count: pages.length,
       llms_index: `${SITE}/llms.txt`,
       llms_full: `${SITE}/llms-full.txt`,
+      feeds: [
+        {
+          name: 'engineering blog',
+          url: `${SITE}/feeds/blog.xml`,
+          upstream: 'https://api.paragraph.com/blogs/rss/@blog.base.dev',
+          type: 'application/rss+xml',
+        },
+        {
+          name: 'network status',
+          url: `${SITE}/feeds/status.xml`,
+          upstream: 'https://base-l2.statuspage.io/history.rss',
+          type: 'application/rss+xml',
+        },
+      ],
       pages,
     },
     null,
