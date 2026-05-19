@@ -1,0 +1,307 @@
+---
+title: TEE Prover Registrar
+description: Offchain service that discovers TEE prover enclaves, attests them with a ZK proof, and maintains the onchain TEEProverRegistry of accepted signer identities.
+sources:
+- base/base:docs/specs/pages/protocol/proofs/registrar.md
+---
+
+The registrar is an offchain service that keeps the onchain set of accepted TEE signer identities in sync with the actual running prover fleet. It locates live TEE prover instances, pulls each enclave's AWS Nitro attestation document, produces a ZK proof that the attestation is well-formed, and writes the resulting signer registration to [`TEEProverRegistry`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/TEEProverRegistry.sol) on L1. It also removes signers whose backing instances have disappeared and revokes intermediate certificates that AWS has marked as withdrawn.
+
+The Base team operates a single registrar. The proof system trusts only signers that this registrar has admitted, which makes registrar correctness a prerequisite for accepting TEE proofs onchain. The output is still self-validating end-to-end: the attestation ZK proof, the enclave PCR0 measurement, and the signer public key are all re-checked by `TEEProverRegistry` and [`NitroEnclaveVerifier`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/NitroEnclaveVerifier.sol) before the signer is treated as valid.
+
+## Responsibilities
+
+A conforming registrar performs the following work each cycle:
+
+1. Discover the current set of TEE prover instances behind the production load balancer.
+2. Fetch per-enclave signer public keys and Nitro attestation documents from each instance.
+3. Optionally check the attestation certificate chain against AWS-published CRLs and against the onchain durable revocation set.
+4. Generate a ZK proof of attestation correctness for every enclave that is not yet registered.
+5. Submit `TEEProverRegistry.registerSigner()` for newly attested signers.
+6. Submit `TEEProverRegistry.deregisterSigner()` for onchain signers whose instances are no longer reachable.
+7. Submit `NitroEnclaveVerifier.revokeCert()` for any intermediate certificate found to be revoked.
+8. Resume in-flight proof requests after a process restart without re-spending proving work.
+
+The registrar deliberately does not gate which PCR0 measurements are admitted. Registration is PCR0-agnostic so the next image's signers can be pre-registered ahead of a hardfork. Whether a proof produced by a given signer is actually accepted is decided onchain by [`TEEVerifier`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/TEEVerifier.sol), which compares against the active game implementation's current `TEE_IMAGE_HASH`.
+
+The registrar also does not build proposals, generate proof material for proposals or disputes, or challenge invalid state transitions. Those duties live with the proposer, the TEE provers, and the challenger.
+
+## Startup configuration
+
+At startup, the registrar connects to:
+
+- an L1 execution RPC for contract reads and transaction submission
+- AWS APIs for ELBv2 target health and EC2 instance metadata
+- a JSON-RPC endpoint on each discovered TEE prover instance
+- a proving backend (Boundless marketplace or a self-hosted RISC Zero prover)
+- `TEEProverRegistry`
+- an optional `NitroEnclaveVerifier`, required only when CRL checking is enabled
+
+Beyond the registry and verifier addresses passed in by the operator, the registrar reads no contract configuration at startup. Any onchain signer that is not present in its own instance set is treated as an orphan candidate, so a given `TEEProverRegistry` must be written by exactly one registrar.
+
+## Driver loop
+
+The service runs a single driver loop:
+
+1. Discover the current instance set.
+2. Process every instance concurrently, bounded by `max_concurrency`.
+3. Read the onchain signer set.
+4. Deregister orphan signers.
+5. Sleep `poll_interval` seconds, or exit on cancellation.
+
+`step()` runs once at startup before the first sleep. Cancellation is observed promptly between ticks and inside long-running transaction retries, so the service can shut down without leaving partial state behind.
+
+## Instance discovery
+
+Discovery is driven exclusively by AWS ALB target group polling — DNS, SRV, and Kubernetes discovery are not supported.
+
+Each discovery cycle:
+
+1. Calls `elasticloadbalancingv2.DescribeTargetHealth(target_group_arn)`.
+2. Drops non-instance targets (IDs that do not start with `i-`).
+3. Deduplicates instance IDs that appear on more than one port.
+4. Calls `ec2.DescribeInstances(instance_ids)` to read each instance's private IP and launch time.
+5. Builds JSON-RPC endpoint URLs shaped like `http://{private_ip}:{prover_port}` and pairs each one with its ALB-reported health state.
+
+ALB health states map to internal states as follows:
+
+| AWS state    | Internal state | `should_register()` |
+| ------------ | -------------- | ------------------- |
+| `initial`    | `Initial`      | true                |
+| `healthy`    | `Healthy`      | true                |
+| `draining`   | `Draining`     | false               |
+| anything else| `Unhealthy`    | false               |
+
+An `Unhealthy` instance is still allowed to register if it is within `unhealthy_registration_window` seconds of its `launch_time`. This is a warm-up grace period: it gives a freshly launched instance — whose JSON-RPC endpoint may be briefly slow — enough time to complete enclave attestation and registration before the next ALB health check would deregister it. The window must be smaller than the Boundless proving timeout, so any proof that has already started can finish before the instance becomes ineligible.
+
+A discovery failure aborts the current tick and skips orphan cleanup. It never deregisters a live signer.
+
+## Per-instance processing
+
+For each discovered instance, the registrar:
+
+1. Calls `enclave_signerPublicKey` to fetch the per-enclave SEC1 public keys. A single instance can host multiple enclaves, and each enclave has its own signer key.
+2. Derives the Ethereum signer address from each public key as the last 20 bytes of `keccak256(uncompressed_pubkey_xy)`.
+3. Returns immediately when no signers were reported — that instance contributes nothing to the active set, and the call becomes a no-op.
+4. Decides whether the instance is currently registerable: `Initial` and `Healthy` instances proceed; `Unhealthy` instances inside the warm-up window also proceed; every other state contributes its addresses to the active set but does not generate new proofs or transactions.
+5. Generates a single 32-byte random nonce and calls `enclave_signerAttestation` once with that nonce. The nonce binds every per-enclave attestation in the returned batch to a single freshness commitment.
+6. Runs CRL checks once per batch when CRL checking is enabled. Each enclave signs with its own key, but AWS Nitro attestations are signed by the parent EC2 instance's Nitro Hypervisor, whose signing key is endorsed by a per-instance AWS-issued certificate chain. Every enclave on a given instance therefore lives under the same parent chain, so one CRL check per instance is sufficient.
+7. Runs the registration pipeline for each signer address.
+
+All reachable instances contribute to the active signer set, including `Draining` and `Unhealthy` ones. This prevents an instance that is rotating in or out from being deregistered prematurely.
+
+## Attestation proof generation
+
+For each signer that is not yet onchain, the registrar calls an `AttestationProofProvider` to produce proof material. The provider returns:
+
+```text
+output      // ABI-encoded VerifierJournal (PCRs, public key, timestamp, cert hashes)
+proofBytes  // Groth16 seal
+```
+
+`output` is the `VerifierJournal` consumed by `NitroEnclaveVerifier.verify()` during `registerSigner()`. `proofBytes` is the Groth16 SNARK proving that the journal corresponds to a valid Nitro attestation document.
+
+Two backends are supported:
+
+| Backend     | Description                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------------------------------ |
+| `boundless` | Submits the proving job to the Boundless marketplace using a dedicated wallet.                               |
+| `direct`    | Loads the guest ELF locally and proves via `risc0_zkvm::default_prover()`, routing to Bonsai or a local prover according to RISC Zero environment variables. |
+
+Both are valid production paths. `boundless` is the primary production backend; `direct` is used for local development and tests, and it is also suitable as a production fallback when an operator needs to bypass the marketplace — for instance during a Boundless incident or in a private deployment.
+
+For Boundless, the registrar submits a `RequestParams` carrying the program URL, the attestation input, the expected `image_id`, and a `prefix_match(image_id)` requirement so that a fulfilled request cannot be replayed against a different program. Onchain Boundless submissions are serialized behind a mutex to avoid wallet-nonce races.
+
+### Restart recovery
+
+The registrar process is ephemeral. Across restarts, it must not re-spend proving work and must not submit stale proofs. Boundless `RequestId` slots are derived deterministically:
+
+```text
+request_index(signer, attempt) = u32::from_be_bytes(keccak256(signer || attempt)[..4])
+```
+
+For each signer, the registrar probes `max_recovery_attempts` consecutive deterministic slots before submitting a fresh request. The action depends on what each slot looks like:
+
+| Slot status   | Registrar action                                                                  |
+| ------------- | --------------------------------------------------------------------------------- |
+| `Unknown`     | Record the first such slot as the candidate fresh-submission slot; keep scanning. |
+| `Locked`      | Resume `wait_for_request_fulfillment` and use the resulting receipt.              |
+| `Fulfilled`   | Fetch the receipt and check journal freshness before accepting it.                |
+| `Expired`     | Skip the slot permanently; continue scanning.                                     |
+
+A `RequestIsNotLocked` revert encountered mid-scan is treated as in-flight and short-circuits to waiting on that slot.
+
+If a recovered receipt's attestation timestamp is older than `max_attestation_age`, the registrar discards it and submits a fresh request in the candidate slot. The default freshness window is 3300 seconds, deliberately kept under the onchain `MAX_AGE` of 3600 seconds so that a recovered proof can still be submitted before it ages out onchain.
+
+After an `ExecutionReverted` from `registerSigner()`, the signer is added to a per-process `recovery_blocked` set. On the next cycle, the recovery scan is skipped for that signer and a fresh request is submitted instead, so a known-bad recovered proof is never tried twice. The set clears on restart, which gives each process one fresh attempt even for previously blocked signers.
+
+## Registration transactions
+
+For each unregistered signer, the registrar:
+
+1. Calls `TEEProverRegistry.isRegisteredSigner(signer)` and skips the signer if it returns true.
+2. Generates or recovers proof material as described above.
+3. ABI-encodes `registerSigner(output, proofBytes)`.
+4. Submits the transaction through the L1 transaction manager.
+5. Retries failed submissions according to the rules below.
+6. Increments the registration counter on a successful receipt.
+
+The transaction retry rules are:
+
+| Failure                       | Required behavior                                                                                       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Retryable error               | Sleep `tx_retry_delay`, then retry, up to `max_tx_retries` total attempts.                              |
+| `ExecutionReverted` revert    | Block recovery for this signer so the next cycle generates a fresh proof, then return the error.       |
+| Insufficient funds, fee cap   | Treat as non-retryable. Surface the error and stop attempting this signer for the current cycle.        |
+| Reverted receipt              | Treat as a transaction failure even when submission succeeded.                                          |
+| Reported error after mining   | Re-read `isRegisteredSigner(signer)`. If true, treat the attempt as success.                            |
+
+The post-error reconciliation matters because fee-bumping and nonce races can surface errors even when the underlying transaction has already been mined. Without the recheck, the registrar would burn proving work generating a fresh proof for a signer that is already registered.
+
+Transaction submission is cancellation-aware: both the active send and the inter-attempt sleep abort cleanly on shutdown, so the next process starts from a clean nonce state without committing a partial transaction.
+
+## Orphan deregistration
+
+After every instance has been processed, the registrar reconciles the onchain signer set against the active set:
+
+1. Skip cleanup if discovery failed during this tick.
+2. Skip cleanup if cancellation was requested.
+3. Compare reachable instances against total discovered instances. If `reachable_instances * 2 <= total_instances`, skip cleanup.
+4. Read the onchain set with `TEEProverRegistry.getRegisteredSigners()`.
+5. Compute `orphans = onchain_signers \ active_signers`.
+6. For each orphan, in order:
+   1. Recheck `isRegisteredSigner(signer)`. Skip if it returns false.
+   2. ABI-encode `deregisterSigner(signer)` and submit it through the transaction manager.
+
+The majority-reachable guard exists so that a transient AWS or VPC outage cannot deregister most of the prover fleet at once. The per-orphan `isRegisteredSigner` recheck is a race guard: the set returned by `getRegisteredSigners()` is read once per cycle, and a different writer might have deregistered the signer between that read and this transaction. Skipping signers that are already gone avoids wasted gas on a no-op transaction.
+
+The procedure assumes a single registrar per `TEEProverRegistry`. Two registrars sharing a registry would each treat the other's signers as orphans.
+
+## Certificate revocation
+
+When the operator turns on CRL checking, the registrar enforces revocation through two layers, applied in order. Both are required to make CRL handling safe.
+
+### Layer 1 — onchain durable revocation pre-check
+
+For each intermediate certificate in the attestation chain, the registrar reads `NitroEnclaveVerifier.revokedCerts(certPathDigest)`. Any hit blocks registration for that batch and skips Layer 2 entirely.
+
+This layer guards against a known attack on the cached-cert path: an intermediate that was once revoked onchain could be reintroduced through a later `_cacheNewCert` write if its CRL entry has since been pruned by AWS. Consulting the durable mapping first ensures a revoked cert cannot be silently rehabilitated.
+
+RPC errors against `revokedCerts` fail open and fall through to Layer 2, but they are counted as revocation check errors. `RegistrationDriver::new` requires a `NitroEnclaveVerifier` client whenever CRL checking is enabled and rejects misconfiguration at startup.
+
+### Layer 2 — AWS CRL distribution points
+
+For intermediates that pass Layer 1, the registrar:
+
+1. Parses each CRL distribution point from the chain.
+2. Validates the URL host against an allowlist that requires the `.amazonaws.com` suffix and the `nitro-enclave` keyword. HTTP redirects are disabled and responses are capped at 10 MiB.
+3. Fetches the CRL with a configurable timeout.
+4. Looks up the certificate's serial number.
+5. Submits `NitroEnclaveVerifier.revokeCert(certPathDigest)` for any revoked intermediate found.
+6. Returns true if any intermediate is revoked, which blocks registration for the batch.
+
+A `revokeCert` failure is counted but does not abort registration for other instances on the same tick. Submitted revocations flip Layer 1 to a hit on the next cycle, so subsequent registrations can short-circuit without re-fetching the CRL.
+
+## Pending registration lifecycle
+
+Each per-signer pipeline is keyed by Ethereum signer address. The Boundless proof slot for a signer transitions through:
+
+```mermaid
+flowchart TB
+    Start([process_instance]) --> Recover[Recovery scan]
+    Recover -->|Locked slot| Wait[wait_for_request_fulfillment]
+    Recover -->|Fulfilled slot| Fresh{Journal fresh?}
+    Recover -->|All slots Unknown/Expired| Submit[Submit fresh request]
+    Recover -->|Blocked recovery| Submit
+
+    Fresh -->|yes| Receipt[Use recovered receipt]
+    Fresh -->|no| Submit
+    Wait --> Receipt
+    Submit --> Wait
+
+    Receipt --> Send[tx_manager.send registerSigner]
+    Send -->|Ok| Done([Registered])
+    Send -->|Retryable| Send
+    Send -->|ExecutionReverted| Block[Block recovery for signer]
+    Block --> Done
+```
+
+A pending recovery state, a fulfilled-but-stale receipt, and an `ExecutionReverted` revert all funnel back to a fresh submission on the next tick rather than wedging the signer.
+
+## Onchain interactions
+
+The registrar issues the following contract calls. `TEEProverRegistry.isValidSigner()` is intentionally never called by the registrar — that predicate is enforced by `TEEVerifier` at proof-submission time and includes an image-hash match that the registrar itself cannot satisfy.
+
+| Contract                                                                                                                   | Method                          | Caller path                                         |
+| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------- |
+| [`TEEProverRegistry`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/TEEProverRegistry.sol)                 | `registerSigner(output, proof)` | Per-signer registration transaction.                |
+| [`TEEProverRegistry`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/TEEProverRegistry.sol)                 | `deregisterSigner(signer)`      | Per-orphan deregistration transaction.              |
+| [`TEEProverRegistry`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/TEEProverRegistry.sol)                 | `isRegisteredSigner(signer)`    | Pre-check, post-error reconciliation, orphan race guard. |
+| [`TEEProverRegistry`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/TEEProverRegistry.sol)                 | `getRegisteredSigners()`        | Once per cycle for orphan computation.              |
+| [`NitroEnclaveVerifier`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/NitroEnclaveVerifier.sol)           | `revokeCert(certHash)`          | When AWS CRL revokes an intermediate.               |
+| [`NitroEnclaveVerifier`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/NitroEnclaveVerifier.sol)           | `revokedCerts(certHash)`        | Layer-1 onchain durable revocation pre-check.       |
+
+PCR0 enforcement happens onchain at proof submission, not at registration. The registrar registers any enclave whose Nitro attestation verifies, regardless of PCR0 value. That makes it possible to bring up the next image's fleet and pre-register its signers before a hardfork; those signers cannot produce accepted proposals until the active game implementation's `TEE_IMAGE_HASH` matches their registered image hash.
+
+## Service lifecycle
+
+At startup, the registrar:
+
+1. Parses CLI configuration and validates it.
+2. Initializes tracing and installs the `rustls` ring crypto provider.
+3. Installs a signal handler that triggers a cancellation token.
+4. Initializes Prometheus metrics, including L1 wallet and Boundless wallet balance monitoring.
+5. Builds the L1 provider, transaction manager, AWS SDK clients, and discovery client.
+6. Builds the registry client and the optional Nitro verifier client.
+7. Builds the proof provider for the configured backend.
+8. Starts the health server and marks readiness.
+9. Starts the driver loop.
+
+The health endpoint reports ready as soon as wiring completes. Connectivity gating is intentionally omitted because the registrar is outbound-only.
+
+Each driver tick:
+
+1. Discovers instances.
+2. Processes instances concurrently.
+3. Computes orphans subject to the majority-reachable guard.
+4. Submits deregistration transactions for any confirmed orphans.
+
+Shutdown is driven by a cancellation token. The driver loop exits, in-flight per-instance futures are dropped, the readiness flag clears, the `up` metric is set to zero, and the health server is joined.
+
+## Operator inputs
+
+A registrar needs:
+
+- L1 RPC endpoint and chain ID.
+- `TEEProverRegistry` address.
+- AWS region and ALB target group ARN.
+- Prover JSON-RPC port shared by the fleet.
+- L1 transaction signer (local key, or remote signing endpoint plus expected address).
+- Proving backend selection: `boundless` or `direct`.
+- For `boundless`: marketplace RPC URL, dedicated wallet key, guest program URL, polling interval, prove timeout, recovery attempt limit, and attestation freshness window.
+- For `direct`: path to the guest ELF.
+- Poll interval, prover JSON-RPC timeout, max concurrency, max transaction retries, transaction retry delay, and the unhealthy registration warm-up window.
+
+Optional inputs:
+
+- CRL checking enable flag.
+- `NitroEnclaveVerifier` address, required when CRL checking is enabled.
+- CRL fetch timeout.
+- Health server bind address and port.
+- Logging filter and Prometheus metrics settings.
+
+## Safety requirements
+
+Any registrar implementation must preserve these safety properties:
+
+- Never deregister live signers because of a transient AWS or VPC outage. Apply the majority-reachable guard before any deregistration.
+- Treat `Draining` and `Unhealthy` instances as part of the active set as long as their JSON-RPC endpoint responds, so rotations do not race deregistration.
+- Use a fresh random nonce per instance batch and pass it to the enclave attestation request so the verifier journal carries an unguessable freshness commitment.
+- Derive Boundless request slots deterministically from the signer address so a restarted process can recover in-flight proving work without paying again for proofs.
+- Reject recovered proofs whose attestation timestamp is older than `max_attestation_age`, keeping recovered proofs strictly inside the onchain `MAX_AGE` window.
+- Block recovery for a signer after an `ExecutionReverted` so the next cycle proves freshly rather than resubmitting the same bad proof.
+- Recheck `isRegisteredSigner` after a transaction error to absorb fee-bump and nonce-race false negatives.
+- Recheck `isRegisteredSigner` for every orphan candidate immediately before submitting a deregistration, so a concurrent writer or an earlier in-flight transaction cannot cause a redundant deregistration.
+- When CRL checking is enabled, run the onchain durable revocation pre-check before fetching network CRLs so that a previously revoked intermediate cannot be silently rehabilitated.
+- Restrict CRL fetches to allowlisted hosts and bound the response size to defeat SSRF and resource-exhaustion attacks.
+- Treat unavailable AWS APIs, unreachable prover endpoints, transient RPC errors, and Boundless polling failures as retryable conditions for the next tick — not as deregistration or failure signals.

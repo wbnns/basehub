@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-05-17T14:21:50Z
+Generated 2026-05-19T03:01:20Z
 
-### base/base @ 84155fe
+### base/base @ c110164
 
 85b285a648000dbc0df64b217cfa6583157f1575  docs/guides/P2P.md
 1e6e42699495f60aa13dd3847d48886d59d43827  docs/guides/RELEASE.md
@@ -40,7 +40,7 @@ bb6b52fe8314a24bcc9d957fb6fb7baad6ba1372  docs/specs/pages/protocol/fault-proof/
 e6a276a209260320f51f9fa29f6276a83f5485b5  docs/specs/pages/protocol/proofs/contracts.md
 6b7e0ffb3fd7caf0e8d556ece1c05052b3e48833  docs/specs/pages/protocol/proofs/index.md
 45cff0dedcc6c2ddb7d3a65105ed4fe54bea9f9c  docs/specs/pages/protocol/proofs/proposer.md
-14a878e19cad1ffa362dc3fb3c7314f9681ba432  docs/specs/pages/protocol/proofs/registrar.md
+5ff42a440ed62cdaaa66a9be09e0aa60a863ac11  docs/specs/pages/protocol/proofs/registrar.md
 9f84b50c67bf8c12f5ba3be614ac3b27afb55eb1  docs/specs/pages/protocol/proofs/tee-provers.md
 18f90108647a0ea3454d764e6ddb47052e12bc53  docs/specs/pages/protocol/proofs/zk-prover.md
 ba65df08a134a88838318b06253ca0495a59abc0  docs/specs/pages/reference/configurability.md
@@ -79,7 +79,7 @@ fa2bee17cd00caccb653e5c3d7a059080d4f93d4  docs/specs/pages/upgrades/jovian/syste
 f6bc0f4a3b87395db61784d8daecdfaafd005dc5  docs/specs/pages/upgrades/pectra-blob-schedule/derivation.md
 16abad8d22ce33907320d1150ca86046a66c55b4  docs/specs/pages/upgrades/pectra-blob-schedule/overview.md
 
-### base/docs @ 5735457
+### base/docs @ b4ebd56
 
 d96ada070f24e0b6ab8631ffb594e18667f08fd3  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6a3a38332a80f369267725a1193dbcc39d378b80  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -114,8 +114,8 @@ e1efee79e6a8b117a8b903fa261f88dcfc65da14  docs/base-chain/api-reference/ethereum
 aa8cf34825c915f8ab84d9342e048ca15eae67d2  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 eac3d8e5c9ecf1a745f996771e00d982c27e7a5b  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 e3e697bf9b8f7eecf56173272b4177ce1d633c32  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
-598859a44110946c82711a125b0cfc37c48746e9  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 192be1ea5214df4339a5cc164ab9ba2b4c5cb116  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
+598859a44110946c82711a125b0cfc37c48746e9  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 6a287b68e60d0ed60be7d8da1abe446077a03998  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 a6024d533f3a6b8fb43420802c06a60191be1ba5  docs/base-chain/api-reference/rpc-overview.mdx
 ea05f8237686faf77dbd5691c53c076ee53a8213  docs/base-chain/flashblocks/app-integration.mdx
@@ -127,7 +127,6 @@ f63592ae7b20a2b1aa942bde4368ca2964dc9711  docs/base-chain/network-information/ba
 6971c4367d3bab34344c56bba13524fbd9adfda7  docs/base-chain/network-information/bridges.mdx
 027b8dc48b1b80d04473dcaa4adc545cbe13fbc7  docs/base-chain/network-information/configuration-changelog.mdx
 1eac198fe1ba0a1be06106916f03fbe690f85de2  docs/base-chain/network-information/diffs-ethereum-base.mdx
-edfdc11774e347073d609607d9bc451d0994f220  docs/base-chain/network-information/ecosystem-contracts.mdx
 80fa2d9b26637eeff71d77a667b70c4bfef4ca90  docs/base-chain/network-information/network-faucets.mdx
 f66071cd096a05007c52376931254245df8ad5b5  docs/base-chain/network-information/network-fees.mdx
 bf1571236b90f776f9551208e97f76fa41874d4e  docs/base-chain/network-information/transaction-finality.mdx
@@ -144,7 +143,7 @@ fabe34a7dc2b9c55044a93d8cf73bf3b053bef89  docs/base-chain/node-operators/trouble
 e1d11dcbd02b9749a0de211e6684f86221b42fb4  docs/base-chain/quickstart/why-base.mdx
 ef4f27d01e07db2c15d969beff1f910cb44a05d8  docs/base-chain/security/avoid-malicious-flags.mdx
 2425dace473df285d7f2e5c280ed2bf7e8661b77  docs/base-chain/security/bug-bounty.mdx
-8f981170bea922f24adfda0d15ee1e887c7ef21a  docs/base-chain/security/report-vulnerability.mdx
+9cb247836f8d43ef63a66cd7009ac8c20496346c  docs/base-chain/security/report-vulnerability.mdx
 64abb4ed07a3c82545a0025fe6d0274c057fd001  docs/base-chain/security/security-council.mdx
 ee287e8e2ce98b6ee58dc45f9b82bae8877e5968  docs/base-chain/specs/bcps/bcp-0000.mdx
 5b68d870414656bac497a0e583f7d91a3953ba5a  docs/base-chain/specs/bcps/index.mdx
@@ -207,8 +206,6 @@ b75a91f8034db445e4b4cd21ee4f1874ce345f06  docs/base-chain/specs/upgrades/isthmus
 98bed99aecc678729192a6f43477c7677665a065  docs/base-chain/specs/upgrades/jovian/l1-attributes.mdx
 3edb513ef1bc3f121de2d94bd7a847cd5cb78ef6  docs/base-chain/specs/upgrades/jovian/overview.mdx
 780dcced997d5f4b659f89f55a5e2e5eb80ba9d3  docs/base-chain/specs/upgrades/jovian/system-config.mdx
-8a3270440334bb38c83e2aadcc08844b475d11db  docs/base-chain/specs/upgrades/pectra-blob-schedule/derivation.mdx
-bc1e212136b8658002c398047e0f780e796d8ed4  docs/base-chain/specs/upgrades/pectra-blob-schedule/overview.mdx
 
 ### blog.base.dev (paragraph RSS)
 
