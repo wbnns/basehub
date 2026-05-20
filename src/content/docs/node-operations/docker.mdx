@@ -41,6 +41,9 @@ docker run -it --rm \
   -p 8545:8545 \
   -p 8546:8546 \
   -p 30303:30303 \
+  -p 30303:30303/udp \
+  -p 9222:9222 \
+  -p 9222:9222/udp \
   -v /path/to/data:/data \
   base-reth-node [OPTIONS]
 ```
@@ -48,8 +51,13 @@ docker run -it --rm \
 Common flags:
 - `-p 8545:8545` — HTTP JSON-RPC
 - `-p 8546:8546` — WebSocket JSON-RPC
-- `-p 30303:30303` — P2P networking
+- `-p 30303:30303` (TCP/UDP) — discv4 P2P discovery and RLPx
+- `-p 9222:9222` (TCP/UDP) — Reth discv5 peer discovery
 - `-v /path/to/data:/data` — Persistent data volume
+
+### Bootnode egress
+
+In addition to the ingress ports above, the node needs outbound access to the Base bootnodes for initial peer discovery. Operators running behind strict egress filtering must allow outgoing traffic to ports `30301` (TCP/UDP) and `9200` (UDP); without these, the node cannot bootstrap into the peer set.
 
 ## Docker Compose
 

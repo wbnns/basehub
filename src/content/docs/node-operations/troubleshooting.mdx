@@ -104,8 +104,9 @@ Refer to the [Snapshots](/node-operations/snapshots/) guide for the canonical pr
   - **Check:** L2 client logs — did the RPC server fail to start?
   - **Check:** Are `--http.addr` and `--ws.addr` set to `0.0.0.0` in the client config or entrypoint so external connections work within the Docker network?
 
-- **Issue:** Low peer count.
-  - **Check:** P2P port accessibility. Ensure `30303` (TCP/UDP) and `9222` (TCP/UDP for Reth discv5) are not blocked by firewalls on the host or upstream network.
+- **Issue:** Low peer count, or the node cannot connect to any peers at all.
+  - **Check:** Ingress ports `30303` (TCP/UDP) and `9222` (TCP/UDP for Reth discv5) are reachable from the public internet through any host firewall and upstream network filtering.
+  - **Check:** Outbound traffic to ports `30301` (TCP/UDP) and `9200` (UDP) is permitted. These are the Base bootnode endpoints — if egress to them is blocked, the node has no entry point into peer discovery and will report zero peers even when ingress rules look correct.
   - **Check:** Node logs for P2P errors.
   - **Action:** Behind NAT, set `--nat=extip:<your-ip>` via `ADDITIONAL_ARGS` in `.env` (see [advanced configuration](/getting-started/running/)).
 
