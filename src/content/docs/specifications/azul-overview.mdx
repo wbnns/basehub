@@ -1,0 +1,57 @@
+---
+title: Azul Upgrade Overview
+description: Summary of the Azul hardfork — Osaka EVM features, a streamlined Flashblocks websocket format, and a multi-proof system for L2 checkpoints.
+sources:
+- base/docs:docs/base-chain/specs/upgrades/azul/overview.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Azul is the first Base-specific hardfork. It folds Osaka-era EVM changes onto the Base execution layer, trims the Flashblocks websocket payload, and turns on a multi-proof system that shortens withdrawal latency and lays the groundwork for stronger decentralization. It also drops support for non-Base clients.
+
+<Aside type="caution">
+The Azul hardfork is only honored by `base-consensus` and `base-reth-node`. Anyone still running `op-node`, `op-geth`, or another client must migrate before activation.
+</Aside>
+
+## What Azul ships
+
+- Osaka EVM support on Base.
+- A simplified Flashblocks websocket message format.
+- A multi-proof system that unlocks faster withdrawals and a credible path toward decentralization.
+- Base-native clients (`base-reth-node` + `base-consensus`) as the only supported stack.
+
+## Activation timestamps
+
+| Network | Activation timestamp |
+|---------|----------------------|
+| `mainnet` | `1779991200` (2026-05-28 18:00:00 UTC) |
+| `sepolia` | `1776708000` (2026-04-20 18:00:00 UTC) |
+
+<Aside type="caution">
+The mainnet timestamp is still subject to change. Track [@buildonbase](https://x.com/buildonbase) for confirmation.
+</Aside>
+
+## Execution layer changes
+
+Each item below points to the corresponding section of the upstream Azul execution-engine spec:
+
+- [EIP-7823: Upper-Bound MODEXP](https://specs.base.org/upgrades/azul/exec-engine#upper-bound-modexp)
+- [EIP-7825: Transaction Gas Limit Cap](https://specs.base.org/upgrades/azul/exec-engine#transaction-gas-limit-cap)
+- [EIP-7883: MODEXP Gas Cost Increase](https://specs.base.org/upgrades/azul/exec-engine#modexp-gas-cost-increase)
+- [EIP-7939: CLZ Opcode](https://specs.base.org/upgrades/azul/exec-engine#clz-opcode)
+- [EIP-7951: secp256r1 Precompile](https://specs.base.org/upgrades/azul/exec-engine#secp256r1-precompile-gas-cost)
+- [EIP-7642: eth/69](https://specs.base.org/upgrades/azul/exec-engine#eth69)
+- [EIP-7910: eth_config RPC Method](https://specs.base.org/upgrades/azul/exec-engine#eth_config-rpc-method)
+- [Remove Account Balances & Receipts](https://specs.base.org/upgrades/azul/exec-engine#remove-account-balances--receipts)
+
+## Proof system
+
+Azul introduces the components that make multi-proof withdrawals possible:
+
+- [Proof system overview](https://specs.base.org/upgrades/azul/proofs)
+- [New / changed onchain components](https://specs.base.org/upgrades/azul/proofs#newchanged-onchain-components)
+- [Proposer](https://specs.base.org/upgrades/azul/proofs#proposer)
+- [Challenger](https://specs.base.org/upgrades/azul/proofs#challenger)
+- [TEE provers](https://specs.base.org/upgrades/azul/proofs#tee-provers)
+- [ZK provers](https://specs.base.org/upgrades/azul/proofs#zk-provers)
+- [Prover registrar](/specifications/registrar/)
