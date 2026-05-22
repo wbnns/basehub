@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-05-21T03:17:15Z
+Generated 2026-05-22T03:04:42Z
 
-### base/base @ a875231
+### base/base @ bfc3a5d
 
 449814b030dc1404dd5877dfea636cd00de370da  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -79,7 +79,7 @@ aee0fb3990df1bd152bbe74c6d9a0ee5a8906d58  docs/specs/pages/upgrades/jovian/syste
 4314ac9a61c9b06c1f191f43266a4b0b0230a0d6  docs/specs/pages/upgrades/pectra-blob-schedule/derivation.md
 cfd4946f9b15cf20e1608ebf225ecffe7645f8f5  docs/specs/pages/upgrades/pectra-blob-schedule/overview.md
 
-### base/docs @ 27d229f
+### base/docs @ ae5e35e
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -114,8 +114,8 @@ c265697ca6483e55c55bd383c3a2ade20f5753b8  docs/base-chain/api-reference/ethereum
 8948d629f7255fd16424f4ce5dacee89ea7ac6a0  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 18c24eccbe8179c2dccd10d6d4721498ce50942b  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 e3c88fa5a2325c4b6e4aa6bbdaf2de1b1f3563a2  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
-1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 582955e5f57b69e398a6b97def979aff42a7d3d9  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
+1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 688e56fcbbf3b6d107f43c9e1d837cfd7a86ef46  docs/base-chain/api-reference/rpc-overview.mdx
 9c3b3c890ea804386ea4659b5a284e6cd8ce8cde  docs/base-chain/flashblocks/app-integration.mdx
@@ -131,7 +131,7 @@ a60e3914db37f45c4f1c497251533afb43c4cdcf  docs/base-chain/flashblocks/architectu
 0f67b06c5d7d63d6bd0902035d9bfbf0b3d44b88  docs/base-chain/network-information/network-fees.mdx
 01ae095080c515efb24a7e2f9b09baa070b5f64b  docs/base-chain/network-information/transaction-finality.mdx
 275fa3d574462cee882ee0a0422b177c3621a32b  docs/base-chain/network-information/troubleshooting-transactions.mdx
-3e90d668767cfeb7582ceee6a087a301f26266f2  docs/base-chain/node-operators/base-v1-upgrade.mdx
+46325ef6bdf24ab39b925d6800a9d0510dda45c5  docs/base-chain/node-operators/base-v1-upgrade.mdx
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
 7c13d5ab81279b6919458da7fa676748199e2d3e  docs/base-chain/node-operators/run-a-base-node.mdx
@@ -213,6 +213,7 @@ d43e05f2726352d77f4aad3b87edeee836c5b50e  docs/base-chain/specs/upgrades/jovian/
 2vGK4pzD8ElLNitI3nsB	Bridging Assets to Base: Playbook	Tue, 27 Jan 2026 19:16:38 GMT
 6Yx9LNFutCWhgUSP65Th	Engineering the Commerce Payments Protocol Powering Shopify	Thu, 12 Jun 2025 18:26:15 GMT
 889BK4qRSxfu04XWUCU4	Scaling Base in 2025: Sustaining 10x growth while maintaining sub-cent transactions	Wed, 18 Jun 2025 18:19:26 GMT
+AKWz1qqJ9CRS2MrO4zeI	Multiproofs on Base	Thu, 21 May 2026 20:49:36 GMT
 Ebh94hE0wPI1r63fJefg	L1 Upgrades: The Glamsterdam proposals we’re most excited about	Tue, 18 Nov 2025 19:37:28 GMT
 LskMlFFUFreHIdSUQlkL	Scaling Base: Doubling capacity in 30 days	Tue, 28 Oct 2025 15:15:27 GMT
 Sei1pO8j8DHvrCL3iU4N	A new, unified stack for Base Chain	Wed, 18 Feb 2026 17:03:12 GMT
@@ -224,7 +225,6 @@ g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 
 g3oKwwlMgctP3HkvO7FV	How Base Pay Delivers 1-Step Crypto Payments	Tue, 09 Dec 2025 16:36:25 GMT
 gHUvTluLQFAHmP76hmDZ	Benchmarking ZKP Systems for Passkey ECDSA Verification	Tue, 02 Sep 2025 15:25:08 GMT
 hY0Gr9ht2h7PmXfCa7U8	Building The New Base App: Prefetching at Scale	Wed, 21 Jan 2026 19:00:57 GMT
-hrZc4m7TAQr2jk0UC4z8	Securing EIP-7702 Upgrades: A Proxy Pattern for Safe EOA-to-Smart Wallet Transitions	Tue, 10 Jun 2025 21:18:28 GMT
 jbzghxF4nZhRDPk3XcSa	Introducing Base Azul	Tue, 21 Apr 2026 17:00:01 GMT
 m7yYX5jNPu3g4PwAqpkV	Scaling Base safely with end-to-end benchmarking	Thu, 13 Nov 2025 17:48:25 GMT
 p2ZgCnu73WmVSIncOdCG	OnchainTestKit: A Framework for End-to-End Testing of Onchain Applications	Mon, 29 Sep 2025 19:21:36 GMT

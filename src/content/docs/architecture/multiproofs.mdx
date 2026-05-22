@@ -1,0 +1,44 @@
+---
+title: Multiproofs on Base
+description: How Base's multiproof system combines TEE and ZK provers to enable fast finality, satisfy Stage 2 decentralization requirements, and strengthen the proof system's security posture.
+sources:
+- blog.base.dev:multiproofs-on-base
+---
+
+The multiproof system on Base mainnet pairs a TEE prover with a ZK prover to validate state transitions, shortening withdrawal finality to at most one day when both proofs agree, and giving the chain the onchain bug-detection capability required for Stage 2 decentralization. ZK proofs can override TEE proofs, and contradictions across provers raise a soundness alert that disables the affected prover automatically.
+
+## Why move beyond optimistic proofs
+
+Base reached Stage 1 in October 2024 with permissionless fault proofs and again in April 2025 with the Security Council that approves upgrades. The fault dispute protocol behind those milestones works, but is interactive (a dispute can span dozens of transactions), demands a smart contract that emulates a virtual machine, and requires defenders to lock up hundreds of ETH in bonds in the worst case. Those costs make optimistic systems an awkward foundation for the next stage of decentralization.
+
+Validity systems flip the model: every block in a proposal is proved correct upfront and verified onchain in a single transaction, eliminating the multi-round dispute game and the bond requirements. Two flavors lead the field:
+
+- **ZK provers** use cryptography to attest that the chain advanced correctly. Real-time proving is expensive today, and the offchain machinery is hard to implement soundly, but the trust model is the cleanest available.
+- **TEE provers** lean on hardware attestation. They are fast and cheap to verify, but introduce trust in the hardware vendor (Intel, AWS) and remain susceptible to side-channel attacks on physical TEEs.
+
+## The multiproof design
+
+Following Vitalik's L2 finalization roadmap, Base finalizes a proposal as soon as either a TEE or ZK proof is present. When both are present and agree, the proposal finalizes quickly — within a day at most. A ZK proof can overrule a TEE proof, and any contradiction between proofs (for example, two ZK proofs disagreeing on the same block) triggers a soundness alert that pauses the implicated prover.
+
+That layout buys three things at once:
+
+- **Faster withdrawals** when both provers are active, improving liquidity efficiency across bridges.
+- **Permissionless decentralization**, because ZK proposing remains open and the permissionless path always overrides the permissioned one.
+- **Stage 2 readiness**, since prover bugs become detectable onchain rather than relying on offchain coordination.
+
+Base treats TEE proofs as the near-term workhorse while confidence in the ZK stack matures. The current ZK prover is SP1, chosen for performance, audit coverage, and ongoing formal verification work.
+
+## Defense in depth: intermediary roots and soundness alerts
+
+To keep defender requirements low, the proof system embeds **intermediary roots** — subclaims published every few blocks within a proposal. Contradicting a single subclaim is enough to invalidate the whole proposal and surface a soundness alert. A defender no longer needs to disprove an entire proposal to flag a faulty prover; one disagreeing block is sufficient.
+
+Soundness alerts are the system's circuit breaker. When two proofs disagree on the same block, the implicated prover is disabled automatically until reviewed, preserving the assurance that any finalized proposal was vouched for by at least one honest prover.
+
+## Where this goes next
+
+The endpoint is full ZK proving with near-instant withdrawals. Reaching that state depends on two parallel tracks:
+
+- **Improving ZK security and efficiency**, including chain-side changes that make real-time proving tractable and ongoing evaluation of competing ZKVMs.
+- **Shortening finality**, from the current one-day window down toward a few minutes as confidence in ZK provers grows.
+
+The multiproof launch on mainnet is the architectural step that satisfies Stage 2's technical requirement for onchain bug detection while leaving room for the chain to keep tightening finality as the underlying proving technology matures.
