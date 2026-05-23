@@ -1,0 +1,14 @@
+---
+title: Network Incident History
+description: Paraphrased log of Base mainnet and Sepolia incidents and scheduled network events.
+sources:
+- base-l2.statuspage.io:history.rss
+---
+
+A running log of substantive incidents and scheduled upgrades affecting Base Mainnet and Base Sepolia. Procedural status pings are omitted. Entries are newest first.
+
+## 2026
+
+### 2026-05-28 — Mainnet Azul upgrade (scheduled)
+
+Base Mainnet activates the Azul hardfork on Thursday, May 28th at 18:00 UTC. Node operators must run version `0.9.0` or later of `github.com/base/base`, with corresponding preconfigured binaries published as the `v0.16.0` release of `github.com/base/node`. From this upgrade onward, `base-consensus` and `base-reth-node` are the only supported clients — `op-node` and `op-geth` will not follow the new chain. Pending withdrawals will be invalidated by the upgrade; users with in-flight withdrawals will need to submit a second proof transaction afterward to complete them. Migration steps are documented in [Base v1 upgrade](/node-operations/base-v1-upgrade).

@@ -1,0 +1,306 @@
+---
+title: Proposer
+description: Offchain service that turns canonical L2 checkpoint ranges into AggregateVerifier dispute games on L1.
+sources:
+- base/docs:docs/base-chain/specs/protocol/proofs/proposer.mdx
+---
+
+The proposer is the offchain service that promotes a canonical L2 checkpoint range into an `AggregateVerifier` game on L1. Each cycle it reads the latest onchain parent state, picks the next checkpoint, asks a TEE prover for a proof over that range, revalidates the proof against canonical L2 state, and opens a new dispute game through `DisputeGameFactory`.
+
+The production proposer is gated by the L1 signer it is configured with. Its output remains self-validating end to end: a game is uniquely keyed by game type, claimed output root, parent, L2 block number, and the ordered intermediate output roots, and the proof itself can be re-checked by the onchain verifier and by independent challengers.
+
+## Responsibilities
+
+A conforming proposer is expected to:
+
+1. Load the active `AggregateVerifier` implementation and proposal parameters from L1.
+2. Recover the latest onchain parent state from `AnchorStateRegistry` and `DisputeGameFactory`.
+3. Pick the next checkpoint block that is at or before the configured safe head.
+4. Build a `prover_prove` request covering that checkpoint range.
+5. Accept only TEE proof results for proposal creation.
+6. Re-check the aggregate output root and every intermediate root against canonical L2 state right before L1 submission.
+7. Optionally pre-validate the TEE signer against `TEEProverRegistry`.
+8. Submit `DisputeGameFactory.createWithInitData()` with the required bond.
+9. Retry transient proof, RPC, and transaction failures without ever creating games out of order.
+
+The proposer does not challenge games, resolve them, claim bonds, or decide withdrawal finality — those duties live with the challenger and the proof contracts.
+
+## Startup Configuration
+
+At startup the proposer connects to:
+
+- an L1 execution RPC for contract reads and transaction submission
+- an L2 execution RPC for agreed L2 block headers
+- a rollup RPC for sync status and output roots
+- a prover RPC that implements `prover_prove`
+- `AnchorStateRegistry`
+- `DisputeGameFactory`
+- an optional `TEEProverRegistry`
+
+The game implementation address comes from:
+
+```text
+DisputeGameFactory.gameImpls(gameType)
+```
+
+That address must be non-zero. From there the proposer reads:
+
+```text
+AggregateVerifier.BLOCK_INTERVAL()
+AggregateVerifier.INTERMEDIATE_BLOCK_INTERVAL()
+DisputeGameFactory.initBonds(gameType)
+```
+
+`BLOCK_INTERVAL` must be at least `2`, `INTERMEDIATE_BLOCK_INTERVAL` must be non-zero, and `BLOCK_INTERVAL % INTERMEDIATE_BLOCK_INTERVAL` must be `0`. The number of intermediate roots a proposal carries is:
+
+```text
+BLOCK_INTERVAL / INTERMEDIATE_BLOCK_INTERVAL
+```
+
+By default the proposer targets finalized L2 state. Operators may opt into safe-but-not-finalized proposals, in which case the rollup node's safe L2 head is used instead.
+
+## Parent recovery
+
+Before planning new work, the proposer walks forward from L1 to find the current tip of the proposal chain. Parent state is captured as:
+
+```text
+parentAddress
+parentOutputRoot
+parentL2BlockNumber
+```
+
+If no games have been created yet, the parent is the anchor root from `AnchorStateRegistry`:
+
+```text
+parentAddress = AnchorStateRegistry address
+parentOutputRoot = AnchorStateRegistry.getAnchorRoot().root
+parentL2BlockNumber = AnchorStateRegistry.getAnchorRoot().l2BlockNumber
+```
+
+Otherwise the proposer performs a deterministic forward walk from the anchor root (or from a cached recovered tip when the cache is still fresh). At each step it:
+
+1. Computes:
+
+   ```text
+   expectedBlock = parentL2BlockNumber + BLOCK_INTERVAL
+   ```
+
+2. Fetches the canonical output root for every intermediate checkpoint at:
+
+   ```text
+   parentL2BlockNumber + INTERMEDIATE_BLOCK_INTERVAL * i
+   ```
+
+   for `i` in `1..=BLOCK_INTERVAL / INTERMEDIATE_BLOCK_INTERVAL`.
+
+3. Takes the final intermediate root as the canonical root claim for `expectedBlock`.
+4. Builds `extraData` from `expectedBlock`, `parentAddress`, and the ordered intermediate roots.
+5. Looks the expected game up:
+
+   ```text
+   DisputeGameFactory.games(gameType, rootClaim, extraData)
+   ```
+
+6. If the lookup returns `address(0)`, walk stops and the current parent is the recovered tip.
+7. Otherwise it advances the parent to the returned game proxy and repeats.
+
+This recovery does not scan the factory for a "best" game. It uses each game's unique factory key, so only the canonical next game for the recovered parent can advance the parent chain. Any game that disagrees on root, parent, L2 block number, or intermediate roots has a different key and is invisible to recovery.
+
+## Checkpoint selection
+
+After recovery, the next proposal target is:
+
+```text
+targetBlock = parentL2BlockNumber + BLOCK_INTERVAL
+```
+
+The proposer must not request or submit a proof for `targetBlock` unless:
+
+```text
+targetBlock <= safeHead
+```
+
+where `safeHead` is either:
+
+- `finalized_l2.number`, by default, or
+- `safe_l2.number`, only when non-finalized proposals are explicitly enabled.
+
+When parallel proving is on, multiple proof requests can be in flight for future checkpoints, but L1 submissions are still strictly sequential — at most one proposal transaction is pending at a time, and the next one waits until earlier checkpoint games are recovered or confirmed.
+
+## Proof request
+
+For a checkpoint range the proposer builds a `ProofRequest` with:
+
+| Field                         | Value                                                      |
+| ----------------------------- | ---------------------------------------------------------- |
+| `l1_head`                     | Hash of the latest L1 block at request construction time   |
+| `l1_head_number`              | Number of the latest L1 block at request construction time |
+| `agreed_l2_head_hash`         | L2 block hash at `parentL2BlockNumber`                     |
+| `agreed_l2_output_root`       | Parent output root recovered from L1                       |
+| `claimed_l2_output_root`      | Rollup RPC output root at `targetBlock`                    |
+| `claimed_l2_block_number`     | `targetBlock`                                              |
+| `proposer`                    | L1 address that will submit the proposal transaction       |
+| `intermediate_block_interval` | `INTERMEDIATE_BLOCK_INTERVAL`                              |
+| `image_hash`                  | Expected TEE image hash                                    |
+
+The prover RPC method is:
+
+```text
+prover_prove(ProofRequest) -> ProofResult
+```
+
+Only `ProofResult::Tee` is accepted by the proposer. ZK proof results are not valid input on this path.
+
+## TEE proposal journal
+
+The TEE prover returns:
+
+- one aggregate proposal that covers the entire checkpoint range
+- per-block proposals for each block inside that range
+
+The aggregate proposal carries:
+
+```text
+outputRoot
+signature
+l1OriginHash
+l1OriginNumber
+l2BlockNumber
+prevOutputRoot
+configHash
+```
+
+The TEE signature is taken over:
+
+```text
+keccak256(journal)
+```
+
+where `journal` is packed as:
+
+```text
+proposer(20)
+|| l1OriginHash(32)
+|| prevOutputRoot(32)
+|| startingL2Block(8)
+|| outputRoot(32)
+|| endingL2Block(8)
+|| intermediateRoots(32 * N)
+|| configHash(32)
+|| teeImageHash(32)
+```
+
+For aggregate proposals:
+
+```text
+startingL2Block = parentL2BlockNumber
+endingL2Block = targetBlock
+prevOutputRoot = parentOutputRoot
+outputRoot = claimed root at targetBlock
+```
+
+`intermediateRoots` are sampled every `INTERMEDIATE_BLOCK_INTERVAL` blocks and include the final target block root.
+
+## Pre-submission validation
+
+Right before sending to L1, the proposer re-validates the proof against canonical L2 state:
+
+1. Fetch the rollup output root at `targetBlock`.
+2. Require it to equal the aggregate proposal's `outputRoot`.
+3. Extract the intermediate roots from the per-block proposals.
+4. Fetch the canonical output root for every intermediate checkpoint.
+5. Require every proposed intermediate root to equal its canonical counterpart.
+
+If the aggregate root or any intermediate root no longer matches canonical state, the proposer drops the pending work and restarts recovery. This is the guard against stale proof results after L1 or L2 reorgs.
+
+When a `TEEProverRegistry` is configured, the proposer should recover the TEE signer from the aggregate proposal signature and call:
+
+```text
+TEEProverRegistry.isValidSigner(signer)
+```
+
+A `false` return means the proof must not be submitted; discard it and request a new one. If the registry call itself fails for RPC or deployment reasons, the proposer may continue to submission and let the onchain verifier enforce signer validity.
+
+## Game creation
+
+The proposer creates the game with:
+
+```solidity
+DisputeGameFactory.createWithInitData{value: initBond}(
+    gameType,
+    rootClaim,
+    extraData,
+    initData
+)
+```
+
+where:
+
+```text
+rootClaim = aggregateProposal.outputRoot
+```
+
+`extraData` is packed, not ABI-encoded:
+
+```text
+l2BlockNumber(32) || parentAddress(20) || intermediateRoots(32 * N)
+```
+
+`l2BlockNumber` is a 32-byte big-endian integer. `parentAddress` is the recovered parent game proxy, or the `AnchorStateRegistry` address for the first game after the anchor.
+
+`initData` is the TEE proof bytes for `AggregateVerifier.initializeWithInitData()`:
+
+```text
+proofType(1) || l1OriginHash(32) || l1OriginNumber(32) || signature(65)
+```
+
+For TEE proofs:
+
+```text
+proofType = 0
+```
+
+The ECDSA `v` value must be normalized to `27` or `28` before submission. `initBond` is read from `DisputeGameFactory.initBonds(gameType)` at startup and is sent as the transaction value. The L1 transaction manager owns nonce management, fee bumping, signing, and resubmission.
+
+## Duplicate games
+
+A game's factory key is:
+
+```text
+gameType || rootClaim || extraData
+```
+
+If `createWithInitData()` reverts with `GameAlreadyExists`, the proposer treats the target as already submitted, refreshes recovery from L1, and continues from the new tip. This covers both the case where a prior transaction succeeded but the receipt was missed, and the case where another valid proposer beat us to the same game.
+
+## Retry behavior
+
+Transient failures are retried on later ticks:
+
+| Failure                               | Required behavior                                           |
+| ------------------------------------- | ----------------------------------------------------------- |
+| Recovery RPC or contract read failure | Skip the current tick and retry recovery on the next tick   |
+| Proof request failure                 | Retry the target on a later tick                            |
+| Repeated proof failure                | Reset pipeline state and recover from L1                    |
+| L1 submission failure                 | Keep the proved result and retry submission on a later tick |
+| L1 submission timeout                 | Treat as a submission failure and retry after recovery      |
+| `GameAlreadyExists`                   | Treat as success, refresh recovery, and continue            |
+| Canonical root mismatch               | Reset pipeline state and re-prove from recovered L1 state   |
+| Invalid TEE signer                    | Discard the proof and request a new one                     |
+
+The current implementation retries a single proof target up to three times before resetting pipeline state, and bounds proposal submission with a ten-minute timeout.
+
+## Admin interface
+
+The proposer may expose an optional JSON-RPC admin interface. When enabled, it provides:
+
+| Method                  | Result                                  |
+| ----------------------- | --------------------------------------- |
+| `admin_startProposer`   | Starts the proving pipeline             |
+| `admin_stopProposer`    | Stops the proving pipeline              |
+| `admin_proposerRunning` | Returns whether the pipeline is running |
+
+Starting a proposer that is already running, or stopping one that is already stopped, are both errors.
+
+## Dry run mode
+
+In dry run mode the proposer still performs recovery, checkpoint selection, proof sourcing, and pre-submission validation, but it does not send L1 transactions — it just logs the game that would have been created. Useful for validating prover and RPC behavior, but it does not advance the onchain proposal chain.

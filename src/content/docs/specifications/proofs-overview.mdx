@@ -1,0 +1,21 @@
+---
+title: Proof System Overview
+description: Roles of the offchain services and onchain contracts that make Azul L2 checkpoint proposals verifiable from Ethereum.
+sources:
+- base/docs:docs/base-chain/specs/protocol/proofs/index.mdx
+---
+
+The proof system is the collection of offchain services and onchain contracts that lets Ethereum verify Base's L2 checkpoint proposals. Every proposal asserts an output root for a fixed L2 block range; independent proof actors then recompute that claim, supply proof material, and dispute the game when the claim does not match canonical L2 state.
+
+This section covers the components used by the Azul proof system. The legacy interactive fault-proof construction is documented separately.
+
+## Component roles
+
+- [Challenger](/specifications/challenger) — watches in-flight games, compares them to canonical L2 state, and disputes claims that disagree.
+- [Proposer](/specifications/proposer) — turns a canonical L2 checkpoint range into a new dispute game on L1.
+- [Registrar](/specifications/registrar) — keeps the onchain registry of accepted TEE signer identities in sync with the running prover fleet.
+- TEE Prover — produces Nitro Enclave–backed proofs for the common, low-latency proposal path.
+- ZK Prover — produces permissionless proofs that can be used for both proposing and disputing.
+- Contracts — verify submitted proof material, track game state, and release withdrawals and bonds according to each game's outcome.
+
+Dedicated pages for the TEE Prover, ZK Prover, and on-L1 contracts will be added in upcoming syncs.

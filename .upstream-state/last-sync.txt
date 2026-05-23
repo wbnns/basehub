@@ -1,85 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-05-22T03:05:37Z
+Generated 2026-05-23T03:07:03Z
 
-### base/base @ bfc3a5d
+### base/base @ 92abf0a
 
 449814b030dc1404dd5877dfea636cd00de370da  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
-308b6060233c48afc10a143bb8aefccaa030af9d  docs/specs/pages/bcps/bcp-0000.md
-c4b188e85bc0f0363f9bfd96e80748856c04f035  docs/specs/pages/bcps/index.mdx
-1346e2cbb53b0c1fe63fcfde3048bc7b3cb638fc  docs/specs/pages/index.md
-f96b848239f092e323adf8fe5e0d6c942606b367  docs/specs/pages/protocol/batcher.md
-8faf4801ecf6e777e904442a9afa1f48b68a59d2  docs/specs/pages/protocol/bridging/bridges.md
-cf594029080549dea632956cb393a444f9fa2db0  docs/specs/pages/protocol/bridging/deposits.md
-58b1213e205c962de34af361d72c9cab34e6bfc8  docs/specs/pages/protocol/bridging/messengers.md
-bc12db8132285a08ffc921335b8075dccd27879d  docs/specs/pages/protocol/bridging/withdrawals.md
-2fd8d5d7b1b21f519d604c340d26520a02b27f58  docs/specs/pages/protocol/consensus/derivation.md
-8f960fa3d4751756cb0df0aacbdccf0eeafafca6  docs/specs/pages/protocol/consensus/index.md
-cf5d421d27f4fa3d71c60d9379f04877569a93b9  docs/specs/pages/protocol/consensus/p2p.md
-977bb5443608bc4f75690ddf665f2e25699d808d  docs/specs/pages/protocol/consensus/rpc.md
-6dd52e5eb62c2dd73e19684425e38f6852324968  docs/specs/pages/protocol/execution/evm/precompiles.md
-15d707c87cfad311654dcfa63ee3137838858c0c  docs/specs/pages/protocol/execution/evm/predeploys.md
-f91bd7678001d34515aa9277b4f4d6fab26d79df  docs/specs/pages/protocol/execution/evm/preinstalls.md
-688879b250e3bafa4e6415768966a123f75b5c8d  docs/specs/pages/protocol/execution/evm/rpc.md
-e981aa7dc2492d0e698d4b3e59cc35200e7eb516  docs/specs/pages/protocol/execution/index.md
-1bf8e57f37d4c43ad3ed0a94b97863df29ef1607  docs/specs/pages/protocol/fault-proof/cannon-fault-proof-vm.md
-6987df52a217f525216ec1bf472fc1f934c9c87d  docs/specs/pages/protocol/fault-proof/index.md
-98df56236bce0202dd0fca85704a7cf12c1f3770  docs/specs/pages/protocol/fault-proof/proposer.md
-bad39f5c98367c7d7c4c7f2efed0d5e87da075bc  docs/specs/pages/protocol/fault-proof/stage-one/anchor-state-registry.md
-a241d39bb0423511f0068ded863f80f6fb3ecccd  docs/specs/pages/protocol/fault-proof/stage-one/bond-incentives.md
-c31720210cf99bec3bcd60e9550695d47c0cb979  docs/specs/pages/protocol/fault-proof/stage-one/bridge-integration.md
-afec269d7c32c43548a2b7d64b1b681c4c4051e8  docs/specs/pages/protocol/fault-proof/stage-one/dispute-game-interface.md
-719bb100043492589610ab35710ac8ce1cbb625c  docs/specs/pages/protocol/fault-proof/stage-one/fault-dispute-game.md
-595e51edbf7fb6d329770797ca9a7bacec4abf5a  docs/specs/pages/protocol/fault-proof/stage-one/honest-challenger-fdg.md
-07418caa4c53438c2471beee1ceb1521bfd79ddd  docs/specs/pages/protocol/fault-proof/stage-one/index.md
-ec31c61d07432856de2a4cace5dd8da74c70f6c2  docs/specs/pages/protocol/fault-proof/stage-one/optimism-portal.md
-7b95651634821f0d0fc46401e89a6483ca199a74  docs/specs/pages/protocol/overview.md
-66b550b2ee11ba3dc224b4b0b6a49185e76e2ab8  docs/specs/pages/protocol/proofs/challenger.md
-580b9a6ca3c326b82b4aace72cf84e292daebb1c  docs/specs/pages/protocol/proofs/contracts.md
-05ff1001fc07e9fd43f1ec4ef8aeae158c0f376b  docs/specs/pages/protocol/proofs/index.md
-528a73fdb302ff0f7de1b637105a068a3dd2b447  docs/specs/pages/protocol/proofs/proposer.md
-aa169dd760ae582ac662ca5e4a4a96adc9aca9b9  docs/specs/pages/protocol/proofs/registrar.md
-a977d9db91926dd5e5924edec005e8ee5a252ab8  docs/specs/pages/protocol/proofs/tee-provers.md
-b83f0b0a51350dd83c87cde6c656af30d8996fa1  docs/specs/pages/protocol/proofs/zk-prover.md
-a32e3b37c3fe4da759127a5366d25d6e6a38bd16  docs/specs/pages/reference/configurability.md
-173b769da3ba30d14be86b06671973b176f86f13  docs/specs/pages/reference/glossary.md
-03999866e20f120777995d6358c9dc322e9e514e  docs/specs/pages/upgrades/azul/exec-engine.md
-a020b666582679561283da5676930be72c1d7ed9  docs/specs/pages/upgrades/azul/overview.md
-c67201b4a2ffeb61fb513a38a394e2e736802dad  docs/specs/pages/upgrades/azul/proofs.md
-4416be62eca09330d530aae07ec24668331cfeee  docs/specs/pages/upgrades/canyon/overview.md
-9a8cc0744536d80aca738271d5d960164d093440  docs/specs/pages/upgrades/delta/overview.md
-f6366feb9a6ff2e419e0e69d9d8ab13460fbb1cb  docs/specs/pages/upgrades/delta/span-batches.md
-0e92d5534d49abb1a876c991a3dc8c275f6cb246  docs/specs/pages/upgrades/ecotone/derivation.md
-cb7c9fe6116f62438925a1e89b983c7bfeb2b84c  docs/specs/pages/upgrades/ecotone/l1-attributes.md
-d80bd15f6c37cb16c373a9ca34d5d77537a84bff  docs/specs/pages/upgrades/ecotone/overview.md
-8c472e9ad354338f2fd1e96e7fa38e0ec65bb699  docs/specs/pages/upgrades/fjord/derivation.md
-040fd87434ea6ef5e0b06cf7a7fb9d72dae25df4  docs/specs/pages/upgrades/fjord/exec-engine.md
-f6590116caa53017c796a722070cec308237f806  docs/specs/pages/upgrades/fjord/overview.md
-77b61ee526e69c455564fa801ed9265d72f1f13f  docs/specs/pages/upgrades/fjord/predeploys.md
-56c0b6a51f303719bd7e5544b0ac347ec4ce8a34  docs/specs/pages/upgrades/granite/derivation.md
-3c1d4b0d1c8a3aee1ca9e2c753f878b6aaeeb4c2  docs/specs/pages/upgrades/granite/exec-engine.md
-ae5138a7182ae193f8405379f96756529cb007b6  docs/specs/pages/upgrades/granite/overview.md
-23d95da154f0206a88306f4a769aaacfa1d64006  docs/specs/pages/upgrades/holocene/derivation.md
-f2b55a2f0ed8f16039916a096330c2f3ed65261b  docs/specs/pages/upgrades/holocene/exec-engine.md
-aa0734254893fe404f55cc927155af538f746414  docs/specs/pages/upgrades/holocene/overview.md
-b72cc522a8d72e977f18e36d471e0b18e2d7f21e  docs/specs/pages/upgrades/holocene/system-config.md
-608ba2c9d598655dfb2269ff5576e4aa2b3079d3  docs/specs/pages/upgrades/isthmus/derivation.md
-5c6d50236abc778352417e8c0e3b32b77223c3df  docs/specs/pages/upgrades/isthmus/exec-engine.md
-9e9738ad9b590a4e95775578e28a4c0dec8e8f61  docs/specs/pages/upgrades/isthmus/l1-attributes.md
-0e6007f66b07beb1b34622c50c0663f05ac035d2  docs/specs/pages/upgrades/isthmus/overview.md
-764672fe07aa6d0ff6636c5909be2ae862b2e456  docs/specs/pages/upgrades/isthmus/predeploys.md
-74efd3983dea6be7e538c48d751d43e7feb2afa7  docs/specs/pages/upgrades/isthmus/system-config.md
-ce43099b6bb3be9825ea642c91aed1e22ff83043  docs/specs/pages/upgrades/jovian/derivation.md
-0ba211271fca7d13f21441d2348dfa28c88250bf  docs/specs/pages/upgrades/jovian/exec-engine.md
-3404b4102c2c882f395d0afff2c8a16fb42c6055  docs/specs/pages/upgrades/jovian/l1-attributes.md
-426dc8c1ae8464f39efab9d84259742f2eb5e95b  docs/specs/pages/upgrades/jovian/overview.md
-aee0fb3990df1bd152bbe74c6d9a0ee5a8906d58  docs/specs/pages/upgrades/jovian/system-config.md
-4314ac9a61c9b06c1f191f43266a4b0b0230a0d6  docs/specs/pages/upgrades/pectra-blob-schedule/derivation.md
-cfd4946f9b15cf20e1608ebf225ecffe7645f8f5  docs/specs/pages/upgrades/pectra-blob-schedule/overview.md
 
-### base/docs @ ae5e35e
+### base/docs @ 964352c
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -173,6 +102,10 @@ d935c11c1595a320f1d06c052649927a568a1642  docs/base-chain/specs/protocol/fault-p
 08b3cb5d1fcbc7c0a8a4af594250d03814445419  docs/base-chain/specs/protocol/fault-proof/stage-one/index.mdx
 3177311993b06d5e7ac7899edcaac94f91f4c655  docs/base-chain/specs/protocol/fault-proof/stage-one/optimism-portal.mdx
 688f2c01dfcbbbd51dd5728289798870002e10a4  docs/base-chain/specs/protocol/overview.mdx
+4262e8a10d7d9a455aa735b07e8a67255b9ff7c1  docs/base-chain/specs/protocol/proofs/challenger.mdx
+7cf732c7dc3be06ad93cead8f4d99826e659b639  docs/base-chain/specs/protocol/proofs/index.mdx
+822d5275ffae963be915a8196542983c897749ee  docs/base-chain/specs/protocol/proofs/proposer.mdx
+a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/registrar.mdx
 898a69d173640d85b51b1a2a06d79fa391905dba  docs/base-chain/specs/reference/configurability.mdx
 32e326024e7aa8a1f2a84f7292f1a522cce4f4ae  docs/base-chain/specs/reference/glossary.mdx
 b36a4bbcc81907b328fdf9a046cc2fc421e4aa60  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
@@ -207,53 +140,53 @@ cc720371f85228397694475dc773295d92dc3e9a  docs/base-chain/specs/upgrades/jovian/
 deaffc7df23d65547ac53b1921eb78616d66074c  docs/base-chain/specs/upgrades/jovian/overview.mdx
 d43e05f2726352d77f4aad3b87edeee836c5b50e  docs/base-chain/specs/upgrades/jovian/system-config.mdx
 
-### blog.base.dev (paragraph RSS)
+### blog.base.dev RSS
 
-0jNXg5zWghrkLBz0BE0r	Builder Codes & ERC-8021: Fixing Onchain Attribution	Thu, 12 Feb 2026 21:03:18 GMT
-2vGK4pzD8ElLNitI3nsB	Bridging Assets to Base: Playbook	Tue, 27 Jan 2026 19:16:38 GMT
-6Yx9LNFutCWhgUSP65Th	Engineering the Commerce Payments Protocol Powering Shopify	Thu, 12 Jun 2025 18:26:15 GMT
-889BK4qRSxfu04XWUCU4	Scaling Base in 2025: Sustaining 10x growth while maintaining sub-cent transactions	Wed, 18 Jun 2025 18:19:26 GMT
 AKWz1qqJ9CRS2MrO4zeI	Multiproofs on Base	Thu, 21 May 2026 20:49:36 GMT
-Ebh94hE0wPI1r63fJefg	L1 Upgrades: The Glamsterdam proposals we’re most excited about	Tue, 18 Nov 2025 19:37:28 GMT
-LskMlFFUFreHIdSUQlkL	Scaling Base: Doubling capacity in 30 days	Tue, 28 Oct 2025 15:15:27 GMT
-Sei1pO8j8DHvrCL3iU4N	A new, unified stack for Base Chain	Wed, 18 Feb 2026 17:03:12 GMT
-Unm7vkJ9Mn9HUiAmMzA1	Flashblocks Deep Dive: How we made Base 10x faster	Tue, 09 Sep 2025 20:33:19 GMT
-VR0aDo0xpLRxZvNStJd8	Anti-Sybil Infrastructure for the Base Ecosystem	Mon, 09 Feb 2026 20:25:23 GMT
-Y2oHEGG2eVfbX4IDSSCf	L2 Primary Names are coming to Basenames:  ENSIP-19	Fri, 15 Aug 2025 15:55:02 GMT
-dCxGUOUpP5eyE3l33Vng	Engineering the Base-Solana Bridge	Thu, 11 Dec 2025 18:15:07 GMT
-g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 GMT
-g3oKwwlMgctP3HkvO7FV	How Base Pay Delivers 1-Step Crypto Payments	Tue, 09 Dec 2025 16:36:25 GMT
-gHUvTluLQFAHmP76hmDZ	Benchmarking ZKP Systems for Passkey ECDSA Verification	Tue, 02 Sep 2025 15:25:08 GMT
-hY0Gr9ht2h7PmXfCa7U8	Building The New Base App: Prefetching at Scale	Wed, 21 Jan 2026 19:00:57 GMT
 jbzghxF4nZhRDPk3XcSa	Introducing Base Azul	Tue, 21 Apr 2026 17:00:01 GMT
+Sei1pO8j8DHvrCL3iU4N	A new, unified stack for Base Chain	Wed, 18 Feb 2026 17:03:12 GMT
+0jNXg5zWghrkLBz0BE0r	Builder Codes & ERC-8021: Fixing Onchain Attribution	Thu, 12 Feb 2026 21:03:18 GMT
+VR0aDo0xpLRxZvNStJd8	Anti-Sybil Infrastructure for the Base Ecosystem	Mon, 09 Feb 2026 20:25:23 GMT
+2vGK4pzD8ElLNitI3nsB	Bridging Assets to Base: Playbook	Tue, 27 Jan 2026 19:16:38 GMT
+hY0Gr9ht2h7PmXfCa7U8	Building The New Base App: Prefetching at Scale	Wed, 21 Jan 2026 19:00:57 GMT
+dCxGUOUpP5eyE3l33Vng	Engineering the Base-Solana Bridge	Thu, 11 Dec 2025 18:15:07 GMT
+g3oKwwlMgctP3HkvO7FV	How Base Pay Delivers 1-Step Crypto Payments	Tue, 09 Dec 2025 16:36:25 GMT
+Ebh94hE0wPI1r63fJefg	L1 Upgrades: The Glamsterdam proposals we’re most excited about	Tue, 18 Nov 2025 19:37:28 GMT
 m7yYX5jNPu3g4PwAqpkV	Scaling Base safely with end-to-end benchmarking	Thu, 13 Nov 2025 17:48:25 GMT
+LskMlFFUFreHIdSUQlkL	Scaling Base: Doubling capacity in 30 days	Tue, 28 Oct 2025 15:15:27 GMT
 p2ZgCnu73WmVSIncOdCG	OnchainTestKit: A Framework for End-to-End Testing of Onchain Applications	Mon, 29 Sep 2025 19:21:36 GMT
+Unm7vkJ9Mn9HUiAmMzA1	Flashblocks Deep Dive: How we made Base 10x faster	Tue, 09 Sep 2025 20:33:19 GMT
+gHUvTluLQFAHmP76hmDZ	Benchmarking ZKP Systems for Passkey ECDSA Verification	Tue, 02 Sep 2025 15:25:08 GMT
+Y2oHEGG2eVfbX4IDSSCf	L2 Primary Names are coming to Basenames:  ENSIP-19	Fri, 15 Aug 2025 15:55:02 GMT
 rcyL3EUXctJtW3hl710J	Introducing free security reviews for Base builders	Tue, 29 Jul 2025 18:31:49 GMT
+g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 GMT
+889BK4qRSxfu04XWUCU4	Scaling Base in 2025: Sustaining 10x growth while maintaining sub-cent transactions	Wed, 18 Jun 2025 18:19:26 GMT
+6Yx9LNFutCWhgUSP65Th	Engineering the Commerce Payments Protocol Powering Shopify	Thu, 12 Jun 2025 18:26:15 GMT
 
-### status.base.org (statuspage RSS)
+### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/64vlxm4l3lb2	Mainnet: Base Azul Upgrade - May 28th	Thu, 28 May 2026 18:00:00 +0000
 https://base-l2.statuspage.io/incidents/0h468wjw300f	Delayed Transactions	Thu, 14 May 2026 05:04:08 +0000
-https://base-l2.statuspage.io/incidents/12kbvdhhc2km	Sepolia Testnet: Flashblocks down	Tue, 07 Apr 2026 00:55:34 +0000
-https://base-l2.statuspage.io/incidents/3qtvwp60xfb8	Base Mainnet minimum base fee increase	Thu, 19 Feb 2026 20:30:07 +0000
-https://base-l2.statuspage.io/incidents/9yrk7wlc2bp1	Base Mainnet minimum base fee increase	Thu, 22 Jan 2026 20:30:22 +0000
-https://base-l2.statuspage.io/incidents/c77jzbhxb4hs	Sepolia safe head delayed	Sat, 11 Apr 2026 00:45:01 +0000
-https://base-l2.statuspage.io/incidents/c9cjh8jbz8b0	Periodically delayed block building on Base Mainnet	Tue, 20 Jan 2026 14:30:00 +0000
-https://base-l2.statuspage.io/incidents/dg4m8nxd622r	Base Mainnet Flashblocks Degraded	Wed, 01 Apr 2026 13:41:40 +0000
-https://base-l2.statuspage.io/incidents/f4kfgvb8nymc	Flashblock websocket connection errors	Mon, 09 Mar 2026 21:54:16 +0000
-https://base-l2.statuspage.io/incidents/g8jlvybj3sl8	Jovian Upgrade on Base Sepolia Testnet November 19th at 16:00:01 UTC	Wed, 19 Nov 2025 17:00:21 +0000
-https://base-l2.statuspage.io/incidents/kd90bdz37xw5	Mainnet RPC Upgrade	Tue, 21 Apr 2026 17:36:02 +0000
-https://base-l2.statuspage.io/incidents/kn3x59zv9ssz	Transaction Inclusion Delays	Tue, 24 Mar 2026 13:13:59 +0000
-https://base-l2.statuspage.io/incidents/l6d3mnl0c9hs	Sepolia Testnet Unsafe Head Stalled	Thu, 16 Apr 2026 19:15:27 +0000
-https://base-l2.statuspage.io/incidents/lyhrg67gqn38	Base Mainnet minimum base fee and gasLimit increase	Thu, 18 Dec 2025 20:00:23 +0000
-https://base-l2.statuspage.io/incidents/mqlf3z7xkwt1	Delayed Transactions	Tue, 09 Dec 2025 23:00:00 +0000
-https://base-l2.statuspage.io/incidents/qr8pq7dnjf9f	Sepolia Testnet: Base Upgrade v1 - April 20th	Mon, 20 Apr 2026 18:00:07 +0000
+https://base-l2.statuspage.io/incidents/xv19bh0l2dvp	Elevated latency on Sepolia RPC	Wed, 13 May 2026 16:52:41 +0000
 https://base-l2.statuspage.io/incidents/t8rgbdb6bfds	Node Peering Stability on Base Testnet and Mainnet	Thu, 30 Apr 2026 21:14:19 +0000
-https://base-l2.statuspage.io/incidents/tlvzszwdy2z3	Mempool upgrade	Thu, 05 Feb 2026 20:00:21 +0000
-https://base-l2.statuspage.io/incidents/txm6jlqrcxnf	Mainnet Flashblocks WebSocket Connection Instability	Mon, 17 Nov 2025 15:34:03 +0000
+https://base-l2.statuspage.io/incidents/kd90bdz37xw5	Mainnet RPC Upgrade	Tue, 21 Apr 2026 17:36:02 +0000
+https://base-l2.statuspage.io/incidents/qr8pq7dnjf9f	Sepolia Testnet: Base Upgrade v1 - April 20th	Mon, 20 Apr 2026 18:00:07 +0000
+https://base-l2.statuspage.io/incidents/l6d3mnl0c9hs	Sepolia Testnet Unsafe Head Stalled	Thu, 16 Apr 2026 19:15:27 +0000
+https://base-l2.statuspage.io/incidents/c77jzbhxb4hs	Sepolia safe head delayed	Sat, 11 Apr 2026 00:45:01 +0000
+https://base-l2.statuspage.io/incidents/12kbvdhhc2km	Sepolia Testnet: Flashblocks down	Tue, 07 Apr 2026 00:55:34 +0000
+https://base-l2.statuspage.io/incidents/dg4m8nxd622r	Base Mainnet Flashblocks Degraded	Wed, 01 Apr 2026 13:41:40 +0000
+https://base-l2.statuspage.io/incidents/xsdj7p6fhdm8	Base Mainnet Gas Limit Increase from 187.5Mgas/s to 200Mgas/s	Wed, 25 Mar 2026 21:00:07 +0000
+https://base-l2.statuspage.io/incidents/kn3x59zv9ssz	Transaction Inclusion Delays	Tue, 24 Mar 2026 13:13:59 +0000
+https://base-l2.statuspage.io/incidents/f4kfgvb8nymc	Flashblock websocket connection errors	Mon, 09 Mar 2026 21:54:16 +0000
+https://base-l2.statuspage.io/incidents/3qtvwp60xfb8	Base Mainnet minimum base fee increase	Thu, 19 Feb 2026 20:30:07 +0000
 https://base-l2.statuspage.io/incidents/wf93c6q4xjl6	Sepolia block building issue	Wed, 18 Feb 2026 16:56:51 +0000
 https://base-l2.statuspage.io/incidents/xf39x32bm8ms	Base Mainnet Upgrade 18	Tue, 10 Feb 2026 18:00:09 +0000
-https://base-l2.statuspage.io/incidents/xsdj7p6fhdm8	Base Mainnet Gas Limit Increase from 187.5Mgas/s to 200Mgas/s	Wed, 25 Mar 2026 21:00:07 +0000
-https://base-l2.statuspage.io/incidents/xv19bh0l2dvp	Elevated latency on Sepolia RPC	Wed, 13 May 2026 16:52:41 +0000
-https://base-l2.statuspage.io/incidents/ydlhdlqhdxc6	Base Mainnet Jovian upgrade on December 2nd at 16:00:01 UTC	Thu, 04 Dec 2025 18:25:02 +0000
+https://base-l2.statuspage.io/incidents/tlvzszwdy2z3	Mempool upgrade	Thu, 05 Feb 2026 20:00:21 +0000
 https://base-l2.statuspage.io/incidents/z6l4xm9gc08m	Base Mainnet minimum base fee increase	Tue, 03 Feb 2026 03:30:21 +0000
 https://base-l2.statuspage.io/incidents/zfvvgt46j9d8	High Rate of Transaction Drops and Transaction Inclusion Delays	Sat, 31 Jan 2026 21:51:55 +0000
+https://base-l2.statuspage.io/incidents/9yrk7wlc2bp1	Base Mainnet minimum base fee increase	Thu, 22 Jan 2026 20:30:22 +0000
+https://base-l2.statuspage.io/incidents/c9cjh8jbz8b0	Periodically delayed block building on Base Mainnet	Tue, 20 Jan 2026 14:30:00 +0000
+https://base-l2.statuspage.io/incidents/lyhrg67gqn38	Base Mainnet minimum base fee and gasLimit increase	Thu, 18 Dec 2025 20:00:23 +0000
+https://base-l2.statuspage.io/incidents/mqlf3z7xkwt1	Delayed Transactions	Tue, 09 Dec 2025 23:00:00 +0000
+https://base-l2.statuspage.io/incidents/ydlhdlqhdxc6	Base Mainnet Jovian upgrade on December 2nd at 16:00:01 UTC	Thu, 04 Dec 2025 18:25:02 +0000
+https://base-l2.statuspage.io/incidents/g8jlvybj3sl8	Jovian Upgrade on Base Sepolia Testnet November 19th at 16:00:01 UTC	Wed, 19 Nov 2025 17:00:21 +0000
