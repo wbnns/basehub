@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-05-23T03:07:03Z
+Generated 2026-05-24T03:07:47Z
 
-### base/base @ 92abf0a
+### base/base @ d744150
 
 449814b030dc1404dd5877dfea636cd00de370da  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -103,9 +103,12 @@ d935c11c1595a320f1d06c052649927a568a1642  docs/base-chain/specs/protocol/fault-p
 3177311993b06d5e7ac7899edcaac94f91f4c655  docs/base-chain/specs/protocol/fault-proof/stage-one/optimism-portal.mdx
 688f2c01dfcbbbd51dd5728289798870002e10a4  docs/base-chain/specs/protocol/overview.mdx
 4262e8a10d7d9a455aa735b07e8a67255b9ff7c1  docs/base-chain/specs/protocol/proofs/challenger.mdx
+4331c45bea795991c6b0cfdf6cc3ba9b444b480a  docs/base-chain/specs/protocol/proofs/contracts.mdx
 7cf732c7dc3be06ad93cead8f4d99826e659b639  docs/base-chain/specs/protocol/proofs/index.mdx
 822d5275ffae963be915a8196542983c897749ee  docs/base-chain/specs/protocol/proofs/proposer.mdx
 a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/registrar.mdx
+4fa6ea89eb0c793885e98b41814beb71cc863007  docs/base-chain/specs/protocol/proofs/tee-prover.mdx
+152286087f391a2734f1385f45aac6becd4c3298  docs/base-chain/specs/protocol/proofs/zk-prover.mdx
 898a69d173640d85b51b1a2a06d79fa391905dba  docs/base-chain/specs/reference/configurability.mdx
 32e326024e7aa8a1f2a84f7292f1a522cce4f4ae  docs/base-chain/specs/reference/glossary.mdx
 b36a4bbcc81907b328fdf9a046cc2fc421e4aa60  docs/base-chain/specs/upgrades/azul/exec-engine.mdx

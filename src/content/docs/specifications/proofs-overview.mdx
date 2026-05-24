@@ -14,8 +14,6 @@ This section covers the components used by the Azul proof system. The legacy int
 - [Challenger](/specifications/challenger) — watches in-flight games, compares them to canonical L2 state, and disputes claims that disagree.
 - [Proposer](/specifications/proposer) — turns a canonical L2 checkpoint range into a new dispute game on L1.
 - [Registrar](/specifications/registrar) — keeps the onchain registry of accepted TEE signer identities in sync with the running prover fleet.
-- TEE Prover — produces Nitro Enclave–backed proofs for the common, low-latency proposal path.
-- ZK Prover — produces permissionless proofs that can be used for both proposing and disputing.
-- Contracts — verify submitted proof material, track game state, and release withdrawals and bonds according to each game's outcome.
-
-Dedicated pages for the TEE Prover, ZK Prover, and on-L1 contracts will be added in upcoming syncs.
+- [TEE Prover](/specifications/tee-prover) — produces Nitro Enclave–backed proofs for the common, low-latency proposal path.
+- [ZK Prover](/specifications/zk-prover) — produces permissionless proofs that can be used for both proposing and disputing.
+- [Proof Contracts](/specifications/contracts) — verify submitted proof material, track game state, and release withdrawals and bonds according to each game's outcome.
