@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-05-24T03:07:47Z
+Generated 2026-05-27T03:04:21Z
 
-### base/base @ d744150
+### base/base @ 1e2a122
 
 449814b030dc1404dd5877dfea636cd00de370da  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
 
-### base/docs @ 964352c
+### base/docs @ 910dfa6
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -43,8 +43,8 @@ c265697ca6483e55c55bd383c3a2ade20f5753b8  docs/base-chain/api-reference/ethereum
 8948d629f7255fd16424f4ce5dacee89ea7ac6a0  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 18c24eccbe8179c2dccd10d6d4721498ce50942b  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 e3c88fa5a2325c4b6e4aa6bbdaf2de1b1f3563a2  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
-1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 582955e5f57b69e398a6b97def979aff42a7d3d9  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
+1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 688e56fcbbf3b6d107f43c9e1d837cfd7a86ef46  docs/base-chain/api-reference/rpc-overview.mdx
 9c3b3c890ea804386ea4659b5a284e6cd8ce8cde  docs/base-chain/flashblocks/app-integration.mdx
@@ -64,7 +64,7 @@ a60e3914db37f45c4f1c497251533afb43c4cdcf  docs/base-chain/flashblocks/architectu
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
 7c13d5ab81279b6919458da7fa676748199e2d3e  docs/base-chain/node-operators/run-a-base-node.mdx
-ce61217d7efc827a73ef310629ec549804644316  docs/base-chain/node-operators/snapshots.mdx
+d74693c54a3d0a98134bd14d22dfa640e7e0b44e  docs/base-chain/node-operators/snapshots.mdx
 a51a3ff03f2e25c404c08b174ba62b46b63a0a10  docs/base-chain/node-operators/troubleshooting.mdx
 92ae9dd3d4fe2e572cf802b86fb9177a04aac818  docs/base-chain/quickstart/base-solana-bridge.mdx
 17e708dfe6aa4233bde9c588313462c49fc317b3  docs/base-chain/quickstart/connecting-to-base.mdx
