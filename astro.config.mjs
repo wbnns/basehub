@@ -8,6 +8,9 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'BaseHub',
+			logo: {
+				src: './src/assets/basehub-logo.png',
+			},
 			customCss: [
 				'./src/styles/theme.css',
 				'./src/styles/code.css',

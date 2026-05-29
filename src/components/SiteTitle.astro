@@ -1,11 +1,17 @@
 ---
-import Default from '@astrojs/starlight/components/SiteTitle.astro';
+import { Image } from 'astro:assets';
+import logo from '../assets/basehub-logo.png';
 import { lastUpdatedIso, lastUpdatedDisplay } from '../lib/buildMeta';
+
+const { siteTitleHref } = Astro.locals.starlightRoute;
 ---
 
 <div class="bh-site-title">
-  <Default><slot /></Default>
-  <div class="bh-site-meta">
+  <a href={siteTitleHref} class="bh-site-logo-link" aria-label="BaseHub home">
+    <Image src={logo} alt="" class="bh-site-logo" width={64} height={64} />
+  </a>
+  <div class="bh-site-stack">
+    <a href={siteTitleHref} class="bh-site-name">BaseHub</a>
     <span class="bh-site-meta__line">by <a href="https://x.com/wbnns" rel="me noopener" target="_blank">wbnns</a></span>
     <span class="bh-site-meta__line bh-site-meta__updated">Updated <time datetime={lastUpdatedIso}>{lastUpdatedDisplay}</time></span>
   </div>
@@ -14,33 +20,55 @@ import { lastUpdatedIso, lastUpdatedDisplay } from '../lib/buildMeta';
 <style>
   .bh-site-title {
     display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+  }
+  .bh-site-logo-link {
+    display: inline-flex;
+    flex: 0 0 auto;
+    line-height: 0;
+  }
+  .bh-site-logo {
+    height: 3.5rem;
+    width: 3.5rem;
+    display: block;
+  }
+  .bh-site-stack {
+    display: inline-flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
+    justify-content: center;
     min-width: 0;
     line-height: 1.1;
   }
-  .bh-site-meta {
-    display: flex;
-    flex-direction: column;
-    padding-left: 2px;
-    color: var(--sl-color-gray-3);
+  .bh-site-name {
+    font-size: var(--sl-text-h4);
+    font-weight: 600;
+    color: var(--sl-color-text-accent);
+    text-decoration: none;
+    line-height: 1.1;
+    white-space: nowrap;
   }
   .bh-site-meta__line {
     display: block;
     font-size: 0.75rem;
-    line-height: 1.5;
+    line-height: 1.4;
+    color: var(--sl-color-gray-3);
+    padding-left: 2px;
+  }
+  .bh-site-stack .bh-site-meta__line:nth-of-type(1) {
+    margin-top: 0.25rem;
   }
   .bh-site-meta__updated {
     font-size: 0.7rem;
-    margin-top: 2px;
+    margin-top: 1px;
   }
-  .bh-site-meta a {
+  .bh-site-meta__line a {
     color: var(--sl-color-text-accent);
     text-decoration: none;
     font-weight: 500;
   }
-  .bh-site-meta a:hover {
+  .bh-site-meta__line a:hover {
     text-decoration: underline;
   }
   .bh-site-meta__updated time {
