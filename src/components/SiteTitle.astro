@@ -1,0 +1,49 @@
+---
+import Default from '@astrojs/starlight/components/SiteTitle.astro';
+import { lastUpdatedIso, lastUpdatedDisplay } from '../lib/buildMeta';
+---
+
+<div class="bh-site-title">
+  <Default><slot /></Default>
+  <div class="bh-site-meta">
+    <span class="bh-site-meta__line">by <a href="https://x.com/wbnns" rel="me noopener" target="_blank">wbnns</a></span>
+    <span class="bh-site-meta__line bh-site-meta__updated">Updated <time datetime={lastUpdatedIso}>{lastUpdatedDisplay}</time></span>
+  </div>
+</div>
+
+<style>
+  .bh-site-title {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    min-width: 0;
+    line-height: 1.1;
+  }
+  .bh-site-meta {
+    display: flex;
+    flex-direction: column;
+    padding-left: 2px;
+    color: var(--sl-color-gray-3);
+  }
+  .bh-site-meta__line {
+    display: block;
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+  .bh-site-meta__updated {
+    font-size: 0.7rem;
+    margin-top: 2px;
+  }
+  .bh-site-meta a {
+    color: var(--sl-color-text-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .bh-site-meta a:hover {
+    text-decoration: underline;
+  }
+  .bh-site-meta__updated time {
+    font-variant-numeric: tabular-nums;
+  }
+</style>

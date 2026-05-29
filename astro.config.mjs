@@ -8,9 +8,6 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'BaseHub',
-			logo: {
-				src: './src/assets/basehub-logo.png',
-			},
 			customCss: [
 				'./src/styles/theme.css',
 				'./src/styles/code.css',
@@ -92,6 +89,7 @@ export default defineConfig({
 			components: {
 				Head: './src/components/Head.astro',
 				Footer: './src/components/Footer.astro',
+				SiteTitle: './src/components/SiteTitle.astro',
 			},
 			sidebar: [
 				{
