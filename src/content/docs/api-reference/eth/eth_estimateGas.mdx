@@ -10,7 +10,7 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 Returns an estimate of how much gas a transaction would require. The reported value may exceed what the transaction actually consumes when executed.
 
 <Aside type="tip">
-**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to estimate gas against the current pre-confirmed state — useful when a new transaction depends on one that has just been pre-confirmed.
+**Flashblocks:** call `https://mainnet.base.org` with `"pending"` to estimate gas against the current pre-confirmed state — useful when a new transaction depends on one that has just been pre-confirmed.
 </Aside>
 
 ## Parameters
@@ -32,7 +32,7 @@ The transaction object to estimate gas for.
 
 ### `block` (string, optional)
 
-Block to estimate against. Defaults to `"latest"`. Pass `"pending"` on a Flashblocks endpoint to estimate against pre-confirmed state.
+Block to estimate against. Defaults to `"latest"`. Pass `"pending"` to estimate against pre-confirmed state.
 
 ## Returns
 
@@ -73,7 +73,7 @@ curl https://mainnet.base.org \
   <TabItem label="Flashblocks (pending state)">
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{

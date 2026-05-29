@@ -35,8 +35,17 @@ Receipts are only emitted once a transaction is included in a block. To track a 
 | `logsBloom` | string | 256-byte bloom filter for the logs in this receipt. |
 | `type` | string | Transaction type: `"0x0"` Legacy, `"0x1"` Access List, `"0x2"` EIP-1559, `"0x7e"` Deposit (L1→L2). |
 | `status` | string | `"0x1"` for success, `"0x0"` for failure (revert). |
-| `blobGasUsed` | string | Blob gas consumed by this transaction (EIP-4844). `null` for non-blob transactions. Propagated accurately in both finalized and pre-confirmed Flashblock state. |
+| `blobGasUsed` | string | Blob gas consumed by this transaction (EIP-4844). `null` for non-blob transactions. |
 | `blobGasPrice` | string | Blob gas price at the time of this transaction (EIP-4844). `null` for non-blob transactions. |
+| `l1Fee` | string | Total L1 data fee paid for this transaction (hex). OP Stack L2 field. |
+| `l1GasUsed` | string | L1 gas attributed to this transaction's L1 data portion (hex). OP Stack L2 field. |
+| `l1GasPrice` | string | L1 gas price at the time of inclusion (hex). OP Stack L2 field. |
+| `l1BlobBaseFee` | string | L1 blob base fee at the time of inclusion (hex). OP Stack L2 field. |
+| `l1BlobBaseFeeScalar` | string | Scalar applied to the blob base fee when computing the L1 fee (hex). OP Stack L2 field. |
+| `l1BaseFeeScalar` | string | Scalar applied to the L1 base fee when computing the L1 fee (hex). OP Stack L2 field. |
+| `daFootprintGasScalar` | string | Base-specific data-availability footprint scalar (hex). |
+| `depositNonce` | string | Nonce of the deposit transaction (hex). Present on type `0x7e` transactions only. |
+| `depositReceiptVersion` | string | Deposit receipt format version (hex). Present on type `0x7e` transactions only. |
 
 ## Error codes
 
@@ -44,18 +53,9 @@ Receipts are only emitted once a transaction is included in a block. To track a 
 | --- | --- | --- |
 | `-32000` | transaction indexing is in progress | The node is still indexing transactions. Retry once the node finishes syncing. |
 
-## Flashblock-specific response fields
+## Pre-confirmed receipt data
 
-The Flashblocks infrastructure stream surfaces pre-confirmed receipt data inside the `metadata.receipts` map of each Flashblock payload before the block seals. The abbreviated receipt mirrors the standard receipt shape:
-
-| Field | Flashblock `metadata.receipts[hash]` |
-| --- | --- |
-| `type` | Transaction type (`0x0`, `0x1`, `0x2`, `0x7e`) |
-| `status` | `"0x1"` success / `"0x0"` failure |
-| `cumulativeGasUsed` | Cumulative gas in block to this transaction |
-| `logs` | Emitted log objects |
-| `logsBloom` | Bloom filter |
-| `transactionIndex` | Index in block |
+Earlier client versions surfaced abbreviated receipts inside the `metadata.receipts` map of the Flashblocks infrastructure stream. That field was removed in client version v0.8.0 — `metadata` now carries only `block_number`. To obtain receipt data before a block seals, poll this method with the `"pending"` tag, or subscribe to [`newFlashblockTransactions`](/api-reference/flashblocks/newFlashblockTransactions/) with `full: true` for a real-time stream of pre-confirmed transactions that includes their logs.
 
 ## Example
 

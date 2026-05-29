@@ -7,7 +7,7 @@ sources:
 
 import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
-Base exposes one EVM-compatible JSON-RPC API across two performance tiers. Switch a single endpoint URL and the `pending` block tag to move from 2-second sealed blocks to 200ms pre-confirmations — every other method behaves the same.
+Base exposes a single, fully EVM-compatible JSON-RPC API. There is now one public endpoint per network rather than separate standard and pre-confirmation URLs — every endpoint is Flashblocks-enabled, so the `pending` block tag resolves against pre-confirmed state with no change of host.
 
 ## Networks
 
@@ -20,29 +20,28 @@ Base exposes one EVM-compatible JSON-RPC API across two performance tiers. Switc
 
 <Tabs>
   <TabItem label="Mainnet">
-    | Tier | HTTP | WSS |
-    | :--- | :--- | :--- |
-    | Standard | `https://mainnet.base.org` | `wss://mainnet.base.org` |
-    | Flashblocks | `https://mainnet-preconf.base.org` | `wss://mainnet-preconf.base.org` |
+    | | HTTP |
+    | :--- | :--- |
+    | RPC | `https://mainnet.base.org` |
   </TabItem>
   <TabItem label="Sepolia">
-    | Tier | HTTP | WSS |
-    | :--- | :--- | :--- |
-    | Standard | `https://sepolia.base.org` | `wss://sepolia.base.org` |
-    | Flashblocks | `https://sepolia-preconf.base.org` | `wss://sepolia-preconf.base.org` |
+    | | HTTP |
+    | :--- | :--- |
+    | RPC | `https://sepolia.base.org` |
   </TabItem>
 </Tabs>
 
 <Aside type="note">
-The public endpoints above are rate-limited and not suitable for production traffic. Connect through a node provider for production workloads.
+The public endpoints are rate-limited and not suitable for production traffic. Connect through a node provider for production workloads.
 </Aside>
 
-## The Flashblocks tier
+<Aside type="caution">
+The public Base endpoints are **HTTP only**. WebSocket RPC — `eth_subscribe` and the `newHeads`, `logs`, and Flashblocks streams — is not served on the public endpoints. For WebSocket support, use a node provider such as Alchemy or QuickNode.
+</Aside>
 
-Flashblocks endpoints are fully EVM-equivalent — every standard `eth_` method works identically. The difference is what the `pending` block tag returns.
+## Flashblocks
 
-- On **Standard** endpoints, `pending` reflects the transaction pool (unmined state).
-- On **Flashblocks** endpoints, `pending` reflects the **pre-confirmed block currently being built**, refreshed every ~200ms with new batches of sequencer-ordered transactions.
+Every public Base endpoint is Flashblocks-enabled, so all standard `eth_` methods behave identically and the `pending` block tag resolves against the **pre-confirmed block currently being built**, refreshed every ~200ms with new batches of sequencer-ordered transactions.
 
 Methods such as `eth_getBalance`, `eth_getStorageAt`, and `eth_call` execute against real sequencer state up to 1.8 seconds before a block seals, with sub-second latency.
 
@@ -50,19 +49,19 @@ Methods such as `eth_getBalance`, `eth_getStorageAt`, and `eth_call` execute aga
 
 Base nodes implement the standard Ethereum namespaces plus a small set of Base-specific methods.
 
-- **`eth`** — core Ethereum protocol methods for accounts, blocks, transactions, gas, and logs. Available on both Standard and Flashblocks endpoints.
+- **`eth`** — core Ethereum protocol methods for accounts, blocks, transactions, gas, and logs. The `pending` tag resolves against pre-confirmed state.
 - **`net`** — network identification (`net_version`).
 - **`web3`** — client identification (`web3_clientVersion`).
 - **`debug`** — replay and tracing utilities for deep transaction inspection. Computationally expensive; availability depends on the node provider.
 - **`txpool`** — inspection of the local mempool.
 - **`base`** — Base-specific helpers, including pre-confirmation status checks (`base_transactionStatus`).
-- **Flashblocks** — pre-confirmation methods (`eth_simulateV1`) and WebSocket streams (`newFlashblockTransactions`, `pendingLogs`, `newFlashblocks`) available only on Flashblocks endpoints.
+- **Flashblocks** — pre-confirmation methods (`eth_simulateV1`) and WebSocket streams (`newFlashblockTransactions`, `pendingLogs`, `newFlashblocks`). The streaming subscriptions need a WebSocket-enabled node provider.
 
 ## Method index
 
 ### Ethereum JSON-RPC API
 
-Methods marked with a check mark support the `"pending"` block tag on Flashblocks endpoints.
+Methods marked with a check mark support the `"pending"` block tag, which resolves against the pre-confirmed Flashblock in progress.
 
 | Method | Description | Flashblocks `pending` |
 | :--- | :--- | :--- |
@@ -96,7 +95,7 @@ Methods marked with a check mark support the `"pending"` block tag on Flashblock
 
 ### Flashblocks API
 
-Pre-confirmation methods that deliver sub-second transaction signals on Base. These are only available on Flashblocks endpoints and let you read state, simulate bundles, and stream events up to ~1.8 seconds ahead of block sealing.
+Pre-confirmation methods that deliver sub-second transaction signals on Base. They let you read state, simulate bundles, and stream events up to ~1.8 seconds ahead of block sealing. The streaming methods require a WebSocket-enabled node provider.
 
 | Method | Description |
 | --- | --- |
@@ -174,11 +173,11 @@ All requests are HTTP `POST` with `Content-Type: application/json`.
 
 ## Block parameters
 
-| Value | Standard | Flashblocks |
-| --- | --- | --- |
-| `"latest"` | Most recently sealed block | Most recently sealed block |
-| `"pending"` | Unmined transaction pool state | **Current Flashblock in progress (~200ms resolution)** |
-| `"safe"` | Latest safe block | Latest safe block |
-| `"finalized"` | Latest finalized block | Latest finalized block |
-| `"earliest"` | Genesis block | Genesis block |
-| `"0x<n>"` | Specific block by number | Specific block by number |
+| Value | Resolves to |
+| --- | --- |
+| `"latest"` | Most recently sealed block |
+| `"pending"` | **Current Flashblock in progress (~200ms resolution)** |
+| `"safe"` | Latest safe block |
+| `"finalized"` | Latest finalized block |
+| `"earliest"` | Genesis block |
+| `"0x<n>"` | Specific block by number |

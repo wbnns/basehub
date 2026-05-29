@@ -10,7 +10,7 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 Returns the value held at a storage position for a given contract address.
 
 <Aside type="tip">
-**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to read storage updated by pre-confirmed transactions every ~200ms.
+**Flashblocks:** call `https://mainnet.base.org` with `"pending"` to read storage updated by pre-confirmed transactions every ~200ms.
 </Aside>
 
 ## Parameters
@@ -50,7 +50,7 @@ curl https://mainnet.base.org \
   <TabItem label="Flashblocks (pending, ~200ms)">
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{

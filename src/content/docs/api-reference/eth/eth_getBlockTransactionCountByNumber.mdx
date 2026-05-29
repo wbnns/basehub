@@ -1,6 +1,6 @@
 ---
 title: eth_getBlockTransactionCountByNumber
-description: Returns the transaction count for a Base block by number; on Flashblocks endpoints pending counts pre-confirmed transactions in the live Flashblock.
+description: Returns the transaction count for a Base block by number; the pending tag counts pre-confirmed transactions in the live Flashblock.
 sources:
 - base/docs:docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByNumber.mdx
 ---
@@ -10,7 +10,7 @@ import { Aside } from '@astrojs/starlight/components';
 Returns the number of transactions in a block matching the given block number.
 
 <Aside type="tip">
-**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to count the pre-confirmed transactions in the current Flashblock.
+**Flashblocks:** call `https://mainnet.base.org` with `"pending"` to count the pre-confirmed transactions in the current Flashblock.
 </Aside>
 
 ## Parameters

@@ -1,6 +1,6 @@
 ---
 title: eth_getBlockByNumber
-description: Returns block data by number on Base; on Flashblocks endpoints the pending tag returns the live pre-confirmed block updated every ~200ms.
+description: Returns block data by number on Base; the pending tag returns the live pre-confirmed block updated every ~200ms.
 sources:
 - base/docs:docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByNumber.mdx
 ---
@@ -10,14 +10,14 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 Returns information about a block identified by its number.
 
 <Aside type="tip">
-**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to fetch the live Flashblock in progress — a real block object refreshed every ~200ms with new pre-confirmed transactions. The response shape is identical; the block is simply not yet sealed.
+**Flashblocks:** call `https://mainnet.base.org` with `"pending"` to fetch the live Flashblock in progress — a real block object refreshed every ~200ms with new pre-confirmed transactions. The response shape is identical; the block is simply not yet sealed.
 </Aside>
 
 ## Parameters
 
 | Position | Name | Type | Description |
 | --- | --- | --- | --- |
-| 1 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Pass `"pending"` on a Flashblocks endpoint to get the in-progress block. Required. |
+| 1 | `block` | string | Block number in hex, or `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Pass `"pending"` to get the in-progress block. Required. |
 | 2 | `fullTransactions` | boolean | When `true`, returns full transaction objects; when `false`, returns only transaction hashes. Required. |
 
 ## Returns
@@ -54,7 +54,7 @@ Returns information about a block identified by its number.
 
 ## Flashblock-specific response fields
 
-When you query `"pending"` on a Flashblocks endpoint, the response is a live snapshot of the block being built. A few fields behave differently:
+When you query `"pending"`, the response is a live snapshot of the block being built. A few fields behave differently:
 
 | Field | Standard `latest` | Flashblocks `pending` |
 | --- | --- | --- |
@@ -87,7 +87,7 @@ curl https://mainnet.base.org \
   <TabItem label="Flashblocks (pending, live at ~200ms)">
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{

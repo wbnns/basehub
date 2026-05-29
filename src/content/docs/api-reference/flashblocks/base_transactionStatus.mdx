@@ -7,7 +7,7 @@ sources:
 
 Reports whether a specific transaction is present in the node mempool. Use it to confirm that a submitted transaction has been received before it appears in a Flashblock.
 
-Only available on Flashblocks endpoints: `https://mainnet-preconf.base.org` / `https://sepolia-preconf.base.org`.
+A Base pre-confirmation method served on the standard public endpoints (`https://mainnet.base.org` / `https://sepolia.base.org`), which are all Flashblocks-enabled.
 
 Requires [base/base](https://github.com/base/base) minimum client version v0.3.0.
 
@@ -30,7 +30,7 @@ Requires [base/base](https://github.com/base/base) minimum client version v0.3.0
 ### Request
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"base_transactionStatus","params":["0xabc123..."],"id":1}'
 ```

@@ -14,7 +14,7 @@ Queries that span large block ranges or high-activity contracts can time out or 
 </Aside>
 
 <Aside type="tip">
-**Flashblocks:** set `"fromBlock": "pending"` and `"toBlock": "pending"` against `https://mainnet-preconf.base.org` to query logs from pre-confirmed transactions, refreshed every ~200ms. For a real-time stream, consider the [`pendingLogs`](/api-reference/flashblocks/pendinglogs/) WebSocket subscription instead.
+**Flashblocks:** set `"fromBlock": "pending"` and `"toBlock": "pending"` against `https://mainnet.base.org` to query logs from pre-confirmed transactions, refreshed every ~200ms. For a real-time stream, consider the [`pendingLogs`](/api-reference/flashblocks/pendinglogs/) WebSocket subscription instead.
 </Aside>
 
 ## Parameters
@@ -25,7 +25,7 @@ Filter options. At least one criterion should be provided.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `fromBlock` | string | Start of the block range. Block number in hex or a block tag. Pass `"pending"` on a Flashblocks endpoint to include pre-confirmed logs. Defaults to `"latest"`. |
+| `fromBlock` | string | Start of the block range. Block number in hex or a block tag. Pass `"pending"` to include pre-confirmed logs. Defaults to `"latest"`. |
 | `toBlock` | string | End of the block range. Block number in hex or a block tag. Defaults to `"latest"`. |
 | `address` | string \| array | A contract address or array of addresses to filter by. Optional. |
 | `topics` | array | Array of 32-byte topic filters. Each position can be `null` (match any), a single topic hex string, or an array of hex strings (match any in the array). Position 0 is typically the `keccak256` hash of the event signature. Optional. |
@@ -75,7 +75,7 @@ curl https://mainnet.base.org \
   <TabItem label="Flashblocks (pending, ~200ms)">
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{

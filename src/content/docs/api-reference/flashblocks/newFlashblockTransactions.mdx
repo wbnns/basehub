@@ -7,9 +7,9 @@ sources:
 
 Subscribe via `eth_subscribe` to receive each transaction as it is pre-confirmed into a Flashblock. Pass `true` as the second parameter to receive full transaction and log data.
 
-Only available on Flashblocks WebSocket endpoints: `wss://mainnet-preconf.base.org` / `wss://sepolia-preconf.base.org`.
+This subscription needs a WebSocket-enabled endpoint. The public Base endpoints (`mainnet.base.org`, `sepolia.base.org`) are HTTP only, so connect through a node provider such as Alchemy or QuickNode that offers WebSocket support for Base.
 
-Requires [base/base](https://github.com/base/base) minimum client version v0.3.1.
+Requires [base/base](https://github.com/base/base) minimum client version v0.8.0. When `full` is `true`, each notification carries the transaction object with its receipt fields (including logs) embedded directly rather than in a nested receipt.
 
 Each subscription emits one item per WebSocket message, with events arriving roughly every 200ms. If your handler does heavy work per event, throttle or debounce it to avoid blocking.
 

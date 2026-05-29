@@ -9,8 +9,12 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
 Returns every transaction receipt for a given block in a single call.
 
+<Aside type="caution">
+The public Base RPC endpoints (`mainnet.base.org`, `sepolia.base.org`) reject this method with HTTP 403. It requires a dedicated or third-party RPC provider — see the [node providers](/node-operations/node-providers/) page.
+</Aside>
+
 <Aside type="tip">
-**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to fetch receipts for all pre-confirmed transactions in the current Flashblock.
+**Flashblocks:** call `https://mainnet.base.org` with `"pending"` to fetch receipts for all pre-confirmed transactions in the current Flashblock.
 </Aside>
 
 ## Parameters
@@ -42,7 +46,7 @@ curl https://mainnet.base.org \
   <TabItem label="Flashblocks (pending)">
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_getBlockReceipts","params":["pending"],"id":1}'
 ```

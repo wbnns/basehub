@@ -7,7 +7,7 @@ sources:
 
 Subscribe via `eth_subscribe` to receive full block state updates as each Flashblock is built. Each message contains the accumulated pre-confirmed state for the block in progress.
 
-Only available on Flashblocks WebSocket endpoints: `wss://mainnet-preconf.base.org` and `wss://sepolia-preconf.base.org`.
+This subscription needs a WebSocket-enabled endpoint. The public Base endpoints (`mainnet.base.org`, `sepolia.base.org`) are HTTP only, so connect through a node provider such as Alchemy or QuickNode that offers WebSocket support for Base.
 
 Requires [base/base](https://github.com/base/base) minimum client version v0.3.1.
 
@@ -44,8 +44,8 @@ Each subscription emits one Flashblock object per WebSocket message, with events
 ```javascript
 import WebSocket from 'ws';
 
-// Use a Flashblocks-enabled provider WSS endpoint in production
-const ws = new WebSocket('wss://mainnet-preconf.base.org');
+// Use a WebSocket-enabled node provider endpoint
+const ws = new WebSocket('wss://your-provider-endpoint');
 
 ws.on('open', () => {
   ws.send(JSON.stringify({

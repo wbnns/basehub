@@ -1,20 +1,20 @@
 ---
 title: eth_getTransactionCount
-description: Returns the transaction count (nonce) for an address. Use the pending tag on a Flashblocks endpoint to include pre-confirmed transactions.
+description: Returns the transaction count (nonce) for an address. Use the pending tag to include pre-confirmed transactions.
 sources:
 - base/docs:docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionCount.mdx
 ---
 
 Returns the number of transactions sent from an address. The value is the account nonce — pass it as `nonce` when constructing the next transaction.
 
-On a Flashblocks endpoint (`https://mainnet-preconf.base.org`), querying with `"pending"` returns the nonce inclusive of every pre-confirmed transaction and refreshes every ~200ms. This eliminates nonce gaps when an agent submits transactions at high frequency.
+Querying with `"pending"` against `https://mainnet.base.org` returns the nonce inclusive of every pre-confirmed transaction and refreshes every ~200ms. This eliminates nonce gaps when an agent submits transactions at high frequency.
 
 ## Parameters
 
 | Name | Type | Required | Description |
 | --- | --- | --- | --- |
 | `address` | string | Yes | The 20-byte address to query. |
-| `block` | string | Yes | A block number in hex, or one of `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Use `"pending"` against a Flashblocks endpoint to include all pre-confirmed transactions in the count. |
+| `block` | string | Yes | A block number in hex, or one of `"latest"`, `"pending"`, `"safe"`, `"finalized"`, `"earliest"`. Use `"pending"` to include all pre-confirmed transactions in the count. |
 
 ## Returns
 
@@ -41,7 +41,7 @@ curl https://mainnet.base.org \
 ### Request (Flashblocks pending nonce, ~200ms)
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{

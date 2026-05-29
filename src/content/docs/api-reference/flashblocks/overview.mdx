@@ -5,9 +5,9 @@ sources:
 - base/docs:docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
 ---
 
-Flashblocks endpoints expose every standard Ethereum JSON-RPC method along with a set of pre-confirmation-specific additions. Together they let you read state, simulate transactions, and stream events against sequencer-ordered data up to ~1.8 seconds before a block seals.
+Every public Base endpoint (`mainnet.base.org` / `sepolia.base.org`) is Flashblocks-enabled, serving the full set of standard Ethereum JSON-RPC methods plus a set of pre-confirmation-specific additions. Together they let you read state, simulate transactions, and stream events against sequencer-ordered data up to ~1.8 seconds before a block seals.
 
-All [standard Ethereum JSON-RPC methods](/api-reference/rpc-overview/) work identically on Flashblocks endpoints. Pass the `"pending"` block tag to resolve against pre-confirmed state instead of the transaction pool. See the [Overview](/api-reference/rpc-overview/) for endpoint URLs and a full description of the two tiers.
+Every [standard Ethereum JSON-RPC method](/api-reference/rpc-overview/) accepts the `"pending"` block tag to resolve against pre-confirmed state instead of the transaction pool. See the [RPC overview](/api-reference/rpc-overview/) for endpoint URLs.
 
 ## HTTP methods
 
@@ -18,7 +18,7 @@ All [standard Ethereum JSON-RPC methods](/api-reference/rpc-overview/) work iden
 
 ## WebSocket subscriptions
 
-On a Flashblocks WSS endpoint, `eth_subscribe` with `newHeads` emits a new event approximately every 200ms per Flashblock instead of every 2 seconds. Three additional subscription types are exclusive to Flashblocks endpoints:
+Over a WebSocket connection, `eth_subscribe` with `newHeads` emits a new event approximately every 200ms per Flashblock instead of every 2 seconds, and three additional subscription types become available. Note that the public Base endpoints are HTTP only — WebSocket subscriptions require a WebSocket-enabled node provider such as Alchemy or QuickNode.
 
 | Subscription | Description |
 | --- | --- |
@@ -63,6 +63,7 @@ Contains full block header properties. Only present in the `index: 0` message (t
 | `base_fee_per_gas` | string | EIP-1559 base fee per gas (hex). |
 | `prev_randao` | string | Previous RANDAO value used for on-chain randomness. |
 | `extra_data` | string | Arbitrary data field set by the sequencer. |
+| `parent_beacon_block_root` | string | Root of the parent beacon block (EIP-4788). |
 
 ### Diff object
 
@@ -84,15 +85,15 @@ Contains the incremental block state changes for this specific Flashblock. Prese
 
 The `metadata` object is not stable. Fields may be added, modified, or removed without prior notice. Do not build production dependencies on it — use the [`diff`](#diff-object) object or query finalized block data via standard RPC instead.
 
+As of client version v0.8.0, `new_account_balances` and `receipts` are no longer carried in `metadata`; `block_number` is the only field that remains.
+
 | Field | Type | Description |
 | --- | --- | --- |
 | `block_number` | number | Block number as a decimal integer. |
-| `new_account_balances` | object | Map of addresses to their updated ETH balances (hex). Only includes accounts whose balances changed in this Flashblock. |
-| `receipts` | object | Map of transaction hashes to their [Receipt](#receipt-object) objects. |
 
 ### Receipt object
 
-The abbreviated transaction receipt included in `metadata.receipts`. Check the `type` field to determine the transaction type.
+`metadata.receipts` was dropped in v0.8.0; this schema is retained only as a reference for older node versions. On v0.8.0 and later, poll [`eth_getTransactionReceipt`](/api-reference/eth/eth_gettransactionreceipt/) for receipt data, or subscribe to [`newFlashblockTransactions`](/api-reference/flashblocks/newFlashblockTransactions/) with `full: true` for a live stream of pre-confirmed transaction data including logs. Check the `type` field to determine the transaction type.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -110,6 +111,13 @@ The abbreviated transaction receipt included in `metadata.receipts`. Check the `
 | `address` | string | Contract address that emitted the event. |
 | `topics` | string[] | Array of indexed event parameters. Topic 0 is typically the event signature hash. |
 | `data` | string | ABI-encoded non-indexed event parameters. |
+| `blockHash` | string | Hash of the block containing this log. |
+| `blockNumber` | string | Block number in hex. |
+| `blockTimestamp` | string | Unix timestamp of the block as a hex string. OP Stack extension to the standard Ethereum log schema. |
+| `transactionHash` | string | Hash of the transaction that emitted this log. |
+| `transactionIndex` | string | Index of the transaction in the block (hex). |
+| `logIndex` | string | Log's index position within the block (hex). |
+| `removed` | boolean | `true` if the log was removed due to a chain reorg. |
 
 ### Complete examples
 
@@ -125,7 +133,8 @@ Index 0 — includes the `base` object (block header):
     "block_number": "0x158a0e9",
     "gas_limit": "0x3938700",
     "timestamp": "0x67bf8332",
-    "base_fee_per_gas": "0xfa"
+    "base_fee_per_gas": "0xfa",
+    "parent_beacon_block_root": "0x15b9e7c8ac4cbe92dafc849ed30a23e91624bbe5cbe199c0ccea3f7de7fc6d49"
   },
   "diff": {
     "state_root": "0x208fd63edc0681161105f27d03daf9f8c726d8c94e584a3c0696c98291c24333",
@@ -135,20 +144,7 @@ Index 0 — includes the `base` object (block header):
     "withdrawals": []
   },
   "metadata": {
-    "block_number": 22585577,
-    "new_account_balances": {
-      "0x000f3df6d732807ef1319fb7b8bb8522d0beac02": "0x0"
-    },
-    "receipts": {
-      "0x07d7f06b06fea714c1d1d446efa2790c6970aa74ee006186a32b5b7dd8ca2d82": {
-        "type": "0x7e",
-        "status": "0x1",
-        "cumulativeGasUsed": "0xab3f",
-        "logs": [],
-        "logsBloom": "0x00000000...",
-        "transactionIndex": "0x0"
-      }
-    }
+    "block_number": 22585577
   }
 }
 ```
@@ -167,20 +163,7 @@ Index 1–N (diff only) — no `base` object:
     "withdrawals": []
   },
   "metadata": {
-    "block_number": 22585577,
-    "new_account_balances": {
-      "0x4200000000000000000000000000000000000015": "0x1234"
-    },
-    "receipts": {
-      "0x7c69632dc315f13a...": {
-        "type": "0x2",
-        "status": "0x1",
-        "cumulativeGasUsed": "0x1234f",
-        "logs": [],
-        "logsBloom": "0x00000000...",
-        "transactionIndex": "0x1"
-      }
-    }
+    "block_number": 22585577
   }
 }
 ```

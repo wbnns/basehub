@@ -5,7 +5,13 @@ sources:
 - base/docs:docs/base-chain/api-reference/ethereum-json-rpc-api/web3_clientVersion.mdx
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 Returns the version string of the node client software.
+
+<Aside type="note">
+This method is not exposed on every public endpoint. The Sepolia public node (`sepolia.base.org`) returns `-32601 Method not found`, while it works on mainnet.
+</Aside>
 
 ## Parameters
 
@@ -15,7 +21,7 @@ None.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `result` | string | The client version string. |
+| `result` | string | The client version string, formatted as `<client>/<version>-<commit>/<platform>/base/<base-version>`. Treat it as opaque — the format shifts with node software updates, so avoid parsing it. |
 
 ## Example
 
@@ -36,6 +42,6 @@ None.
 {
   "jsonrpc": "2.0",
   "id": 1,
-  "result": "op-reth/v1.1.0/linux-x86_64"
+  "result": "reth/v1.11.3-2ac58a2/x86_64-unknown-linux-gnu/base/v0.9.0"
 }
 ```

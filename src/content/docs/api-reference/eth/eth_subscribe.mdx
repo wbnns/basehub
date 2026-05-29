@@ -1,13 +1,13 @@
 ---
 title: eth_subscribe
-description: Opens a real-time WebSocket subscription. Flashblocks endpoints add three subscription types and emit newHeads roughly every 200ms.
+description: Opens a real-time WebSocket subscription for new blocks, logs, and pending transactions over a node-provider WebSocket endpoint.
 sources:
 - base/docs:docs/base-chain/api-reference/ethereum-json-rpc-api/eth_subscribe.mdx
 ---
 
 Opens a real-time event subscription over a WebSocket connection. Returns a subscription ID; events arrive as `eth_subscription` notifications without the client needing to poll.
 
-On `wss://mainnet-preconf.base.org`, `newHeads` fires every ~200ms (once per Flashblock) instead of every ~2 seconds. Three additional subscription types are exclusive to Flashblocks endpoints: [`newFlashblockTransactions`](/api-reference/flashblocks/newFlashblockTransactions/), [`pendingLogs`](/api-reference/flashblocks/pendingLogs/), and [`newFlashblocks`](/api-reference/flashblocks/newFlashblocks/).
+The public Base endpoints (`mainnet.base.org`, `sepolia.base.org`) are HTTP only — WebSocket connections are not served there. For `eth_subscribe` and the Flashblocks streams, connect through a node provider such as Alchemy or QuickNode that offers WebSocket support for Base. On a Flashblocks-aware endpoint, `newHeads` fires every ~200ms (once per Flashblock) rather than every ~2 seconds, and three additional subscription types become available: [`newFlashblockTransactions`](/api-reference/flashblocks/newFlashblockTransactions/), [`pendingLogs`](/api-reference/flashblocks/pendingLogs/), and [`newFlashblocks`](/api-reference/flashblocks/newFlashblocks/).
 
 ## Parameters
 
@@ -27,7 +27,7 @@ The `filterOptions` object accepts:
 
 | Type | Description | Notification payload |
 | --- | --- | --- |
-| `newHeads` | Fires for each new block appended to the chain | Block header object (~200ms on Flashblocks endpoints) |
+| `newHeads` | Fires for each new block appended to the chain | Full block header object — same shape as [`eth_getBlockByNumber`](/api-reference/eth/eth_getblockbynumber/) with `hydrated: false` |
 | `logs` | Fires for each new log matching the filter criteria | Log object |
 | `newPendingTransactions` | Fires for each new transaction hash added to the mempool | Transaction hash string |
 

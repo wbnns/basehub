@@ -10,7 +10,7 @@ import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 Returns the compiled bytecode at a given address. Returns `"0x"` for externally owned accounts (EOAs).
 
 <Aside type="tip">
-**Flashblocks:** call `https://mainnet-preconf.base.org` with `"pending"` to detect contract deployments before the block seals.
+**Flashblocks:** call `https://mainnet.base.org` with `"pending"` to detect contract deployments before the block seals.
 </Aside>
 
 ## Parameters
@@ -49,7 +49,7 @@ curl https://mainnet.base.org \
   <TabItem label="Flashblocks (pending, ~200ms)">
 
 ```bash
-curl https://mainnet-preconf.base.org \
+curl https://mainnet.base.org \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{

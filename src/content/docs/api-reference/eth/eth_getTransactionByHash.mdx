@@ -29,15 +29,21 @@ Returns information about a transaction given its hash. Returns `null` for unkno
 | `value` | string | ETH value transferred in wei (hex). |
 | `gas` | string | Gas provided by the sender (hex). |
 | `gasPrice` | string | Gas price in wei. For EIP-1559 transactions, this is the effective gas price paid (hex). |
-| `maxFeePerGas` | string | EIP-1559 maximum total fee per gas (hex). Present for type `0x2` transactions only. |
-| `maxPriorityFeePerGas` | string | EIP-1559 maximum priority fee per gas (hex). Present for type `0x2` transactions only. |
+| `maxFeePerGas` | string | EIP-1559 maximum total fee per gas (hex). Present for type `0x2` transactions only; absent on type `0x7e`. |
+| `maxPriorityFeePerGas` | string | EIP-1559 maximum priority fee per gas (hex). Present for type `0x2` transactions only; absent on type `0x7e`. |
 | `input` | string | ABI-encoded call data. `"0x"` for plain ETH transfers. |
 | `type` | string | Transaction type: `"0x0"` Legacy, `"0x1"` Access List, `"0x2"` EIP-1559, `"0x7e"` Deposit (L1→L2). |
-| `chainId` | string | Chain ID the transaction is valid for. `"0x2105"` for Base Mainnet, `"0x14a34"` for Base Sepolia. |
+| `chainId` | string | Chain ID the transaction is valid for. `"0x2105"` for Base Mainnet, `"0x14a34"` for Base Sepolia. Not present on type `0x7e`. |
 | `accessList` | array | List of addresses and storage keys pre-declared by the transaction (EIP-2930). Present for type `0x1` and `0x2` transactions. |
 | `v` | string | ECDSA recovery ID (hex). |
-| `r` | string | 32-byte ECDSA signature component r (hex). |
-| `s` | string | 32-byte ECDSA signature component s (hex). |
+| `r` | string | 32-byte ECDSA signature component r (hex). Always `"0x0"` for type `0x7e`. |
+| `s` | string | 32-byte ECDSA signature component s (hex). Always `"0x0"` for type `0x7e`. |
+| `yParity` | string | Signature parity (hex). Always `"0x0"` for type `0x7e` deposits. |
+| `sourceHash` | string | Identifies the deposit source (32-byte hex). Present on type `0x7e` only. |
+| `mint` | string | ETH minted on L2 as part of the deposit (hex), usually `"0x0"`. Present on type `0x7e` only. |
+| `depositReceiptVersion` | string | Version of the deposit receipt format (hex). Present on type `0x7e` only. |
+
+Base carries the Ethereum-standard transaction types — `0x0` legacy, `0x1` EIP-2930, `0x2` EIP-1559 — plus the OP Stack deposit type `0x7e`. Deposits are injected by the sequencer at the top of each block: they omit the fee and signature fields a normal transaction carries (`maxFeePerGas`, `accessList`, `chainId`) and instead expose `sourceHash`, `mint`, `depositReceiptVersion`, and a zeroed `yParity`.
 
 ## Example
 

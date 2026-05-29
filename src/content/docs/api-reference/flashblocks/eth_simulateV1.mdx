@@ -7,7 +7,7 @@ sources:
 
 Simulates one or more transaction bundles against the current pre-confirmed Flashblock state. Supports state overrides, multi-block simulation, and optional transfer tracing.
 
-Only available on Flashblocks endpoints: `https://mainnet-preconf.base.org` / `https://sepolia-preconf.base.org`.
+A Base pre-confirmation method served on the standard public endpoints (`https://mainnet.base.org` / `https://sepolia.base.org`), which are all Flashblocks-enabled.
 
 ## Parameters
 
@@ -55,7 +55,7 @@ Each entry in `calls` has:
 ### Request
 
 ```bash
-curl https://sepolia-preconf.base.org \
+curl https://sepolia.base.org \
   -X POST \
   -H "Content-Type: application/json" \
   -d '{
