@@ -12,7 +12,7 @@
 
 /* -------------------- Hero -------------------- */
 .home .home-hero {
-  padding: 5rem 0 2.5rem;
+  padding: 2.5rem 0 2.5rem;
   border-bottom: 1px solid var(--sl-color-hairline-light);
   margin-bottom: 3rem;
 }
@@ -36,7 +36,7 @@
   letter-spacing: -0.04em;
   margin: 0 0 1rem;
   max-width: 36rem;
-  color: var(--sl-color-accent);
+  color: var(--sl-color-text);
 }
 
 .home .home-hero p {

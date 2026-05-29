@@ -74,6 +74,17 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Header — tall enough to fit the 4.5rem logo with breathing room */
+header.header {
+  --sl-nav-height: 8.5rem;
+  padding-block: 2rem;
+  height: auto;
+  min-height: 8.5rem;
+}
+.page > .header {
+  height: auto;
+}
+
 /* -------------------- LIGHT MODE (only) -------------------- */
 :root,
 :root[data-theme='light'],
