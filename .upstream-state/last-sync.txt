@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-05-29T03:16:52Z
+Generated 2026-05-30T03:07:26Z
 
-### base/base @ eef5014
+### base/base @ 4a278ff
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -17,19 +17,19 @@ c6b10ce97d785e5d1828b462ea9319c2198db195  docs/base-chain/api-reference/debug-ap
 89e905ed22625e906c51e2a25473f4d204205b7f  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_call.mdx
 22b0db7ad6bd53bd6f073daa01583dd54d22fd93  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_chainId.mdx
 49cb8f27f60153de5670f28842161cc4ae05fa8e  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_estimateGas.mdx
-d73e5eaaa7aa45c93aab0c0cacabafb6312f2deb  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_feeHistory.mdx
+9ab11eb35b2150348317fb17848f3f6a63a6a597  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_feeHistory.mdx
 9b5dcdf718a600c2b3779fadaae8a5bc35a3018f  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_gasPrice.mdx
 1365bc3c8d169a3184e24019d763a2329746fad0  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBalance.mdx
-e1197067a38c311ded1e1b987978401ee78bb81a  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByHash.mdx
-1fa83cf571062c5eadd131f347d0b9a11bfd94d3  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByNumber.mdx
+38e775f4434d8abc309fbcefb1dd34e475eb80eb  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByHash.mdx
+6d9ac38f5d40e56d53b459ad06667b243a3eca03  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByNumber.mdx
 c6dc3d2e7575f83b88bef3aef0673025527382dd  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockReceipts.mdx
 41191fc1f7d9ca0abf5bcae5ae7b79011014a56c  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByHash.mdx
 ce6f542b42a66ff98915dedcdf1666eeacea4b1e  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByNumber.mdx
 a8c7b5c1cdba4c6dfb638dc206354457573da0ad  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getCode.mdx
-b41d8649414e571b863f065ed889379cc78be406  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getLogs.mdx
+a1ad0ac6c53f2421f4b0d8f2bfa6e3dab11bc499  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getLogs.mdx
 826d189ae0054e94a69347817b891e037086d29d  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getStorageAt.mdx
-34a86ce017b9aa3a7c4f044249be5a16d4564ec5  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByBlockHashAndIndex.mdx
-1febb7498360b62ce432113258fc15e696607b91  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByBlockNumberAndIndex.mdx
+db7d54d051d573850b93fcac3ca5f32f5125416c  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByBlockHashAndIndex.mdx
+b0e19733b16303fac911d028399b387f1918d5e5  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByBlockNumberAndIndex.mdx
 e44c364adfb771c711e3aa575a2e9d3a8ee81e49  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByHash.mdx
 ec3f69d58fd8b95fae805d4c3c09b662beacab13  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionCount.mdx
 ea5f50675c4def008a088188d7438b613b3e0a36  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionReceipt.mdx
@@ -41,10 +41,10 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 2f34ba15db9aebac25e03b0dde145d4258061d98  docs/base-chain/api-reference/ethereum-json-rpc-api/net_version.mdx
 0c13fbb5a8a0033f8c567c92fcf73dacd4e30b7c  docs/base-chain/api-reference/ethereum-json-rpc-api/web3_clientVersion.mdx
 89280c7613256cd789047d13e5304c43f9097425  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
-18c24eccbe8179c2dccd10d6d4721498ce50942b  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
+8c464acad1e672a91b94bd96f079fd4d3f7c1ef7  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 e057c88b48f74e99d31312ae7ba658d63d0b30e3  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
 1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
-582955e5f57b69e398a6b97def979aff42a7d3d9  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
+0dac07d409417e02b97b3a169be5176fdbfde155  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 25dc9aa9441b1bc9f93b8498ad4ba98aca53de75  docs/base-chain/api-reference/rpc-overview.mdx
 d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integration.mdx
@@ -168,6 +168,7 @@ g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 
 
 ### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Delay	Fri, 29 May 2026 15:55:31 +0000
 https://base-l2.statuspage.io/incidents/64vlxm4l3lb2	Mainnet: Base Azul Upgrade - May 28th	Thu, 28 May 2026 20:00:10 +0000
 https://base-l2.statuspage.io/incidents/0h468wjw300f	Delayed Transactions	Thu, 14 May 2026 05:04:08 +0000
 https://base-l2.statuspage.io/incidents/xv19bh0l2dvp	Elevated latency on Sepolia RPC	Wed, 13 May 2026 16:52:41 +0000
@@ -192,4 +193,3 @@ https://base-l2.statuspage.io/incidents/c9cjh8jbz8b0	Periodically delayed block 
 https://base-l2.statuspage.io/incidents/lyhrg67gqn38	Base Mainnet minimum base fee and gasLimit increase	Thu, 18 Dec 2025 20:00:23 +0000
 https://base-l2.statuspage.io/incidents/mqlf3z7xkwt1	Delayed Transactions	Tue, 09 Dec 2025 23:00:00 +0000
 https://base-l2.statuspage.io/incidents/ydlhdlqhdxc6	Base Mainnet Jovian upgrade on December 2nd at 16:00:01 UTC	Thu, 04 Dec 2025 18:25:02 +0000
-https://base-l2.statuspage.io/incidents/g8jlvybj3sl8	Jovian Upgrade on Base Sepolia Testnet November 19th at 16:00:01 UTC	Wed, 19 Nov 2025 17:00:21 +0000

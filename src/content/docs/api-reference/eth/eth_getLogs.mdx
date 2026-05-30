@@ -41,6 +41,7 @@ Filter options. At least one criterion should be provided.
 | `topics` | array | Array of 0–4 indexed 32-byte topics. Topic 0 is typically the event signature hash. |
 | `data` | string | ABI-encoded non-indexed event parameters. |
 | `blockNumber` | string | Block number in which this log was emitted (hex). |
+| `blockTimestamp` | string | Unix timestamp (hex) of the block that contains this log. An OP Stack extension to the standard Ethereum log schema. |
 | `transactionHash` | string | 32-byte hash of the transaction that emitted this log. |
 | `transactionIndex` | string | Index of the transaction in the block (hex). |
 | `blockHash` | string | 32-byte hash of the block. |
@@ -110,6 +111,7 @@ curl https://mainnet.base.org \
       ],
       "data": "0x0000000000000000000000000000000000000000000000000000000005f5e100",
       "blockNumber": "0x12ced28",
+      "blockTimestamp": "0x6a1092f7",
       "transactionHash": "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
       "transactionIndex": "0x0",
       "blockHash": "0x3a4e8c5d7f2b1a6e9d0c4f8b3e7a2d5c8f1b4e7a0d3c6f9b2e5a8d1c4f7b0e3",

@@ -45,3 +45,91 @@ Each subscription emits one item per WebSocket message, with events arriving rou
 ```json
 {"jsonrpc": "2.0", "id": 1, "result": "0x1887ec8b9589ccad00000000000532da"}
 ```
+
+## Notifications
+
+Every update arrives as a standard `eth_subscription` message. What lands in `params.result` depends on the `full` flag.
+
+With **`full: false`**, `result` is just the transaction hash:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "subscription": "0x1887ec8b9589ccad00000000000532da",
+    "result": "0xe26de91f9037e903eefe70b28f613019253da603e67e0dbfe2f656dce5444311"
+  }
+}
+```
+
+With **`full: true`**, `result` is a transaction object that folds its receipt fields in directly (no nested receipt object). The schema below was verified live against `base/v0.9.0`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | string | Transaction type: `0x0` Legacy, `0x2` EIP-1559, `0x7e` Deposit. |
+| `chainId` | string | Chain ID (hex). |
+| `nonce` | string | Sender nonce (hex). |
+| `gas` | string | Gas limit (hex). |
+| `maxFeePerGas` | string | EIP-1559 max fee per gas (hex). |
+| `maxPriorityFeePerGas` | string | EIP-1559 max priority fee per gas (hex). |
+| `to` | string | Recipient address. |
+| `value` | string | ETH value transferred (hex). |
+| `accessList` | array | EIP-2930 access list. |
+| `input` | string | Transaction input data (hex). |
+| `r` | string | Signature `r` component. |
+| `s` | string | Signature `s` component. |
+| `yParity` | string | Signature parity (hex). |
+| `v` | string | Signature `v` value (hex). |
+| `hash` | string | Transaction hash. |
+| `blockHash` | null | Always `null` — the transaction is pre-confirmed, not yet in a finalized block. |
+| `blockNumber` | string | Block number (hex) of the in-progress Flashblock. |
+| `transactionIndex` | string | Index within the block (hex). |
+| `from` | string | Sender address. |
+| `gasPrice` | string | Effective gas price (hex). |
+| `gasUsed` | string | Gas used by this transaction (hex). Changed from an integer to a hex string in v0.8.0. |
+| `status` | string | `0x1` for success, `0x0` for failure. |
+| `cumulativeGasUsed` | string | Total gas used in the block up to and including this transaction (hex). |
+| `contractAddress` | string \| null | Address of the created contract, or `null`. |
+| `logsBloom` | string | Bloom filter of logs (hex). |
+| `logs` | array | Array of log objects emitted by this transaction. |
+
+**Heads up:** `gasUsed` is delivered as a hex string (for example `"0x26132"`), not a number. This changed in v0.8.0, so update any parser that still expects an integer.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "eth_subscription",
+  "params": {
+    "subscription": "0x1887ec8b9589ccad00000000000532da",
+    "result": {
+      "type": "0x2",
+      "chainId": "0x2105",
+      "nonce": "0x34ed",
+      "gas": "0x7a1200",
+      "maxFeePerGas": "0x257ab3c",
+      "maxPriorityFeePerGas": "0x419c7c",
+      "to": "0x6211a3742cf9d3b6677ecc7fd9dd102ab101d8e2",
+      "value": "0x0",
+      "accessList": [],
+      "input": "0x...",
+      "r": "0xa7cd30d21c30d4d60d27073c8bbc3ef5778527cf98eae0433e9d1f18c929dd5d",
+      "s": "0x08c75921e6bb75e19112300f80998f88a2b0f1adc52df2c3597b171d8c8de68d",
+      "yParity": "0x1",
+      "v": "0x1",
+      "hash": "0x6a010a5ce041ff0ee5a926db65d1ef512836cae822d5f2d58b63981bfa40aa7f",
+      "blockHash": null,
+      "blockNumber": "0x2c679a1",
+      "transactionIndex": "0x83",
+      "from": "0x2ad149d3d3099532d7c25c47cce37db6c4677b3a",
+      "gasPrice": "0x8de7bc",
+      "gasUsed": "0x26132",
+      "status": "0x1",
+      "cumulativeGasUsed": "0x16cb406",
+      "contractAddress": null,
+      "logsBloom": "0x00...00",
+      "logs": []
+    }
+  }
+}
+```

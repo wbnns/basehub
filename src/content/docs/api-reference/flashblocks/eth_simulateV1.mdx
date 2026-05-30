@@ -34,10 +34,18 @@ Each entry in `blockStateCalls` accepts:
 
 ## Returns
 
-`result` is an array of simulated block results, one per entry in `blockStateCalls`. Each block result has:
+`result` is an array of simulated block results, one per entry in `blockStateCalls`. Each result is a full block object that embeds a `calls` array alongside the standard block fields:
 
 | Field | Type | Description |
 | --- | --- | --- |
+| `number` | string | Simulated block number (hex). |
+| `hash` | string | Simulated block hash. |
+| `parentHash` | string | Parent block hash. |
+| `timestamp` | string | Block timestamp (hex). |
+| `gasLimit` | string | Gas limit (hex). |
+| `gasUsed` | string | Total gas used by the simulated calls (hex). |
+| `baseFeePerGas` | string | Base fee per gas (hex). |
+| `stateRoot` | string | Always `"0x000...000"`, because simulation never commits state to the trie. |
 | `calls` | array | Array of individual call results. |
 
 Each entry in `calls` has:
@@ -86,14 +94,42 @@ curl https://sepolia.base.org \
   "id": 1,
   "result": [
     {
+      "baseFeePerGas": "0x0",
+      "blobGasUsed": "0x39d0",
       "calls": [
         {
-          "status": "0x1",
           "gasUsed": "0x5208",
+          "logs": [],
           "returnData": "0x",
-          "logs": []
+          "status": "0x1"
         }
-      ]
+      ],
+      "difficulty": "0x0",
+      "excessBlobGas": "0x0",
+      "extraData": "0x01000000640000000500000000004c4b40",
+      "gasLimit": "0x17d78400",
+      "gasUsed": "0x5208",
+      "hash": "0x2f2f692821995e39653f63164b2d5d0e0bba66c86c2a199fd3009c0b9906c7b0",
+      "logsBloom": "0x000...000",
+      "miner": "0x4200000000000000000000000000000000000011",
+      "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "nonce": "0x0000000000000000",
+      "number": "0x2c31c49",
+      "parentBeaconBlockRoot": "0x64e625f8bc74f78539f962aa09d522c63576ff6ad57170c668882d99e669ef52",
+      "parentHash": "0x9653660afa4fca3976a21d42ebf849c337e9840993f050fee3affc673a573bf8",
+      "receiptsRoot": "0xf78dfb743fbd92ade140711c8bbc542b5e307f0ab7984eff35d751969fe57efa",
+      "requestsHash": "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sha3Uncles": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+      "size": "0x2a6",
+      "stateRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "timestamp": "0x6a10957f",
+      "transactions": [
+        "0xa401668a06b038c488c1abc013676dfe63fc645d182ece34d8b3f40f45689279"
+      ],
+      "transactionsRoot": "0x0b1328c457d7a8108ea9f2559142890491b680fdb691720b3d0c857c3d11002c",
+      "uncles": [],
+      "withdrawals": [],
+      "withdrawalsRoot": "0x0000000000000000000000000000000000000000000000000000000000000000"
     }
   ]
 }

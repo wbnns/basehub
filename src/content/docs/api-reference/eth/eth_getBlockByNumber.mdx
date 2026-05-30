@@ -38,6 +38,7 @@ Returns information about a block identified by its number.
 | `miner` | string | Address of the fee recipient (coinbase). |
 | `difficulty` | string | Always `"0x0"` on Base (PoS). |
 | `totalDifficulty` | string | Always `"0x0"` on Base (PoS). |
+| `mixHash` | string | Present on every block; repurposed for PoS consensus (bytes32 hex). |
 | `extraData` | string | Arbitrary data field set by the sequencer. |
 | `size` | string | Block size in bytes (hex). |
 | `gasLimit` | string | Maximum gas allowed in this block (hex). |
@@ -46,6 +47,7 @@ Returns information about a block identified by its number.
 | `transactions` | array | Array of transaction hashes or full transaction objects. |
 | `uncles` | array | Always `[]` on Base. |
 | `withdrawals` | array | Always `[]` on Base. |
+| `withdrawalsRoot` | string | Merkle root of the withdrawals list (EIP-4895, bytes32 hex). |
 | `baseFeePerGas` | string | EIP-1559 base fee per gas (hex). |
 | `blobGasUsed` | string | Total blob gas used (EIP-4844, hex). |
 | `excessBlobGas` | string | Excess blob gas for blob fee calculation (EIP-4844, hex). |

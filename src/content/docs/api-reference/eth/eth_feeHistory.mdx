@@ -22,8 +22,10 @@ Returns historical gas data for a contiguous range of blocks, including per-bloc
 | Field | Type | Description |
 | --- | --- | --- |
 | `oldestBlock` | string | The oldest block number in the result set (hex). |
-| `baseFeePerGas` | array | Base fees per gas for each block, plus one extra entry for the next pending block. |
-| `gasUsedRatio` | array | Gas-used to gas-limit ratios for each block (0.0 to 1.0). |
+| `baseFeePerGas` | array | Base fees per gas for each block, with one extra trailing entry for the next pending block, so the length is `blockCount + 1`. |
+| `gasUsedRatio` | array | Gas-used to gas-limit ratios for each block (0.0 to 1.0); length is `blockCount`. |
+| `baseFeePerBlobGas` | array | Base fees per blob gas for each block plus one extra entry for the next pending block (EIP-4844), giving a length of `blockCount + 1`. Currently always `"0x1"` on Base. |
+| `blobGasUsedRatio` | array | Blob-gas-used ratios for each block (0.0 to 1.0), used to derive the next blob base fee (EIP-4844); length is `blockCount`. |
 | `reward` | array | Two-dimensional array of priority-fee percentiles per block, matching the requested percentile values. |
 
 ## Example
@@ -49,6 +51,8 @@ Returns historical gas data for a contiguous range of blocks, including per-bloc
     "oldestBlock": "0x158a0e0",
     "baseFeePerGas": ["0xf5", "0xf7", "0xfa", "0xfc", "0xf8", "0xf5", "0xf2", "0xf0", "0xef", "0xf1", "0xf3"],
     "gasUsedRatio": [0.45, 0.62, 0.38, 0.71, 0.55, 0.49, 0.43, 0.37, 0.52, 0.64],
+    "baseFeePerBlobGas": ["0x1", "0x1", "0x1", "0x1", "0x1", "0x1", "0x1", "0x1", "0x1", "0x1", "0x1"],
+    "blobGasUsedRatio": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "reward": [
       ["0x1", "0x1", "0x2"],
       ["0x1", "0x1", "0x1"]
