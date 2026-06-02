@@ -27,9 +27,7 @@ The Azul hardfork is only honored by `base-consensus` and `base-reth-node`. Anyo
 | `mainnet` | `1779991200` (2026-05-28 18:00:00 UTC) |
 | `sepolia` | `1776708000` (2026-04-20 18:00:00 UTC) |
 
-<Aside type="caution">
-The mainnet timestamp is still subject to change. Track [@buildonbase](https://x.com/buildonbase) for confirmation.
-</Aside>
+Both timestamps are now confirmed: Azul shipped to Sepolia first and activated on mainnet on 2026-05-28. Operators who have not yet moved to the Base-native stack should follow the [Azul node upgrade guide](/node-operations/azul-node-upgrade/) to stay on the chain.
 
 ## Execution layer changes
 
@@ -46,12 +44,12 @@ Each item below points to the corresponding section of the upstream Azul executi
 
 ## Proof system
 
-Azul introduces the components that make multi-proof withdrawals possible:
+Azul introduces the components that make multi-proof withdrawals possible. The [Azul proof system](/specifications/azul-proofs/) page covers the design in full — the `AggregateVerifier` dispute game, the TEE and ZK proof paths, and the finality windows. The individual roles are documented separately:
 
-- [Proof system overview](https://specs.base.org/upgrades/azul/proofs)
-- [New / changed onchain components](https://specs.base.org/upgrades/azul/proofs#newchanged-onchain-components)
-- [Proposer](https://specs.base.org/upgrades/azul/proofs#proposer)
-- [Challenger](https://specs.base.org/upgrades/azul/proofs#challenger)
-- [TEE provers](https://specs.base.org/upgrades/azul/proofs#tee-provers)
-- [ZK provers](https://specs.base.org/upgrades/azul/proofs#zk-provers)
+- [Azul proof system](/specifications/azul-proofs/) — AggregateVerifier, finality model, and why the proof system changed
+- [Proposer](/specifications/proposer/)
+- [Challenger](/specifications/challenger/)
+- [TEE provers](/specifications/tee-prover/)
+- [ZK provers](/specifications/zk-prover/)
 - [Prover registrar](/specifications/registrar/)
+- [Proof contracts](/specifications/contracts/)

@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-05-30T03:07:26Z
+Generated 2026-06-02T03:07:01Z
 
-### base/base @ 4a278ff
+### base/base @ 9ff49b1
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
 
-### base/docs @ e51416f
+### base/docs @ 4cc8a4d
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -60,7 +60,6 @@ c07f4264c0ded75d1f6bd5a44c9a4dbc34506378  docs/base-chain/flashblocks/faq.mdx
 0f67b06c5d7d63d6bd0902035d9bfbf0b3d44b88  docs/base-chain/network-information/network-fees.mdx
 01ae095080c515efb24a7e2f9b09baa070b5f64b  docs/base-chain/network-information/transaction-finality.mdx
 01866191bf5ab2e46a1b2a421b807b8454974307  docs/base-chain/network-information/troubleshooting-transactions.mdx
-46325ef6bdf24ab39b925d6800a9d0510dda45c5  docs/base-chain/node-operators/base-v1-upgrade.mdx
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
 7c13d5ab81279b6919458da7fa676748199e2d3e  docs/base-chain/node-operators/run-a-base-node.mdx
@@ -90,21 +89,10 @@ c09e42bced696a291d49980170ac9815786d4076  docs/base-chain/specs/protocol/consens
 fc1c4b7a496cf663ad2710a8df741fbcb3d6177e  docs/base-chain/specs/protocol/execution/evm/predeploys.mdx
 ce156598a47aa069158a34c5949e0c25ab7291b0  docs/base-chain/specs/protocol/execution/evm/preinstalls.mdx
 2350d3cdf82405a54de12c52fad8adcd8b06506f  docs/base-chain/specs/protocol/execution/index.mdx
-993d737221d42e5416846b5d6e1dc5288ce10c72  docs/base-chain/specs/protocol/fault-proof/cannon-fault-proof-vm.mdx
-d2498bf3dd65d2d79038d786327715adca0e6958  docs/base-chain/specs/protocol/fault-proof/index.mdx
-5215b51070c71dbe1450ee36e4336c5106953cab  docs/base-chain/specs/protocol/fault-proof/proposer.mdx
-97792fd316c83a55c5c9654b4b261f2e1a0890cf  docs/base-chain/specs/protocol/fault-proof/stage-one/anchor-state-registry.mdx
-dc98f256f19a0f49fa77fb4fced0754df072572e  docs/base-chain/specs/protocol/fault-proof/stage-one/bond-incentives.mdx
-74a949e7f860e3a5ecc6475a22a365ac10bec858  docs/base-chain/specs/protocol/fault-proof/stage-one/bridge-integration.mdx
-cca12247a70341a9250952760d738ff53e6131bc  docs/base-chain/specs/protocol/fault-proof/stage-one/dispute-game-interface.mdx
-d935c11c1595a320f1d06c052649927a568a1642  docs/base-chain/specs/protocol/fault-proof/stage-one/fault-dispute-game.mdx
-58fbd9f4bd8b3383fa6500d9d8f4abfb58ad7401  docs/base-chain/specs/protocol/fault-proof/stage-one/honest-challenger-fdg.mdx
-08b3cb5d1fcbc7c0a8a4af594250d03814445419  docs/base-chain/specs/protocol/fault-proof/stage-one/index.mdx
-3177311993b06d5e7ac7899edcaac94f91f4c655  docs/base-chain/specs/protocol/fault-proof/stage-one/optimism-portal.mdx
 688f2c01dfcbbbd51dd5728289798870002e10a4  docs/base-chain/specs/protocol/overview.mdx
 4262e8a10d7d9a455aa735b07e8a67255b9ff7c1  docs/base-chain/specs/protocol/proofs/challenger.mdx
 4331c45bea795991c6b0cfdf6cc3ba9b444b480a  docs/base-chain/specs/protocol/proofs/contracts.mdx
-7cf732c7dc3be06ad93cead8f4d99826e659b639  docs/base-chain/specs/protocol/proofs/index.mdx
+2df1b103f2fc7ff7f6e771ec3eccf52d2eaf583d  docs/base-chain/specs/protocol/proofs/index.mdx
 822d5275ffae963be915a8196542983c897749ee  docs/base-chain/specs/protocol/proofs/proposer.mdx
 a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/registrar.mdx
 4fa6ea89eb0c793885e98b41814beb71cc863007  docs/base-chain/specs/protocol/proofs/tee-prover.mdx
@@ -112,8 +100,9 @@ a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/
 898a69d173640d85b51b1a2a06d79fa391905dba  docs/base-chain/specs/reference/configurability.mdx
 32e326024e7aa8a1f2a84f7292f1a522cce4f4ae  docs/base-chain/specs/reference/glossary.mdx
 b36a4bbcc81907b328fdf9a046cc2fc421e4aa60  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
-5c0382e99c5682257eeeec4c51b30dd97b9f1df0  docs/base-chain/specs/upgrades/azul/overview.mdx
-d46368b2bc142bbad147d6ba9dcdd6966ba10a0f  docs/base-chain/specs/upgrades/azul/proofs.mdx
+a16c3f575b1810c0cfe4b3cffb967b20b603d176  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
+3d82ba228ced9775e141f32da177dcf6ab252455  docs/base-chain/specs/upgrades/azul/overview.mdx
+48ac1325629c7f7b3f6e57741eceb2af5c0148d9  docs/base-chain/specs/upgrades/azul/proofs.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx
 3cd04b13fe4def1cc83263064cd96a36d23229db  docs/base-chain/specs/upgrades/delta/span-batches.mdx

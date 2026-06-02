@@ -352,6 +352,7 @@ export default defineConfig({
 						{ label: 'Node Providers', slug: 'node-operations/node-providers' },
 						{ label: 'Troubleshooting', slug: 'node-operations/troubleshooting' },
 						{ label: 'Upgrades', slug: 'node-operations/upgrades' },
+						{ label: 'Azul Node Upgrade', slug: 'node-operations/azul-node-upgrade' },
 						{ label: 'Base v1 Upgrade', slug: 'node-operations/base-v1-upgrade' },
 						{ label: 'Releases', slug: 'node-operations/releases' },
 						{ label: 'Release Process', slug: 'node-operations/release-process' },
