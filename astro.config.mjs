@@ -132,6 +132,7 @@ export default defineConfig({
 					label: 'API Reference',
 					items: [
 						{ label: 'RPC Overview', slug: 'api-reference/rpc-overview' },
+						{ label: 'Rollup Node RPC', slug: 'api-reference/rollup-node-rpc' },
 						{
 							label: 'Ethereum JSON-RPC',
 							collapsed: true,
@@ -388,6 +389,7 @@ export default defineConfig({
 						{ label: 'Flashblocks', slug: 'specifications/flashblocks' },
 						{ label: 'Access Lists (FAL)', slug: 'specifications/access-lists' },
 						{ label: 'P2P', slug: 'specifications/p2p' },
+						{ label: 'Configuration', slug: 'specifications/configuration' },
 					],
 				},
 				{

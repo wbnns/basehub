@@ -1,0 +1,73 @@
+---
+title: Rollup node RPC
+description: Reference for the Base rollup node's optimism_outputAtBlock method, which returns the L2 output root and sync metadata for a given block, along with the supporting BlockID, L1BlockRef, L2BlockRef, and SyncStatus structures.
+sources:
+- base/docs:docs/base-chain/specs/protocol/consensus/rpc.mdx
+---
+
+Beyond the execution-layer JSON-RPC namespaces, the Base rollup node exposes its own RPC surface. The method documented here, `optimism_outputAtBlock`, is the one most integrators reach for: it hands back the 32-byte [L2 output root](/specifications/proofs-overview/) for a chosen block, which is the value bridges and proof systems anchor against.
+
+## `optimism_outputAtBlock`
+
+Given an L2 block number, this method returns that block's output root together with the metadata needed to reason about it.
+
+### Parameters
+
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `blockNumber` | `QUANTITY`, 64 bits | L2 integer block number |
+
+### Returns
+
+| Name | Type | Description |
+| :--- | :--- | :--- |
+| `version` | `DATA`, 32 Bytes | Output root version number, beginning with `0` |
+| `outputRoot` | `DATA`, 32 Bytes | The output root |
+| `blockRef` | `Object` | Instance of [`L2BlockRef`](#l2blockref) |
+| `withdrawalStorageRoot` | `DATA`, 32 Bytes | Storage root of the `L2ToL1MessagePasser` contract |
+| `stateRoot` | `DATA`, 32 Bytes | The state root |
+| `syncStatus` | `Object` | Instance of [`SyncStatus`](#syncstatus) |
+
+The input and output types follow the [engine API specification][engine-structures].
+
+## Structures
+
+The object types referenced by the rollup node API are listed below. They extend the structures defined in the [engine API specs][engine-structures].
+
+### BlockID
+
+- `hash`: `DATA`, 32 Bytes
+- `number`: `QUANTITY`, 64 Bits
+
+### L1BlockRef
+
+- `hash`: `DATA`, 32 Bytes
+- `number`: `QUANTITY`, 64 Bits
+- `parentHash`: `DATA`, 32 Bytes
+- `timestamp`: `QUANTITY`, 64 Bits
+
+### L2BlockRef
+
+- `hash`: `DATA`, 32 Bytes
+- `number`: `QUANTITY`, 64 Bits
+- `parentHash`: `DATA`, 32 Bytes
+- `timestamp`: `QUANTITY`, 64 Bits
+- `l1origin`: `BlockID`
+- `sequenceNumber`: `QUANTITY`, 64 Bits - distance to first block of epoch
+
+### SyncStatus
+
+A point-in-time snapshot of the rollup driver's view of both chains.
+
+- `current_l1`: `Object` - instance of [`L1BlockRef`](#l1blockref).
+- `current_l1_finalized`: `Object` - instance of [`L1BlockRef`](#l1blockref).
+- `head_l1`: `Object` - instance of [`L1BlockRef`](#l1blockref).
+- `safe_l1`: `Object` - instance of [`L1BlockRef`](#l1blockref).
+- `finalized_l1`: `Object` - instance of [`L1BlockRef`](#l1blockref).
+- `unsafe_l2`: `Object` - instance of [`L2BlockRef`](#l2blockref).
+- `safe_l2`: `Object` - instance of [`L2BlockRef`](#l2blockref).
+- `finalized_l2`: `Object` - instance of [`L2BlockRef`](#l2blockref).
+- `pending_safe_l2`: `Object` - instance of [`L2BlockRef`](#l2blockref).
+- `queued_unsafe_l2`: `Object` - instance of [`L2BlockRef`](#l2blockref).
+
+[engine-structures]: https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md#structures

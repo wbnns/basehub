@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-02T03:07:01Z
+Generated 2026-06-03T03:06:28Z
 
-### base/base @ 9ff49b1
+### base/base @ e8ca8ad
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
 
-### base/docs @ 4cc8a4d
+### base/docs @ 40919f9
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -43,8 +43,8 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 89280c7613256cd789047d13e5304c43f9097425  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 8c464acad1e672a91b94bd96f079fd4d3f7c1ef7  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 e057c88b48f74e99d31312ae7ba658d63d0b30e3  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
-1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 0dac07d409417e02b97b3a169be5176fdbfde155  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
+1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 25dc9aa9441b1bc9f93b8498ad4ba98aca53de75  docs/base-chain/api-reference/rpc-overview.mdx
 d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integration.mdx
@@ -73,8 +73,6 @@ b42043992cd46cc68d8e8a4a6520bd389dd93e6f  docs/base-chain/security/avoid-malicio
 d5ad135d5c21aab587be3d16dfe74b12d286e4fa  docs/base-chain/security/bug-bounty.mdx
 b0b05b8b73f93e8b8249f9d64612c64b1398bbbf  docs/base-chain/security/report-vulnerability.mdx
 46ed69dca223a643040bc63b130991c8922273a0  docs/base-chain/security/security-council.mdx
-c09191448e3bfc3da4d200c8f1dca81be889beb4  docs/base-chain/specs/bcps/bcp-0000.mdx
-93fadb82f34f1785bf9566c3553fd2658c646733  docs/base-chain/specs/bcps/index.mdx
 6d4b55f615e59ae088a1911b2bdf16af68e0c4da  docs/base-chain/specs/overview.mdx
 f5e60bf06138f0932e5818033a33a4876d2ac78f  docs/base-chain/specs/protocol/batcher.mdx
 cbec5debcc167af7797f4b8f55afdc9042993198  docs/base-chain/specs/protocol/bridging/bridges.mdx
@@ -84,7 +82,7 @@ c09f7b7a12c4e5a4ec5f00ea82194583a3ad8d5f  docs/base-chain/specs/protocol/bridgin
 0b27dab7123ee41f0a2b64ca65b8ba5fcc8d36c5  docs/base-chain/specs/protocol/consensus/derivation.mdx
 c09e42bced696a291d49980170ac9815786d4076  docs/base-chain/specs/protocol/consensus/index.mdx
 05b7df8b147b390d53922b312d13c0be55859de7  docs/base-chain/specs/protocol/consensus/p2p.mdx
-72aeaba4a215ef5b9b9e04c5ddc79b07b844f58a  docs/base-chain/specs/protocol/consensus/rpc.mdx
+6816e37d9c7617775e59e734f9e81ba581c4dbde  docs/base-chain/specs/protocol/consensus/rpc.mdx
 9e95b8157fe9ca44f266c2c1c3714280ea907312  docs/base-chain/specs/protocol/execution/evm/precompiles.mdx
 fc1c4b7a496cf663ad2710a8df741fbcb3d6177e  docs/base-chain/specs/protocol/execution/evm/predeploys.mdx
 ce156598a47aa069158a34c5949e0c25ab7291b0  docs/base-chain/specs/protocol/execution/evm/preinstalls.mdx
@@ -97,7 +95,7 @@ ce156598a47aa069158a34c5949e0c25ab7291b0  docs/base-chain/specs/protocol/executi
 a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/registrar.mdx
 4fa6ea89eb0c793885e98b41814beb71cc863007  docs/base-chain/specs/protocol/proofs/tee-prover.mdx
 152286087f391a2734f1385f45aac6becd4c3298  docs/base-chain/specs/protocol/proofs/zk-prover.mdx
-898a69d173640d85b51b1a2a06d79fa391905dba  docs/base-chain/specs/reference/configurability.mdx
+d0df7caba290fa6bc40ec98e94f9e4ca1874205c  docs/base-chain/specs/reference/configurability.mdx
 32e326024e7aa8a1f2a84f7292f1a522cce4f4ae  docs/base-chain/specs/reference/glossary.mdx
 b36a4bbcc81907b328fdf9a046cc2fc421e4aa60  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
 a16c3f575b1810c0cfe4b3cffb967b20b603d176  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
@@ -157,7 +155,8 @@ g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 
 
 ### base-l2.statuspage.io RSS
 
-https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Delay	Fri, 29 May 2026 15:55:31 +0000
+https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Tue, 02 Jun 2026 22:32:28 +0000
+https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Delay	Sun, 31 May 2026 03:38:45 +0000
 https://base-l2.statuspage.io/incidents/64vlxm4l3lb2	Mainnet: Base Azul Upgrade - May 28th	Thu, 28 May 2026 20:00:10 +0000
 https://base-l2.statuspage.io/incidents/0h468wjw300f	Delayed Transactions	Thu, 14 May 2026 05:04:08 +0000
 https://base-l2.statuspage.io/incidents/xv19bh0l2dvp	Elevated latency on Sepolia RPC	Wed, 13 May 2026 16:52:41 +0000
@@ -181,4 +180,3 @@ https://base-l2.statuspage.io/incidents/9yrk7wlc2bp1	Base Mainnet minimum base f
 https://base-l2.statuspage.io/incidents/c9cjh8jbz8b0	Periodically delayed block building on Base Mainnet	Tue, 20 Jan 2026 14:30:00 +0000
 https://base-l2.statuspage.io/incidents/lyhrg67gqn38	Base Mainnet minimum base fee and gasLimit increase	Thu, 18 Dec 2025 20:00:23 +0000
 https://base-l2.statuspage.io/incidents/mqlf3z7xkwt1	Delayed Transactions	Tue, 09 Dec 2025 23:00:00 +0000
-https://base-l2.statuspage.io/incidents/ydlhdlqhdxc6	Base Mainnet Jovian upgrade on December 2nd at 16:00:01 UTC	Thu, 04 Dec 2025 18:25:02 +0000

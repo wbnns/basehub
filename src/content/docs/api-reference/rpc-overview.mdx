@@ -56,6 +56,7 @@ Base nodes implement the standard Ethereum namespaces plus a small set of Base-s
 - **`txpool`** — inspection of the local mempool.
 - **`base`** — Base-specific helpers, including pre-confirmation status checks (`base_transactionStatus`).
 - **Flashblocks** — pre-confirmation methods (`eth_simulateV1`) and WebSocket streams (`newFlashblockTransactions`, `pendingLogs`, `newFlashblocks`). The streaming subscriptions need a WebSocket-enabled node provider.
+- **`optimism`** — rollup-node methods served by the consensus client rather than the execution layer, including `optimism_outputAtBlock` for retrieving an L2 output root.
 
 ## Method index
 
@@ -114,6 +115,14 @@ Development and debugging utilities for transaction replay and block inspection.
 | [debug_traceTransaction](/api-reference/debug/debug_tracetransaction/) | Full EVM execution trace for a transaction |
 | [debug_traceBlockByHash](/api-reference/debug/debug_traceblockbyhash/) | EVM traces for every transaction in a block by hash |
 | [debug_traceBlockByNumber](/api-reference/debug/debug_traceblockbynumber/) | EVM traces for every transaction in a block by number |
+
+### Rollup node RPC
+
+Methods exposed by the rollup (consensus) node rather than the execution client.
+
+| Method | Description |
+| --- | --- |
+| [optimism_outputAtBlock](/api-reference/rollup-node-rpc/) | Output root and sync metadata for an L2 block |
 
 ## Request and response format
 
