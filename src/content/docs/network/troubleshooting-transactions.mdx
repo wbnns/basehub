@@ -55,11 +55,11 @@ Submitting a transaction with a nonce that has already been used results in a re
 
 ### Gas limit exceeds the maximum
 
-Base enforces a [per-transaction gas maximum](/network/block-building/#per-transaction-gas-maximum) of **25,000,000 gas**. Higher limits are rejected by the mempool before inclusion.
+Base enforces a [per-transaction gas maximum](/network/block-building/#per-transaction-gas-maximum) of **16,777,216 gas (2^24)**. Any transaction declaring a higher limit is rejected during block validation.
 
 **Error:** `exceeds maximum per-transaction gas limit`
 
-**Fix:** Reduce the gas limit to 25,000,000 or lower. If the transaction genuinely needs more gas, split it into multiple transactions.
+**Fix:** Reduce the gas limit to 16,777,216 (2^24) or lower. If the transaction genuinely needs more gas, split it into multiple transactions.
 
 ## Included but failed transactions
 

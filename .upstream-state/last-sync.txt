@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-03T03:06:28Z
+Generated 2026-06-04T03:06:54Z
 
-### base/base @ e8ca8ad
+### base/base @ 8e87672
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
 
-### base/docs @ 40919f9
+### base/docs @ bfff9ef
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -43,23 +43,23 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 89280c7613256cd789047d13e5304c43f9097425  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 8c464acad1e672a91b94bd96f079fd4d3f7c1ef7  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 e057c88b48f74e99d31312ae7ba658d63d0b30e3  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
-0dac07d409417e02b97b3a169be5176fdbfde155  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
+0dac07d409417e02b97b3a169be5176fdbfde155  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 25dc9aa9441b1bc9f93b8498ad4ba98aca53de75  docs/base-chain/api-reference/rpc-overview.mdx
 d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integration.mdx
 a60e3914db37f45c4f1c497251533afb43c4cdcf  docs/base-chain/flashblocks/architecture.mdx
 c07f4264c0ded75d1f6bd5a44c9a4dbc34506378  docs/base-chain/flashblocks/faq.mdx
 04bc24596218abbdd3f690a908c69541cccf4ba5  docs/base-chain/flashblocks/overview.mdx
-16158e17926b0a90a7f5812182deab8e267e2f54  docs/base-chain/network-information/base-contracts.mdx
-12eb9d12f040b79ea72582d9961c0b796575fa7d  docs/base-chain/network-information/block-building.mdx
+b919d42821a3643aee3615df249556b7fb5af03c  docs/base-chain/network-information/base-contracts.mdx
+aca1f259fcd3881e121f847f1bee9ff2f387ab78  docs/base-chain/network-information/block-building.mdx
 258a15b70a95a9b4bddb8522ffefc53e96ba4220  docs/base-chain/network-information/bridges.mdx
-905bc3253ba5b808a888098ca58b6549b278cb62  docs/base-chain/network-information/configuration-changelog.mdx
+abde76c1b86631406354f6b0d79b54f3f46d20f0  docs/base-chain/network-information/configuration-changelog.mdx
 191af4491b0823ab07115a0847cf009169085246  docs/base-chain/network-information/diffs-ethereum-base.mdx
 663214bf3a4de899b92b2904dfe102d55000b538  docs/base-chain/network-information/network-faucets.mdx
 0f67b06c5d7d63d6bd0902035d9bfbf0b3d44b88  docs/base-chain/network-information/network-fees.mdx
 01ae095080c515efb24a7e2f9b09baa070b5f64b  docs/base-chain/network-information/transaction-finality.mdx
-01866191bf5ab2e46a1b2a421b807b8454974307  docs/base-chain/network-information/troubleshooting-transactions.mdx
+6e38a996105f162c5e75e631896b98b539429483  docs/base-chain/network-information/troubleshooting-transactions.mdx
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
 7c13d5ab81279b6919458da7fa676748199e2d3e  docs/base-chain/node-operators/run-a-base-node.mdx

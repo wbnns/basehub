@@ -52,11 +52,13 @@ Three properties distinguish Flashblocks from vanilla ordering:
 
 ## Per-transaction gas maximum
 
-Base caps individual transactions at **25,000,000 gas**. Any transaction submitting a higher gas limit is **rejected by the mempool before it can be included**. `eth_sendTransaction` and `eth_sendRawTransaction` return a JSON-RPC error such as `exceeds maximum per-transaction gas limit`. This cap does **not** alter the block gas limit or the block validity rules.
+Since the [Azul hardfork](/specifications/azul-overview/), Base applies a protocol-level ceiling of **16,777,216 gas (2^24)** to any single transaction, as specified by [EIP-7825](https://eips.ethereum.org/EIPS/eip-7825). A transaction that declares a gas limit above this figure is **rejected during block validation**, and `eth_sendTransaction` or `eth_sendRawTransaction` returns a JSON-RPC error — for instance, `exceeds maximum per-transaction gas limit`.
 
-Fusaka's [EIP 7825](https://eips.ethereum.org/EIPS/eip-7825) **will** modify the block validity conditions and lower the per-transaction gas cap to 16,777,216 gas (2^24). OP Stack chains are expected to adopt the change around January 2026.
+<Aside type="note">
+The cap does not apply to deposit transactions. Those are instead bounded by the largest amount of gas that fits in an L1 block, which is 20,000,000 gas.
+</Aside>
 
-Smart-account bundlers must size their bundles to remain under the cap.
+Operators running bundlers for smart contract wallets need to size each bundle so that it stays within this limit.
 
 ## Vanilla ordering
 
