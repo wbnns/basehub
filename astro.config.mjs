@@ -364,6 +364,7 @@ export default defineConfig({
 					label: 'Architecture',
 					items: [
 						{ label: 'Overview', slug: 'architecture/overview' },
+						{ label: 'Protocol Overview', slug: 'architecture/protocol-overview' },
 						{ label: 'Crate Graph', slug: 'architecture/crate-graph' },
 						{ label: 'Execution Pipeline', slug: 'architecture/execution-pipeline' },
 						{ label: 'Flashblocks Pipeline', slug: 'architecture/flashblocks-pipeline' },
@@ -390,6 +391,7 @@ export default defineConfig({
 						{ label: 'Access Lists (FAL)', slug: 'specifications/access-lists' },
 						{ label: 'P2P', slug: 'specifications/p2p' },
 						{ label: 'Configuration', slug: 'specifications/configuration' },
+						{ label: 'Isthmus Execution Engine', slug: 'specifications/isthmus-exec-engine' },
 					],
 				},
 				{

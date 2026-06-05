@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-06-04T03:06:54Z
+Generated 2026-06-05T03:07:53Z
 
-### base/base @ 8e87672
+### base/base @ dcdf925
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -87,7 +87,7 @@ c09e42bced696a291d49980170ac9815786d4076  docs/base-chain/specs/protocol/consens
 fc1c4b7a496cf663ad2710a8df741fbcb3d6177e  docs/base-chain/specs/protocol/execution/evm/predeploys.mdx
 ce156598a47aa069158a34c5949e0c25ab7291b0  docs/base-chain/specs/protocol/execution/evm/preinstalls.mdx
 2350d3cdf82405a54de12c52fad8adcd8b06506f  docs/base-chain/specs/protocol/execution/index.mdx
-688f2c01dfcbbbd51dd5728289798870002e10a4  docs/base-chain/specs/protocol/overview.mdx
+7d7870f340de06e8f0849b7b678fc275c1ac839d  docs/base-chain/specs/protocol/overview.mdx
 4262e8a10d7d9a455aa735b07e8a67255b9ff7c1  docs/base-chain/specs/protocol/proofs/challenger.mdx
 4331c45bea795991c6b0cfdf6cc3ba9b444b480a  docs/base-chain/specs/protocol/proofs/contracts.mdx
 2df1b103f2fc7ff7f6e771ec3eccf52d2eaf583d  docs/base-chain/specs/protocol/proofs/index.mdx
@@ -119,7 +119,7 @@ e1143163b1d13daa9e0dafea79f67a42ddc042ad  docs/base-chain/specs/upgrades/holocen
 816921e65df738cc09ef87fe9ce90f821157a7f8  docs/base-chain/specs/upgrades/holocene/overview.mdx
 0ac796ef3dfde46c991e91808dd58cd896782fc3  docs/base-chain/specs/upgrades/holocene/system-config.mdx
 d6086a1e60d78469090b8db5c6efc27681edb5b9  docs/base-chain/specs/upgrades/isthmus/derivation.mdx
-25a09e65333cb2a08d7ab3dcaa0158f2732ba164  docs/base-chain/specs/upgrades/isthmus/exec-engine.mdx
+ea6236ed835f91ba0fb65291b29a9d62220d17b0  docs/base-chain/specs/upgrades/isthmus/exec-engine.mdx
 f98e57e4de382931f0b13f238e06905bf2844d75  docs/base-chain/specs/upgrades/isthmus/l1-attributes.mdx
 f8f58a54e4421ca2ac7b47d35dc65a6dba749779  docs/base-chain/specs/upgrades/isthmus/overview.mdx
 c8ffcf964ba23ca2f3426274e7ed63710c9174db  docs/base-chain/specs/upgrades/isthmus/predeploys.mdx
