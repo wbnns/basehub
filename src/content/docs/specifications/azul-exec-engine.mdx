@@ -1,0 +1,136 @@
+---
+title: Azul Execution Engine
+description: Execution-engine changes in the Azul hardfork — the EIP-7825 transaction gas cap, Osaka-era EVM and precompile updates, eth/69 networking, a slimmed Flashblocks payload, and the eth_config RPC method.
+sources:
+- base/docs:docs/base-chain/specs/upgrades/azul/exec-engine.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Azul layers a batch of Osaka-era execution rules onto Base while keeping the chain in lockstep with L1 pricing and behavior. The changes fall into three buckets: EVM-level adjustments (a per-transaction gas cap, MODEXP limits, a new opcode, and precompile repricing), networking updates (the eth/69 wire protocol and a leaner Flashblocks message), and RPC additions (a fixed Engine API method set and the new `eth_config` endpoint).
+
+## EVM Changes
+
+### Transaction Gas Limit Cap
+
+[EIP-7825](https://eips.ethereum.org/EIPS/eip-7825) sets a protocol-enforced ceiling of 16,777,216
+(2^24) gas on any single transaction. Anything asking for more than that is turned away at validation
+time. Base matches the L1 ceiling so the two layers stay equivalent.
+
+<Aside type="note">
+Deposit transactions are exempt from the cap. They are already bounded to 20,000,000 gas, which is the most gas an L1 block can carry for them.
+</Aside>
+
+### Upper-Bound MODEXP
+
+[EIP-7823](https://eips.ethereum.org/EIPS/eip-7823) limits each MODEXP precompile input field to at
+most 1024 bytes; calls that exceed that size are rejected.
+
+### MODEXP Gas Cost Increase
+
+[EIP-7883](https://eips.ethereum.org/EIPS/eip-7883) lifts the MODEXP precompile floor from 200 to 500
+gas and triples the result of the general cost formula.
+
+### CLZ Opcode
+
+[EIP-7939](https://eips.ethereum.org/EIPS/eip-7939) adds the `CLZ` opcode, which counts the leading
+zero bits in a 256-bit word and returns 256 when the input is zero.
+
+### secp256r1 Precompile Gas Cost
+
+[EIP-7951](https://eips.ethereum.org/EIPS/eip-7951) places the secp256r1 precompile at address `0x100`
+with a gas cost of 3,450.
+
+Base has shipped this functionality since Fjord, where the `p256Verify` precompile was added at the
+same `0x100` address via [RIP-7212](https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md),
+also priced at 3,450 gas. Starting with Azul the cost rises to 6,900 to match the L1 figure in
+EIP-7951, keeping Base's precompile pricing strictly aligned with Ethereum.
+
+## Networking Changes
+
+### eth/69
+
+[EIP-7642](https://eips.ethereum.org/EIPS/eip-7642) bumps the Ethereum wire protocol to version 69. It
+strips legacy fields out of the `Status` message and streamlines the handshake.
+
+### Discovery protocol now uses `basev0` protocol ID
+
+The execution-layer discovery protocol now advertises `basev0` as its protocol ID. Scoping discovery
+this way lets Base nodes locate one another faster, which matters most on smaller networks such as
+Sepolia where peers are scarcer.
+
+### Remove Account Balances & Receipts
+
+Azul trims the `FlashblocksMetadata` payload sent over the Flashblocks WebSocket. The
+`new_account_balances` and `receipts` fields are dropped. The `access_list` field stays in the schema
+but is left unpopulated in Azul.
+
+**Before:**
+
+```json
+{
+  "block_number": 43403718,
+  "new_account_balances": {
+    "0x4200000000000000000000000000000000000006": "0x35277a9715c6df1c99de"
+  },
+  "receipts": {
+    "0x1ef9be45b3f7d44de9d98767ddb7c0e330b21777b67a3c79d469be9ffab091dd": {
+      "cumulativeGasUsed": "0x177d7bd",
+      "logs": [],
+      "status": "0x1",
+      "type": "0x2"
+    }
+  },
+  "access_list": null
+}
+```
+
+**After:**
+
+```json
+{
+  "block_number": 43403718,
+  "access_list": null
+}
+```
+
+## RPC Changes
+
+### Engine API Usage
+
+From Azul activation onward, block production and import flow through a fixed set of Engine API
+methods:
+
+- `engine_forkchoiceUpdatedV3` to kick off block builds and synchronize forkchoice.
+- `engine_getPayloadV5` to retrieve built payloads.
+- `engine_newPayloadV4` to import payloads into the execution engine.
+
+`engine_getPayloadV5` hands back a V5 envelope, but the execution payload inside it keeps its V4 shape.
+Because of that, payloads are still inserted through `engine_newPayloadV4` — Base Azul clients never use
+an `engine_newPayloadV5` path.
+
+The flow operates under these Azul constraints:
+
+- Blob-related Engine API inputs are pinned to empty values:
+  - `expectedBlobVersionedHashes` MUST be an empty array.
+  - `blobsBundle` in `engine_getPayloadV5` responses is expected to be empty.
+- `executionRequests` in `engine_newPayloadV4` MUST be an empty array.
+
+### eth_config RPC Method
+
+[EIP-7910](https://eips.ethereum.org/EIPS/eip-7910) adds the `eth_config` JSON-RPC method, a way to
+surface a chain's configuration — fork activation timestamps among other parameters. Base Azul answers
+`eth_config` calls with the standard EIP-7910 response schema, subject to a few Base-specific details:
+
+- `blobSchedule` always comes back with `current`, `next`, and `last` zeroed out. Since Base carries no
+  native blob transactions, it deliberately avoids reporting Ethereum's synthetic blob-schedule defaults.
+- `precompiles` lists the active EVM precompile set for that fork — the standard Ethereum precompiles
+  plus any Base-specific additions.
+- `systemContracts` only contains entries representable under EIP-7910. On Base that means:
+  - `BEACON_ROOTS_ADDRESS` appears once Ecotone is active.
+  - `HISTORY_STORAGE_ADDRESS` appears once Isthmus is active.
+  - `DEPOSIT_CONTRACT_ADDRESS`, `CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS`, and
+    `WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS` are omitted.
+
+Base-specific predeploys and the other OP Stack system contracts are not serialized into `eth_config`
+unless the EIP-7910 schema covers them.

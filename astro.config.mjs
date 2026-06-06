@@ -392,6 +392,7 @@ export default defineConfig({
 						{ label: 'P2P', slug: 'specifications/p2p' },
 						{ label: 'Configuration', slug: 'specifications/configuration' },
 						{ label: 'Isthmus Execution Engine', slug: 'specifications/isthmus-exec-engine' },
+						{ label: 'Azul Execution Engine', slug: 'specifications/azul-exec-engine' },
 					],
 				},
 				{
