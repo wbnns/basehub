@@ -393,6 +393,7 @@ export default defineConfig({
 						{ label: 'Configuration', slug: 'specifications/configuration' },
 						{ label: 'Isthmus Execution Engine', slug: 'specifications/isthmus-exec-engine' },
 						{ label: 'Azul Execution Engine', slug: 'specifications/azul-exec-engine' },
+						{ label: 'Glossary', slug: 'specifications/glossary' },
 					],
 				},
 				{

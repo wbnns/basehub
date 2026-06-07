@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-06-06T03:04:44Z
+Generated 2026-06-07T03:06:44Z
 
-### base/base @ e100fc9
+### base/base @ bbc8d56
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -96,7 +96,7 @@ a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/
 4fa6ea89eb0c793885e98b41814beb71cc863007  docs/base-chain/specs/protocol/proofs/tee-prover.mdx
 152286087f391a2734f1385f45aac6becd4c3298  docs/base-chain/specs/protocol/proofs/zk-prover.mdx
 d0df7caba290fa6bc40ec98e94f9e4ca1874205c  docs/base-chain/specs/reference/configurability.mdx
-32e326024e7aa8a1f2a84f7292f1a522cce4f4ae  docs/base-chain/specs/reference/glossary.mdx
+845db204ce7b41376c4b5533b6080896cb40fcc5  docs/base-chain/specs/reference/glossary.mdx
 4eb3900f80c4578358c369b77cf91a765162fd20  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
 a16c3f575b1810c0cfe4b3cffb967b20b603d176  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
 46e723910b718f4be5cf8535174117d6d6936cc5  docs/base-chain/specs/upgrades/azul/overview.mdx
@@ -155,12 +155,12 @@ g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 
 
 ### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/t8rgbdb6bfds	Node Peering Stability on Base Testnet and Mainnet	Thu, 04 Jun 2026 19:42:05 +0000
 https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Tue, 02 Jun 2026 22:32:28 +0000
 https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Delay	Sun, 31 May 2026 03:38:45 +0000
 https://base-l2.statuspage.io/incidents/64vlxm4l3lb2	Mainnet: Base Azul Upgrade - May 28th	Thu, 28 May 2026 20:00:10 +0000
 https://base-l2.statuspage.io/incidents/0h468wjw300f	Delayed Transactions	Thu, 14 May 2026 05:04:08 +0000
 https://base-l2.statuspage.io/incidents/xv19bh0l2dvp	Elevated latency on Sepolia RPC	Wed, 13 May 2026 16:52:41 +0000
-https://base-l2.statuspage.io/incidents/t8rgbdb6bfds	Node Peering Stability on Base Testnet and Mainnet	Thu, 30 Apr 2026 21:14:19 +0000
 https://base-l2.statuspage.io/incidents/kd90bdz37xw5	Mainnet RPC Upgrade	Tue, 21 Apr 2026 17:36:02 +0000
 https://base-l2.statuspage.io/incidents/qr8pq7dnjf9f	Sepolia Testnet: Base Upgrade v1 - April 20th	Mon, 20 Apr 2026 18:00:07 +0000
 https://base-l2.statuspage.io/incidents/l6d3mnl0c9hs	Sepolia Testnet Unsafe Head Stalled	Thu, 16 Apr 2026 19:15:27 +0000

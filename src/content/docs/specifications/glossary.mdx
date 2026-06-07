@@ -1,0 +1,417 @@
+---
+title: Glossary
+description: Definitions for the terms used throughout the Base Chain protocol specification — from L1/L2 basics to sequencing, deposits, withdrawals, batch submission, derivation, and the execution engine.
+sources:
+- base/docs:docs/base-chain/specs/reference/glossary.mdx
+---
+
+This page collects the vocabulary used across the Base Chain protocol specs. Terms are grouped by topic; many definitions cross-reference each other, so the same word may appear in more than one section.
+
+## General terms
+
+### Layer 1 (L1)
+
+Shorthand for the Ethereum blockchain. It is the counterpart to [layer 2](#layer-2-l2), which here means Base.
+
+### Layer 2 (L2)
+
+Shorthand for Base Chain — the rollup described by this specification. It sits on top of [layer 1](#layer-1-l1), the Ethereum settlement layer.
+
+### Block
+
+A term that applies to both L1 and L2 blocks, which share the same overall shape.
+
+A block bundles an ordered list of transactions together with header fields. Some of those fields are *inputs* — known before the block's transactions run — while others are *outputs* derived only after execution. The output fields include several [Merkle Patricia Trie](#merkle-patricia-trie) roots that commit to the post-execution L2 state and to the logs emitted while the block ran. The Ethereum yellow paper (section 4.3) documents the full set of header properties.
+
+### EOA
+
+Short for "Externally Owned Account." It denotes an address controlled directly by a user's key, in contrast to a contract address.
+
+### Merkle Patricia Trie
+
+A Merkle Patricia Trie (MPT) is a sparse, tree-shaped map from keys to values. Its root hash commits to everything stored in the tree, which means you can produce a Merkle proof for any key-value pair it contains and check that proof against the root.
+
+### Chain re-organization
+
+A re-organization — "re-org" for short — happens when the head of a chain switches, according to the [fork choice rule](#fork-choice-rule), to a block that is not a direct child of the previous head.
+
+On L1 these arise from network conditions or attacks. On L2 they are downstream effects of L1 re-orgs, propagated through [L2 chain derivation](#l2-chain-derivation).
+
+### Predeployed contract ("predeploy")
+
+A contract written into the L2 genesis state, so it exists from the very first block of the chain. The full set lives in the predeploys specification.
+
+### Preinstalled contract ("preinstall")
+
+Like a predeploy, a preinstall is seeded into the L2 genesis state. Unlike predeploys, preinstalls do not carry the same security guarantees; they are general-purpose contracts included to improve L2 user experience. The full set lives in the preinstalls specification.
+
+### Precompiled contract ("precompile")
+
+A contract implemented natively inside the EVM that runs a particular operation faster than an equivalent bytecode (for example, Solidity) version would. Precompiles live at fixed addresses and are introduced or changed only through network upgrades. The full set lives in the precompiles specification.
+
+### Receipt
+
+A receipt is what a transaction emits as a record of its execution: a status code, the gas it consumed, its log entries, and a [bloom filter](https://en.wikipedia.org/wiki/Bloom_filter) over those entries. Log entries are the mechanism behind Solidity events.
+
+Blocks do not embed receipts directly; instead each block stores a [Merkle Patricia Trie](#merkle-patricia-trie) root over the tree of every transaction receipt in that block. Receipts are defined in the yellow paper, section 4.3.1.
+
+### Transaction type
+
+[EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) defines a scheme for distinguishing transaction types. Each type may carry a different payload and be processed under different rules by the protocol.
+
+### Fork choice rule
+
+The rule that picks which block counts as the head of a chain. On L1 the choice follows the proof-of-stake rules.
+
+L2 has its own fork choice logic, and which block it selects depends on whether you are asking for the [safe](#safe-l2-head), [unsafe](#unsafe-l2-head), or [finalized](#finalized-l2-head) L2 head.
+
+### Priority gas auction
+
+Ethereum orders transactions by the price they pay for inclusion. A Priority Gas Auction (PGA) breaks out when several parties race to occupy the first slot in a block, each repeatedly bumping the gas price on their transaction. PGAs appear wherever being first carries value — being the earliest deposit, say, or landing a deposit before the guaranteed gas runs out. Because they generate a flood of transactions in a tiny time window, PGAs impose negative externalities on the network.
+
+## Sequencing
+
+A rollup transaction reaches the chain by one of two routes:
+
+- As a [deposited transaction](#deposited-transaction), which the system itself enforces.
+- As an ordinary transaction packed into a [sequencer batch](#sequencer-batch).
+
+Routing transactions through a batch trims overhead and lets the sequencer pre-confirm them ahead of L1 posting the underlying data.
+
+### Sequencer
+
+The sequencer is either a [rollup node](#rollup-node) operating in sequencer mode, or the party running that node.
+
+It is a privileged role: it takes L2 transactions from users, assembles them into L2 blocks, and forwards those blocks to a [data availability provider](#data-availability-provider) by way of a [batcher](#batcher). It also posts [output roots](#l2-output-root) to L1.
+
+### Sequencing window
+
+A sequencing window is the span of L1 blocks that a single [sequencing epoch](#sequencing-epoch) is derived from.
+
+If a window opens at L1 block `N`, it holds the [batcher transactions](#batcher-transaction) for epoch `N` and spans blocks `[N, N + SWS)`, with `SWS` the sequencer window size. The default `sws` is 3600 epochs. The window's first block also fixes the [depositing transactions](#depositing-transaction) that decide which [deposits](#deposits) go into the epoch's first L2 block.
+
+### Sequencing epoch
+
+A sequencing epoch is the consecutive run of L2 blocks derived from one [sequencing window](#sequencing-window) of L1 blocks. Its epoch number equals the block number of the window's first L1 block. Epochs may vary in length within defined limits; the L2 chain derivation spec covers the constraints.
+
+### L1 origin
+
+The L1 origin of an L2 block is the L1 block tied to that block's [sequencing epoch](#sequencing-epoch).
+
+## Deposits
+
+Broadly, a deposit is an L2 transaction that the [rollup driver](#rollup-driver) derives from an L1 block.
+
+Deposits are commonly — though not exclusively — used to bridge ETH and tokens onto L2, but the word should be read as "a transaction *deposited* to L2 from L1." Because these "transactions" surface at several layers, the term is ambiguous; the entries below pin down the variants. A *deposit* can mean:
+
+- A [deposited transaction](#deposited-transaction) on L2 belonging to a deposit block.
+- A [depositing call](#depositing-call) that triggers a deposited transaction to be derived.
+- The log/event data produced by that depositing call, which the rollup driver reads in order to derive the deposited transaction.
+
+The phrase *user deposit* is similar but deliberately leaves out [L1 attributes deposited transactions](#l1-attributes-deposited-transaction).
+
+### Deposited transaction
+
+An L2 transaction derived from L1 and placed into an L2 block. Two kinds exist:
+
+- The [L1 attributes deposited transaction](#l1-attributes-deposited-transaction), which records the L1 block's attributes into the [L1 Attributes Predeployed Contract](#l1-attributes-predeployed-contract).
+- [User-deposited transactions](#user-deposited-transaction), derived from an L1 call into the [deposit contract](#deposit-contract).
+
+### L1 attributes deposited transaction
+
+A [deposited transaction](#deposited-transaction) that writes the attributes of an L1 block — its number, timestamp, and so on — onto L2 by calling the [L1 Attributes Predeployed Contract](#l1-attributes-predeployed-contract). Other contracts can then read those attributes for the L1 block matching the current L2 block.
+
+### User-deposited transaction
+
+A [deposited transaction](#deposited-transaction) produced from an L1 [depositing call](#depositing-call) into the [deposit contract](#deposit-contract).
+
+### Depositing call
+
+An L1 call into the [deposit contract](#deposit-contract) that the [rollup driver](#rollup-driver) turns into a [user-deposited transaction](#user-deposited-transaction). The call supplies every field the resulting deposited transaction needs — destination, value, calldata, and the rest.
+
+### Depositing transaction
+
+An L1 transaction that issues one or more [depositing calls](#depositing-call).
+
+### Depositor
+
+The L1 account — contract or [EOA](#eoa) — that is the `msg.sender` of the [depositing call](#depositing-call). The depositor is explicitly **not** the originator (`tx.origin`) of the surrounding depositing transaction.
+
+### Deposited transaction type
+
+The [EIP-2718](#transaction-type) transaction type that defines the input fields and processing rules for a [deposited transaction](#deposited-transaction).
+
+### Deposit contract
+
+An [L1](#layer-1-l1) contract that [EOAs](#eoa) and contracts send [deposits](#deposits) to. It emits each deposit as a log record — a Solidity event — for [rollup nodes](#rollup-node) to consume.
+
+One subtlety: deposits are not carried in calldata, because a deposit can originate from a contract. In that case the calldata is part of *internal* contract-to-contract execution and never lands in any of the [Merkle Patricia Trie](#merkle-patricia-trie) roots committed by the L1 block.
+
+## Withdrawals
+
+In general terms, a withdrawal is a transaction sent from L2 to L1 that can move data, value, or both.
+
+As with deposits, the word spans multiple layers and is therefore imprecise. To keep the L1 and L2 halves distinct:
+
+- A *withdrawal initiating transaction* is the L2 transaction sent to the withdrawals predeploy.
+- A *withdrawal finalizing transaction* is the L1 transaction that finalizes and relays that withdrawal.
+
+### Relayer
+
+An L1 EOA that finalizes a withdrawal by submitting whatever data is needed to prove the withdrawal's inclusion on L2.
+
+### Finalization period
+
+The finalization period — also called the *withdrawal delay* — is the minimum number of seconds that must pass before a [withdrawal](#withdrawals) can be finalized. The delay exists to give [validators](#validator) enough time to mount a [fault proof](#fault-proof).
+
+## Configuration
+
+### Batch inbox
+
+The **Batch Inbox** is the address that sequencer transaction batches are posted to. A sequencer publishes to it by naming it as the `to` address of a transaction whose batched L2 transactions ride in calldata or in blobdata.
+
+### Batcher hash
+
+The **Batcher Hash** marks which sender(s) the L2 clients of a given Base chain will accept transactions from at the [Batch Inbox](#batch-inbox).
+
+Its first byte is a version tag. The V0 layout is a 32-byte hash structured as:
+
+| 1 byte         | 11 bytes | 20 bytes |
+| -------------- | -------- | -------- |
+| version (0x00) | empty    | address  |
+
+Equivalently:
+
+```solidity
+bytes32(address(batcher))
+```
+
+Here `batcher` is the address that submits to the Batch Inbox. In short, the V0 hash names a *single* address whose batches the L2 clients will honor. Versioning the hash leaves room to later reinterpret it — for example as a commitment to an allowlist of accounts or some other batcher-identification scheme.
+
+### Fee scalars
+
+The **Fee Scalars** are the parameters that feed the L1 data fee charged on L2 transactions. They are also known as Gas Price Oracle (GPO) parameters.
+
+#### Pre-Ecotone parameters
+
+Prior to the Ecotone upgrade:
+
+- **Scalar**: a multiplier over the L1 base fee, read as a big-endian `uint256`.
+- **Overhead**: a fixed gas overhead, read as a big-endian `uint256`.
+
+#### Post-Ecotone parameters
+
+After Ecotone:
+
+- **Scalar** packs extra scalar information using a versioned encoding.
+- **Overhead** is disregarded and has no bearing on the L2 state-transition output.
+
+#### Post-Ecotone scalar encoding
+
+The Scalar is a big-endian `uint256` reinterpreted as `bytes32` and laid out as:
+
+- Byte `0`: scalar-version byte.
+- Bytes `[1, 32)`: contents depend on the scalar version:
+  - Scalar-version `0`:
+    - Bytes `[1, 28)`: padding, expected to be zero.
+    - Bytes `[28, 32)`: big-endian `uint32`, the L1-fee `baseFeeScalar`.
+    - Implies `blobBaseFeeScalar` is 0.
+    - If the padding region holds any non-zero byte, `baseFeeScalar` must be set to MaxUint32.
+  - Scalar-version `1`:
+    - Bytes `[1, 24)`: padding, must be zero.
+    - Bytes `[24, 28)`: big-endian `uint32`, the `blobBaseFeeScalar`.
+    - Bytes `[28, 32)`: big-endian `uint32`, the `baseFeeScalar`.
+
+`baseFeeScalar` captures the user transaction's per-byte share of the total regular L1 EVM gas the batch-submitter's data transaction consumes; for blob transactions this is the L1 transaction's fixed intrinsic gas cost. `blobBaseFeeScalar` captures the user transaction's per-byte share of the blobdata that the batch-submitter's data transaction introduces.
+
+### Unsafe block signer
+
+The **Unsafe Block Signer** is an Ethereum address whose private key signs "unsafe" blocks before they go to L1. The signature lets P2P-network nodes treat those blocks as the canonical unsafe blocks, which guards the P2P layer against denial-of-service attacks.
+
+So that the value can be read with a storage proof regardless of storage layout, it lives at a dedicated slot keyed by `keccak256("systemconfig.unsafeblocksigner")`. Unlike the other system-config values, this one is purely a blockchain-policy setting and is not a consensus-level parameter.
+
+### L2 gas limit
+
+The **L2 Gas Limit** caps the gas a single L2 block may spend, keeping blocks small enough to process and prove. A change takes full effect in the first L2 block whose L1 origin carried the change. The limit may not exceed the protocol's maximum gas limit, which keeps L2 blocks provable and processable by consensus and execution clients.
+
+## Batch submission
+
+### Data availability
+
+Data availability is the assurance that some data stays *retrievable* over a reasonably long window. For Base, that data is the [sequencer batches](#sequencer-batch) that [validators](#validator) need in order to check the sequencer's work and validate the L2 chain.
+
+The [finalization period](#finalization-period) is the lower bound on this window, since availability matters most then — that is when the data is required to run a [fault proof](#fault-proof). Note that "available" is **not** a promise of long-term storage.
+
+### Data availability provider
+
+A service that makes data available, in the sense described under [data availability](#data-availability). A good provider backs that availability with strong, *verifiable* guarantees. Today the supported providers are Ethereum calldata and blob data.
+
+### Sequencer batch
+
+A sequencer batch is a list of L2 transactions (submitted to a sequencer) tagged with a [epoch number](#sequencing-epoch) and an L2 block timestamp — which converts straight to a block number because the block time is fixed.
+
+Batches are part of the [L2 derivation inputs](#l2-derivation-inputs). Each batch carries the inputs to build exactly **one** L2 block on top of existing L2 state — except for an epoch's first block, which additionally needs deposit information.
+
+### Channel
+
+A channel is a run of [sequencer batches](#sequencer-batch) for consecutive blocks, compressed together. Grouping batches improves the compression ratio and so lowers data-availability cost.
+
+A channel can be cut into [frames](#channel-frame) for transmission inside [batcher transactions](#batcher-transaction), which matters when the channel is too big to fit in one transaction. Each channel is identified by its creation timestamp (UNIX time) plus a random value. From the [rollup node's](#rollup-node) perspective, a channel is *open* until its explicitly-marked final frame has been read, and closed thereafter.
+
+### Channel frame
+
+A channel frame is a slice of a [channel](#channel). A single [batcher transaction](#batcher-transaction) may carry one or several frames. Splitting a channel into frames is what allows oversized channels to be transmitted across multiple transactions.
+
+### Batcher
+
+The batcher is a standalone program tasked with publishing channels to a data-availability provider. It pulls channels from the rollup node and makes them available through [batcher transactions](#batcher-transaction).
+
+### Batcher transaction
+
+A batcher transaction is the transaction a [batcher](#batcher) sends to a data-availability provider to publish channels. Each one carries one or more complete frames, which may come from different channels, and a single channel's frames may be spread across several batcher transactions.
+
+When posted to Ethereum calldata, the transaction's receiver must be the sequencer inbox address and it must be signed by a recognized batch submitter account. That account is recorded in the [System Configuration](#system-configuration).
+
+### Batch submission frequency
+
+As long as it stays within the [sequencing window](#sequencing-window), the batcher may post L2 blocks for data availability whenever it likes; the batcher software lets operators tune this policy dynamically. The rollup's safety and liveness guarantees are enforced through the sequencing window if data fails to arrive in time.
+
+Posting in smaller, more frequent chunks shortens the delay before L2 block inputs are confirmed, lets verifiers establish safety sooner, and reduces the time to L1 finality (and thus to L2 input-finality). Posting in larger, less frequent chunks aggregates more L2 data per submission, spreading the fixed overhead of batch submission over more data and lowering cost — especially for lower-throughput chains that take a while to fill a data transaction (typically 128 KB of calldata or 800 KB of blobdata).
+
+### Channel timeout
+
+The channel timeout is a window, measured in L1 blocks, during which a channel's [frames](#channel-frame) may arrive on L1 inside [batcher transactions](#batcher-transaction).
+
+A [channel's](#channel) frames are accepted over the time range `[channel_id.timestamp, channel_id.timestamp + CHANNEL_TIMEOUT]`; any L1 block whose timestamp lands in that range is eligible. (The `channel_id.timestamp` must be earlier than the L1 block timestamp of every L1 block carrying the channel's frames, or those frames are dropped.)
+
+Channel timeouts serve two purposes: they stop old, never-closed channels from lingering indefinitely, and they bound how far back through L1 blocks a node must scan to decode [sequencer batches](#sequencer-batch) — which is especially useful during L1 re-orgs.
+
+## L2 output root proposals
+
+### Proposer
+
+The proposer builds and submits output roots — commitments to L2 state — to the L2OutputOracle contract on the L1 settlement layer. It periodically asks the rollup node for the latest output root derived from the most recent finalized L1 block, then posts that root to the L2OutputOracle.
+
+## L2 chain derivation
+
+L2 chain derivation is the process of reading [L2 derivation inputs](#l2-derivation-inputs) from L1 and using them to reconstruct the L2 chain. The L2 chain derivation specification has the full details.
+
+### L2 derivation inputs
+
+The data found in L1 blocks that the [rollup node](#rollup-node) reads to assemble [payload attributes](#payload-attributes). These inputs are:
+
+- L1 block attributes
+  - block number
+  - timestamp
+  - basefee
+  - blob base fee
+- [deposits](#deposits) (carried as log data)
+- [sequencer batches](#sequencer-batch) (carried as transaction data)
+- [System configuration](#system-configuration) updates (carried as log data)
+
+### System configuration
+
+The set of dynamically adjustable rollup parameters held by the `SystemConfig` contract on L1 and read by the L2 [derivation](#l2-chain-derivation) process. Keeping them in a contract lets keys be rotated and external cost parameters be retuned without going through a hardfork. The Configuration reference has the full overview.
+
+### Payload attributes
+
+An object derived from the [L2 derivation inputs](#l2-derivation-inputs) on L1 and handed to the [execution engine](#execution-engine) to build L2 blocks. In effect it encodes [a block stripped of its output properties](#block). The object originates in the Ethereum Engine API spec and is extended by the Execution Engine specification.
+
+### L2 genesis block
+
+The first block of the L2 chain in its current version. Its state is made up of:
+
+- State carried over from the previous version of the L2 chain — possibly altered by "state surgeries" (for instance, the Bedrock migration changed how native ETH balances were held in the storage trie).
+- [Predeployed contracts](#predeployed-contract-predeploy).
+
+The genesis block's timestamp must be a multiple of the [block time](#block-time) — an even number, since the block time is 2 seconds.
+
+When the rollup moves to a new protocol version, it may perform a *squash fork*, which mints a fresh L2 genesis block numbered `X + 1`, where `X` is the last L2 block before the upgrade. This differs from a *re-genesis*, an older approach that reset L2 block numbers so the new genesis block was number 0; re-genesis will not be used again. Squash forks win out because they avoid reusing L2 block numbers, which would break many external tools.
+
+### L2 chain inception
+
+The L1 block number at which the output roots for the [genesis block](#l2-genesis-block) were first proposed to the output oracle contract. In the current implementation that is the L1 block where the output oracle was deployed or upgraded.
+
+### Safe L2 block
+
+An L2 block that a [rollup node](#rollup-node) can derive in full from L1. Which block qualifies can differ between nodes depending on each node's view of the L1 chain.
+
+### Safe L2 head
+
+The highest [safe L2 block](#safe-l2-block) a [rollup node](#rollup-node) is aware of.
+
+### Unsafe L2 block
+
+An L2 block a [rollup node](#rollup-node) knows about but has not derived from L1. In sequencer mode this is a block the sequencer produced itself; in validator mode it is a block pulled from the sequencer via [unsafe sync](#unsafe-sync).
+
+### Unsafe L2 head
+
+The highest [unsafe L2 block](#unsafe-l2-block) a [rollup node](#rollup-node) is aware of.
+
+### Unsafe block consolidation
+
+The process by which a [rollup node](#rollup-node) advances the [safe L2 head](#safe-l2-head) by one block, promoting the oldest [unsafe L2 block](#unsafe-l2-block) to be the new safe head. To do so the node checks that the [payload attributes](#payload-attributes) derived from L1 match that oldest unsafe block exactly.
+
+### Finalized L2 head
+
+The highest L2 block derivable from *finalized* L1 blocks — that is, L1 blocks older than two L1 epochs (64 L1 [time slots](#time-slot)).
+
+## Other L2 chain concepts
+
+### Address aliasing
+
+When a contract sends a [deposit](#deposits) from L1 to L2, the address reported by `ORIGIN` and `CALLER` on L2 is an *aliased* variant of the originating contract's address rather than the address itself.
+
+### Rollup node
+
+The rollup node [derives the L2 chain](#l2-chain-derivation) from the L1 chain — from L1 [blocks](#block) and their associated [receipts](#receipt). It runs in either *validator* or *sequencer* mode.
+
+In sequencer mode it takes L2 transactions from users, builds L2 blocks, and posts them to a [data availability provider](#data-availability-provider) through [batch submission](#batch-submission); derivation then doubles as a sanity check and a way to spot L1 [re-orgs](#chain-re-organization). In validator mode it derives the chain as usual but can also "run ahead" of L1 by fetching blocks straight from the sequencer, with derivation serving to verify the sequencer's behavior. A validator-mode node is sometimes called a *replica*.
+
+### Rollup driver
+
+The [rollup node](#rollup-node) component responsible for [deriving the L2 chain](#l2-chain-derivation) from the L1 chain and its [receipts](#receipt).
+
+### L1 attributes predeployed contract
+
+A [predeployed contract](#predeployed-contract-predeploy) on L2 for looking up the attributes of an L1 block by its number or hash.
+
+### L2 output root
+
+A 32-byte value committing to the current state of the L2 chain.
+
+### L2 output oracle contract
+
+An L1 contract that the [sequencer](#sequencer) posts [L2 output roots](#l2-output-root) to.
+
+### Validator
+
+An individual or organization running a [rollup node](#rollup-node) in validator mode. Doing so brings benefits much like running an Ethereum node — for example simulating L2 transactions locally without rate limits. It also lets the validator audit the [sequencer](#sequencer) by re-deriving [output roots](#l2-output-root) and comparing them to the submitted ones; on a mismatch the validator can run a [fault proof](#fault-proof).
+
+### Fault proof
+
+An on-chain, *interactive* proof that [validators](#validator) run to show that a [sequencer](#sequencer) submitted incorrect [output roots](#l2-output-root).
+
+### Time slot
+
+L2 produces a block every 2 seconds — this interval is the [block time](#block-time). A "time slot" occurs at every 2-second multiple after the [L2 genesis block's](#l2-genesis-block) timestamp.
+
+On post-[merge](https://ethereum.org/en/eth2/merge/) L1, time slots come every 12 seconds, though an L1 block need not be produced for every slot, even under benign consensus hiccups.
+
+### Block time
+
+The L2 block time is 2 seconds, so there is an L2 block at each 2-second [time slot](#time-slot).
+
+Post-merge, the L1 block time can be described as 12 seconds — its [time slot](#time-slot) length — but it is effectively variable because some slots are skipped. Pre-merge, L1 block time was variable too, averaging around 13 seconds.
+
+### Unsafe sync
+
+The process by which a [validator](#validator) learns of [unsafe L2 blocks](#unsafe-l2-block) directly from the [sequencer](#sequencer). These blocks still have to be confirmed against the L1 chain later, via [unsafe block consolidation](#unsafe-block-consolidation).
+
+## Execution engine concepts
+
+### Execution engine
+
+The execution engine runs the transactions in a block and computes the resulting state root, receipts root, and block hash. Both post-[merge](https://ethereum.org/en/eth2/merge/) L1 and L2 have one.
+
+On L1, the blocks it executes either come from synchronizing the L1 chain or are freshly minted from the L1 mempool at the consensus layer's request. On L2, blocks are always freshly minted at the [rollup node's](#rollup-node) request, from transactions [derived from L1 blocks](#l2-chain-derivation). Throughout these specifications, "execution engine" means the L2 execution engine unless stated otherwise.
