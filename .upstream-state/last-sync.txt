@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-07T03:06:44Z
+Generated 2026-06-11T03:05:00Z
 
-### base/base @ bbc8d56
+### base/base @ 4512b16
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
 
-### base/docs @ ea200dd
+### base/docs @ 5e30a5d
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -26,13 +26,13 @@ c6dc3d2e7575f83b88bef3aef0673025527382dd  docs/base-chain/api-reference/ethereum
 41191fc1f7d9ca0abf5bcae5ae7b79011014a56c  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByHash.mdx
 ce6f542b42a66ff98915dedcdf1666eeacea4b1e  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByNumber.mdx
 a8c7b5c1cdba4c6dfb638dc206354457573da0ad  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getCode.mdx
-a1ad0ac6c53f2421f4b0d8f2bfa6e3dab11bc499  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getLogs.mdx
+fca1c3b7aef4e11cc9a6eadcc054b317b0d3d8fb  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getLogs.mdx
 826d189ae0054e94a69347817b891e037086d29d  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getStorageAt.mdx
 db7d54d051d573850b93fcac3ca5f32f5125416c  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByBlockHashAndIndex.mdx
 b0e19733b16303fac911d028399b387f1918d5e5  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByBlockNumberAndIndex.mdx
-e44c364adfb771c711e3aa575a2e9d3a8ee81e49  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByHash.mdx
+dfeb51f8d10c75427b91eee8f87bd3ccce9524d2  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionByHash.mdx
 ec3f69d58fd8b95fae805d4c3c09b662beacab13  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionCount.mdx
-ea5f50675c4def008a088188d7438b613b3e0a36  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionReceipt.mdx
+37c72fe87a52cceef62d6a2525b4dad79324e79d  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionReceipt.mdx
 943f0b649ac67d29d0d879f5b512c410b0cbdd5f  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_maxPriorityFeePerGas.mdx
 3cb233f9a2a545b6a956a82ba1e812d62ca0c7f0  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_sendRawTransaction.mdx
 a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_subscribe.mdx
@@ -42,7 +42,7 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 0c13fbb5a8a0033f8c567c92fcf73dacd4e30b7c  docs/base-chain/api-reference/ethereum-json-rpc-api/web3_clientVersion.mdx
 89280c7613256cd789047d13e5304c43f9097425  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 8c464acad1e672a91b94bd96f079fd4d3f7c1ef7  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
-e057c88b48f74e99d31312ae7ba658d63d0b30e3  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
+40648d0017cd03c293c57c122e7195e8fecddb5f  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
 1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 0dac07d409417e02b97b3a169be5176fdbfde155  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
@@ -57,14 +57,14 @@ aca1f259fcd3881e121f847f1bee9ff2f387ab78  docs/base-chain/network-information/bl
 abde76c1b86631406354f6b0d79b54f3f46d20f0  docs/base-chain/network-information/configuration-changelog.mdx
 191af4491b0823ab07115a0847cf009169085246  docs/base-chain/network-information/diffs-ethereum-base.mdx
 663214bf3a4de899b92b2904dfe102d55000b538  docs/base-chain/network-information/network-faucets.mdx
-0f67b06c5d7d63d6bd0902035d9bfbf0b3d44b88  docs/base-chain/network-information/network-fees.mdx
+db3df4c1520a79c444d8365184ed8aeec1b6e4c6  docs/base-chain/network-information/network-fees.mdx
 01ae095080c515efb24a7e2f9b09baa070b5f64b  docs/base-chain/network-information/transaction-finality.mdx
 6e38a996105f162c5e75e631896b98b539429483  docs/base-chain/network-information/troubleshooting-transactions.mdx
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
-7c13d5ab81279b6919458da7fa676748199e2d3e  docs/base-chain/node-operators/run-a-base-node.mdx
+4d36be28e66712189ba68a9f7564c0f0512be046  docs/base-chain/node-operators/run-a-base-node.mdx
 d74693c54a3d0a98134bd14d22dfa640e7e0b44e  docs/base-chain/node-operators/snapshots.mdx
-a51a3ff03f2e25c404c08b174ba62b46b63a0a10  docs/base-chain/node-operators/troubleshooting.mdx
+4508dd7afaa3f3509697f3dc3f8e3d928f42233f  docs/base-chain/node-operators/troubleshooting.mdx
 92ae9dd3d4fe2e572cf802b86fb9177a04aac818  docs/base-chain/quickstart/base-solana-bridge.mdx
 d3d326288a002ffec883435167175f97d0631c0e  docs/base-chain/quickstart/connecting-to-base.mdx
 af591acd6f7b640f3a42ed17956a3fa7344b6359  docs/base-chain/quickstart/deploy-on-base.mdx
@@ -83,7 +83,7 @@ c09f7b7a12c4e5a4ec5f00ea82194583a3ad8d5f  docs/base-chain/specs/protocol/bridgin
 c09e42bced696a291d49980170ac9815786d4076  docs/base-chain/specs/protocol/consensus/index.mdx
 05b7df8b147b390d53922b312d13c0be55859de7  docs/base-chain/specs/protocol/consensus/p2p.mdx
 6816e37d9c7617775e59e734f9e81ba581c4dbde  docs/base-chain/specs/protocol/consensus/rpc.mdx
-9e95b8157fe9ca44f266c2c1c3714280ea907312  docs/base-chain/specs/protocol/execution/evm/precompiles.mdx
+cf03550203babad23856f86180443e5cd53ef0f3  docs/base-chain/specs/protocol/execution/evm/precompiles.mdx
 fc1c4b7a496cf663ad2710a8df741fbcb3d6177e  docs/base-chain/specs/protocol/execution/evm/predeploys.mdx
 ce156598a47aa069158a34c5949e0c25ab7291b0  docs/base-chain/specs/protocol/execution/evm/preinstalls.mdx
 2350d3cdf82405a54de12c52fad8adcd8b06506f  docs/base-chain/specs/protocol/execution/index.mdx

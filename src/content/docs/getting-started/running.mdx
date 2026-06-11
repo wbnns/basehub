@@ -105,6 +105,54 @@ A typical invocation that enables both HTTP and WebSocket RPC, metrics, and stor
   -vv
 ```
 
+## Enabling Flashblocks
+
+A synced node can serve ~200ms pre-confirmations to your applications once it is subscribed to the Flashblocks stream. Point the node at the Flashblocks WebSocket feed with `RETH_FB_WEBSOCKET_URL` when you launch it:
+
+```bash
+RETH_FB_WEBSOCKET_URL="wss://mainnet.flashblocks.base.org/ws" ./target/release/base-reth-node
+```
+
+| Network | URL |
+|---------|-----|
+| Mainnet | `wss://mainnet.flashblocks.base.org/ws` |
+| Sepolia | `wss://sepolia.flashblocks.base.org/ws` |
+
+These WebSocket URLs are part of the node infrastructure and are not meant for direct use by applications — your own RPC endpoint is what apps should query for Flashblocks data. The binary tails this stream, caches the pre-confirmation data, and replies from that cache when a Flashblocks-aware RPC method is called. The full message schema is documented in the [Flashblocks API Overview](/api-reference/flashblocks/overview/).
+
+To confirm it is working, request a `pending` block:
+
+```bash
+curl -X POST \
+  --data '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["pending", false],"id":1}' \
+  http://localhost:8545
+```
+
+A working setup returns data from the most recent Flashblock; if the stream is briefly unavailable the node falls back to the latest finalized block.
+
+## Historical Proofs RPCs
+
+Serving `eth_getProof`, `debug_executionWitness`, and `debug_executePayload` at scale requires the historical proofs execution extension (ExEx), which maintains a dedicated database of the state those methods need. That database can grow by hundreds of gigabytes and wants a host with strong I/O, so enable it only if you actually need these endpoints — most operators do not.
+
+Turn the ExEx on with a single environment variable:
+
+```bash
+RETH_HISTORICAL_PROOFS=true
+```
+
+On its first start the node backfills existing state into a new proofs database under `<datadir>/proofs`. The backfill is lengthy — roughly 24-48 hours on mainnet. You can skip it entirely by [restoring a proofs snapshot](/node-operations/snapshots/#proofs-snapshots).
+
+The earliest block these RPCs can answer for is whichever block the ExEx first ran from. When the ExEx is active the `--rpc.eth-proof-window` flag has no effect. By default the ExEx retains 28 days of blocks; override that window with `RETH_PROOFS_HISTORY_WINDOW=<num_blocks>`.
+
+The ExEx is fastest when it stays within 1024 blocks of the chain tip, so performance suffers while syncing up to head, and on an initial Base Mainnet sync it can fall behind far enough that it never catches up unaided. To prevent that, run `base-consensus` in follow mode so it tracks within 512 blocks of the proofs ExEx:
+
+```bash
+BASE_NODE_SOURCE_L2_RPC=<trusted_rpc>
+BASE_NODE_PROOFS=true
+```
+
+When the ExEx reports state-root and execution durations of 0, it is keeping up correctly — it is not re-executing blocks, only persisting data from already-executed ones.
+
 ## Stopping the Node
 
 Send `SIGINT` (Ctrl+C) or `SIGTERM` to gracefully shut down the node. It will flush pending state to disk before exiting. Avoid sending `SIGKILL` unless absolutely necessary, as it can leave the database in an inconsistent state requiring a repair on next startup.
