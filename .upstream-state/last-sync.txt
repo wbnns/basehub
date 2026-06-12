@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-11T03:05:00Z
+Generated 2026-06-12T03:14:12Z
 
-### base/base @ 4512b16
+### base/base @ e4ce730
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
 
-### base/docs @ 5e30a5d
+### base/docs @ 6138e86
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -48,18 +48,18 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 25dc9aa9441b1bc9f93b8498ad4ba98aca53de75  docs/base-chain/api-reference/rpc-overview.mdx
 d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integration.mdx
-a60e3914db37f45c4f1c497251533afb43c4cdcf  docs/base-chain/flashblocks/architecture.mdx
+f1b24eda592ee848413950a6f35da68eb7a7cf81  docs/base-chain/flashblocks/architecture.mdx
 c07f4264c0ded75d1f6bd5a44c9a4dbc34506378  docs/base-chain/flashblocks/faq.mdx
-04bc24596218abbdd3f690a908c69541cccf4ba5  docs/base-chain/flashblocks/overview.mdx
+21f2c7cc7ca4ecb66e25557b9c3aa8e9c53ae366  docs/base-chain/flashblocks/overview.mdx
 b919d42821a3643aee3615df249556b7fb5af03c  docs/base-chain/network-information/base-contracts.mdx
-aca1f259fcd3881e121f847f1bee9ff2f387ab78  docs/base-chain/network-information/block-building.mdx
+fe83ea2ee1a9320abe9783e0356b3e60514c325b  docs/base-chain/network-information/block-building.mdx
 258a15b70a95a9b4bddb8522ffefc53e96ba4220  docs/base-chain/network-information/bridges.mdx
 abde76c1b86631406354f6b0d79b54f3f46d20f0  docs/base-chain/network-information/configuration-changelog.mdx
-191af4491b0823ab07115a0847cf009169085246  docs/base-chain/network-information/diffs-ethereum-base.mdx
+e78dbd55b528a0ef3f17c72e2edc0ab006452b68  docs/base-chain/network-information/diffs-ethereum-base.mdx
 663214bf3a4de899b92b2904dfe102d55000b538  docs/base-chain/network-information/network-faucets.mdx
 db3df4c1520a79c444d8365184ed8aeec1b6e4c6  docs/base-chain/network-information/network-fees.mdx
 01ae095080c515efb24a7e2f9b09baa070b5f64b  docs/base-chain/network-information/transaction-finality.mdx
-6e38a996105f162c5e75e631896b98b539429483  docs/base-chain/network-information/troubleshooting-transactions.mdx
+b20699edecc5f4384a4db8cf084f49851a11f811  docs/base-chain/network-information/troubleshooting-transactions.mdx
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
 4d36be28e66712189ba68a9f7564c0f0512be046  docs/base-chain/node-operators/run-a-base-node.mdx
@@ -78,10 +78,10 @@ f5e60bf06138f0932e5818033a33a4876d2ac78f  docs/base-chain/specs/protocol/batcher
 cbec5debcc167af7797f4b8f55afdc9042993198  docs/base-chain/specs/protocol/bridging/bridges.mdx
 c09f7b7a12c4e5a4ec5f00ea82194583a3ad8d5f  docs/base-chain/specs/protocol/bridging/deposits.mdx
 60fdac2bc6ab9bebf838b99ece4af20ae53a8957  docs/base-chain/specs/protocol/bridging/messengers.mdx
-828b0661768aab247bd2bb4de28c919d4e16d373  docs/base-chain/specs/protocol/bridging/withdrawals.mdx
-0b27dab7123ee41f0a2b64ca65b8ba5fcc8d36c5  docs/base-chain/specs/protocol/consensus/derivation.mdx
+a0caa4a7a7b2f445b6e8d42cdc260e31ad689805  docs/base-chain/specs/protocol/bridging/withdrawals.mdx
+e7295d8500dab048a01dae6bb246d8d814819787  docs/base-chain/specs/protocol/consensus/derivation.mdx
 c09e42bced696a291d49980170ac9815786d4076  docs/base-chain/specs/protocol/consensus/index.mdx
-05b7df8b147b390d53922b312d13c0be55859de7  docs/base-chain/specs/protocol/consensus/p2p.mdx
+3b40bf8a2267f992dfc37196a5a5b706a564d31e  docs/base-chain/specs/protocol/consensus/p2p.mdx
 6816e37d9c7617775e59e734f9e81ba581c4dbde  docs/base-chain/specs/protocol/consensus/rpc.mdx
 cf03550203babad23856f86180443e5cd53ef0f3  docs/base-chain/specs/protocol/execution/evm/precompiles.mdx
 fc1c4b7a496cf663ad2710a8df741fbcb3d6177e  docs/base-chain/specs/protocol/execution/evm/predeploys.mdx
@@ -97,10 +97,13 @@ a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/
 152286087f391a2734f1385f45aac6becd4c3298  docs/base-chain/specs/protocol/proofs/zk-prover.mdx
 d0df7caba290fa6bc40ec98e94f9e4ca1874205c  docs/base-chain/specs/reference/configurability.mdx
 845db204ce7b41376c4b5533b6080896cb40fcc5  docs/base-chain/specs/reference/glossary.mdx
-4eb3900f80c4578358c369b77cf91a765162fd20  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
+d92150b26bbda21b1e3bf78648005998fd5c194b  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
 a16c3f575b1810c0cfe4b3cffb967b20b603d176  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
-46e723910b718f4be5cf8535174117d6d6936cc5  docs/base-chain/specs/upgrades/azul/overview.mdx
-48ac1325629c7f7b3f6e57741eceb2af5c0148d9  docs/base-chain/specs/upgrades/azul/proofs.mdx
+57a84150a36281edb66ca260b357f9d422c90a08  docs/base-chain/specs/upgrades/azul/overview.mdx
+968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
+6ac271f60566c3b421ab9239fb463cfbd9fa57f8  docs/base-chain/specs/upgrades/beryl/b20.mdx
+dbbeda03bd354efa796b1632756d4febcdaa818a  docs/base-chain/specs/upgrades/beryl/overview.mdx
+f0fd19ab2300adc97dbe74c8de47339978fa844b  docs/base-chain/specs/upgrades/beryl/reth-v2.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx
 3cd04b13fe4def1cc83263064cd96a36d23229db  docs/base-chain/specs/upgrades/delta/span-batches.mdx
@@ -118,7 +121,7 @@ e1143163b1d13daa9e0dafea79f67a42ddc042ad  docs/base-chain/specs/upgrades/holocen
 27dcf9dcfcfefad09f40a124027c1c0efa1343a4  docs/base-chain/specs/upgrades/holocene/exec-engine.mdx
 816921e65df738cc09ef87fe9ce90f821157a7f8  docs/base-chain/specs/upgrades/holocene/overview.mdx
 0ac796ef3dfde46c991e91808dd58cd896782fc3  docs/base-chain/specs/upgrades/holocene/system-config.mdx
-d6086a1e60d78469090b8db5c6efc27681edb5b9  docs/base-chain/specs/upgrades/isthmus/derivation.mdx
+4f2d0ebf2d33f05dd1108b6b886f27f0e32caa99  docs/base-chain/specs/upgrades/isthmus/derivation.mdx
 ea6236ed835f91ba0fb65291b29a9d62220d17b0  docs/base-chain/specs/upgrades/isthmus/exec-engine.mdx
 f98e57e4de382931f0b13f238e06905bf2844d75  docs/base-chain/specs/upgrades/isthmus/l1-attributes.mdx
 f8f58a54e4421ca2ac7b47d35dc65a6dba749779  docs/base-chain/specs/upgrades/isthmus/overview.mdx

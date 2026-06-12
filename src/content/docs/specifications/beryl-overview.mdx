@@ -1,0 +1,41 @@
+---
+title: Beryl Upgrade Overview
+description: Summary of the Beryl hardfork — the B20 native token standard, a shorter single-proof withdrawal window, and the Reth V2 node release.
+sources:
+- base/docs:docs/base-chain/specs/upgrades/beryl/overview.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Beryl is the next Base hardfork after Azul. It folds together three unrelated changes: a chain-native token standard called [B20](/specifications/b20), a shorter wait before withdrawals finalize, and the [Reth V2](/specifications/reth-v2) node release that trims disk usage and accelerates state-root work.
+
+## What Beryl ships
+
+- **[B20](/specifications/b20)** — a native token standard built for issuers of stablecoins, real-world assets (RWAs), and long-tail tokens.
+- **Faster withdrawals** — a single-proof proposal now finalizes after 5 days instead of the previous 7, returning bridge liquidity sooner.
+- **[Reth V2](/specifications/reth-v2)** — as much as 50% less disk and a rebuilt state-root pipeline worth roughly +33% throughput.
+
+## Activation timestamps
+
+| Network | Timestamp | Date |
+|---------|-----------|------|
+| `mainnet` | `1782410400` | 2026-06-25 18:00:00 UTC |
+| `sepolia` | `1781805600` | 2026-06-18 18:00:00 UTC |
+
+<Aside type="caution">
+Operators need to act before activation. Make sure both your Sepolia and Mainnet nodes are on the newest `base-reth-node` build ahead of each network's date in the table above. The exact required versions get published here beforehand.
+</Aside>
+
+## B20: native token standard
+
+B20 is Base's own token standard: tokens that keep ERC-20 compatibility but run as Rust precompiles instead of EVM contracts, aimed at stablecoin, RWA, and long-tail issuers. The full surface is documented in [B20 Native Token Standard](/specifications/b20), covering the [roles model](/specifications/b20#roles-model), [policy integration](/specifications/b20#policy-integration), the [factory](/specifications/b20#factory), the [policy registry](/specifications/b20#policy-registry), [mint and burn](/specifications/b20#mint), and the asset/stablecoin [variants](/specifications/b20#variants).
+
+## Withdrawals
+
+Beryl shortens how long a single-proof proposal sits in its dispute game before finalizing — that wait drops to 5 days, down from 7. The TEE + ZK dual-proof path that Azul introduced is untouched and still resolves in a single day.
+
+Returning capital to fast-bridge liquidity providers sooner is the point: shorter lockups mean lower fees and steadier third-party bridging for the people using it.
+
+## Reth V2
+
+Reth V2 ships as a node-software update alongside Beryl — it needs no separate network upgrade. It targets the two ceilings on a high-throughput chain, disk footprint and state-root speed, through [Storage V2](/specifications/reth-v2#storage-v2) and a rewritten [state-root computation](/specifications/reth-v2#state-root-computation) path. Full details are in [Reth V2](/specifications/reth-v2).

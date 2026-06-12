@@ -1,0 +1,43 @@
+---
+title: Reth V2
+description: The Reth V2 node release — up to 50% smaller on disk, with a rebuilt state-root pipeline that raises throughput and lowers per-block execution latency.
+sources:
+- base/docs:docs/base-chain/specs/upgrades/beryl/reth-v2.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Base's execution client is Reth, a high-performance Ethereum client. Its next major release, Reth V2, goes straight at the two things that bound a high-throughput chain: how much disk a node burns and how fast it can compute state roots.
+
+<Aside type="note">
+Reth V2 isn't a network upgrade — it rides along with Beryl as a node-software release. Operators should be on the latest `base-reth-node` build before the [Beryl activation date](/specifications/beryl-overview#activation-timestamps).
+</Aside>
+
+## Storage V2
+
+Storage V2 reworks the on-disk layout to bring node storage requirements down sharply:
+
+| Node type | Disk reduction |
+|-----------|----------------|
+| Full | ~30% |
+| Minimal | ~50% |
+| Archive | ~23% |
+
+That lifts a disk-growth ceiling that would otherwise cap how far Base can push block throughput.
+
+## State root computation
+
+Reth V2 rebuilds the state-root pipeline around three changes:
+
+- **Warm sparse-trie caching across blocks** — skips recomputing subtrees that didn't change from one block to the next.
+- **Parallel trie** — spreads state-root work across CPU cores at once.
+- **Proof V2** — a reworked proof-generation path that trims per-proof overhead.
+
+## Performance
+
+Across Reth's published benchmarks, those changes add up to:
+
+- **+33% throughput**
+- **~25% lower average block-execution latency**
+
+`base-reth-node` picks up these gains directly, adding headroom on the way toward 1 gigagas/s.

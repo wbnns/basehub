@@ -31,7 +31,7 @@ Each block contains **10 Flashblocks** (indexes 1-10), arriving every 200ms. Ind
 
 ## Architecture
 
-For details on the sequencer system and the Flashblocks infrastructure components (rollup-boost, op-rbuilder, websocket-proxy, and base), see the [Architecture](/flashblocks/architecture/) page.
+For details on the sequencer system and the Flashblocks infrastructure components (rollup-boost, base-builder, websocket-proxy, and base), see the [Architecture](/flashblocks/architecture/) page.
 
 ## Transaction lifecycle
 
@@ -47,11 +47,11 @@ The transaction lands in the private mempool and is added to the txpool as pendi
 
 ### 2. Distribution
 
-The mempool keeps P2P connections open with execution layers (op-reth, op-rbuilder), keeping all pending transactions in sync for block building.
+The mempool keeps P2P connections open with execution layers (base-reth-node, base-builder), keeping all pending transactions in sync for block building.
 
 ### 3. Block building
 
-In each 200ms loop, op-rbuilder selects transactions using:
+In each 200ms loop, base-builder selects transactions using:
 
 1. **Transaction fee** — transactions are ordered fee-first (highest first).
 2. **Gas limit and remaining capacity** — Flashblock `j` may use up to `j/10` of the total block gas limit.

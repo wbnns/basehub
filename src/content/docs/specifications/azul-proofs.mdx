@@ -32,6 +32,10 @@ A proposal on Ethereum can settle along three paths depending on which proofs ar
 
 The long window exists so independent provers have time to recheck a claim and dispute it. The short window opens only when both proof systems endorse the same proposal. A ZK prover may also overturn an invalid TEE-backed claim and collect the TEE prover's bond as a reward.
 
+<Aside type="note">
+The [Beryl upgrade](/specifications/beryl-overview) trims the single-proof long window from 7 days to 5 days once it activates (2026-06-25 on mainnet). The dual-proof (TEE + ZK) short window stays at 1 day.
+</Aside>
+
 In Azul that delay is held inside `AggregateVerifier` itself. `OptimismPortal2` and `AnchorStateRegistry` no longer impose their own separate 3.5 day delay — leaving either legacy delay in place would shut off the fast path even when both proofs are already present.
 
 ## Security and decentralization
