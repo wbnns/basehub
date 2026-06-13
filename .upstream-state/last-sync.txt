@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-12T03:14:12Z
+Generated 2026-06-13T03:05:03Z
 
-### base/base @ e4ce730
+### base/base @ 2868053
 
 6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
 
-### base/docs @ 6138e86
+### base/docs @ a452480
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -98,12 +98,11 @@ a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/
 d0df7caba290fa6bc40ec98e94f9e4ca1874205c  docs/base-chain/specs/reference/configurability.mdx
 845db204ce7b41376c4b5533b6080896cb40fcc5  docs/base-chain/specs/reference/glossary.mdx
 d92150b26bbda21b1e3bf78648005998fd5c194b  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
-a16c3f575b1810c0cfe4b3cffb967b20b603d176  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
-57a84150a36281edb66ca260b357f9d422c90a08  docs/base-chain/specs/upgrades/azul/overview.mdx
+d7b84323d59159531741666673c5114a347277f4  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
+cb43419f87628601f9cd8d6d3c982a9c0acd54fd  docs/base-chain/specs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
-6ac271f60566c3b421ab9239fb463cfbd9fa57f8  docs/base-chain/specs/upgrades/beryl/b20.mdx
-dbbeda03bd354efa796b1632756d4febcdaa818a  docs/base-chain/specs/upgrades/beryl/overview.mdx
-f0fd19ab2300adc97dbe74c8de47339978fa844b  docs/base-chain/specs/upgrades/beryl/reth-v2.mdx
+02f77efe13911def67280b517a50fbb85e18eb2f  docs/base-chain/specs/upgrades/beryl/b20.mdx
+5dcd1abc1f17f1add0fc38c0c4a57a5ae416b84d  docs/base-chain/specs/upgrades/beryl/overview.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx
 3cd04b13fe4def1cc83263064cd96a36d23229db  docs/base-chain/specs/upgrades/delta/span-batches.mdx
@@ -158,6 +157,8 @@ g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 
 
 ### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/5zdg2sd9dchm	Sepolia Testnet: Base Beryl Upgrade - June 18th	Thu, 18 Jun 2026 18:00:00 +0000
+https://base-l2.statuspage.io/incidents/sj3qyrxy27dl	Base Mainnet p2p peering stability	Fri, 12 Jun 2026 21:28:56 +0000
 https://base-l2.statuspage.io/incidents/t8rgbdb6bfds	Node Peering Stability on Base Testnet and Mainnet	Thu, 04 Jun 2026 19:42:05 +0000
 https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Tue, 02 Jun 2026 22:32:28 +0000
 https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Delay	Sun, 31 May 2026 03:38:45 +0000
@@ -181,5 +182,3 @@ https://base-l2.statuspage.io/incidents/z6l4xm9gc08m	Base Mainnet minimum base f
 https://base-l2.statuspage.io/incidents/zfvvgt46j9d8	High Rate of Transaction Drops and Transaction Inclusion Delays	Sat, 31 Jan 2026 21:51:55 +0000
 https://base-l2.statuspage.io/incidents/9yrk7wlc2bp1	Base Mainnet minimum base fee increase	Thu, 22 Jan 2026 20:30:22 +0000
 https://base-l2.statuspage.io/incidents/c9cjh8jbz8b0	Periodically delayed block building on Base Mainnet	Tue, 20 Jan 2026 14:30:00 +0000
-https://base-l2.statuspage.io/incidents/lyhrg67gqn38	Base Mainnet minimum base fee and gasLimit increase	Thu, 18 Dec 2025 20:00:23 +0000
-https://base-l2.statuspage.io/incidents/mqlf3z7xkwt1	Delayed Transactions	Tue, 09 Dec 2025 23:00:00 +0000

@@ -9,6 +9,14 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-06-18 — Sepolia Beryl upgrade (scheduled)
+
+Base Sepolia is scheduled to activate the Beryl hardfork on Thursday, June 18th at 18:00 UTC (`1781805600`). Operators of Sepolia nodes need to move to the `v1.1.0` release or later of `github.com/base/base`, with matching preconfigured builds shipped as the `v1.1.0` release of `github.com/base/node`. The migration details live in the [Beryl Upgrade Overview](/specifications/beryl-overview).
+
+### 2026-06-12 — Mainnet p2p peering instability
+
+On Friday, June 12th at 21:28 UTC, the team began investigating peering problems on Base Mainnet where newly started nodes were having trouble finding peers. As a temporary measure, affected operators were pointed at a short list of `--trusted-peers` enode entries to add to their Reth node and restart while a fix was developed.
+
 ### 2026-06-02 — Mainnet Flashblocks broadcasting degraded
 
 On Tuesday, June 2nd at 22:32 UTC, the team began investigating periodic instability in Flashblocks broadcasting on Base Mainnet. Pre-confirmation delivery was affected, but transaction inclusion in sealed blocks was reported as unaffected throughout.
