@@ -392,6 +392,7 @@ export default defineConfig({
 						{ label: 'P2P', slug: 'specifications/p2p' },
 						{ label: 'Configuration', slug: 'specifications/configuration' },
 						{ label: 'Isthmus Execution Engine', slug: 'specifications/isthmus-exec-engine' },
+						{ label: 'Jovian Execution Engine', slug: 'specifications/jovian-exec-engine' },
 						{ label: 'Azul Execution Engine', slug: 'specifications/azul-exec-engine' },
 						{ label: 'Beryl Upgrade Overview', slug: 'specifications/beryl-overview' },
 						{ label: 'B20 Token Standard', slug: 'specifications/b20' },

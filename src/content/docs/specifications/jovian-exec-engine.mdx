@@ -1,0 +1,145 @@
+---
+title: Jovian L2 Execution Engine
+description: Execution-engine changes introduced by the Jovian upgrade — a configurable minimum base fee, the DA footprint block limit, the updated operator fee formula, and precompile input-size restrictions.
+sources:
+- base/docs:docs/base-chain/specs/upgrades/jovian/exec-engine.mdx
+---
+
+Jovian reworks several execution-layer rules. It adds a configurable minimum base fee, introduces a DA footprint block limit that ties data-availability usage into base fee dynamics, raises the ceiling on the operator fee, and tightens input-size limits on a handful of precompiles.
+
+## Minimum Base Fee
+
+Jovian adds a [configurable minimum base fee](https://github.com/ethereum-optimism/design-docs/blob/main/protocol/minimum-base-fee.md) whose purpose is to shorten priority-fee auctions on Base.
+
+It is configured in `SystemConfig` (see [System Configuration](../../protocol/consensus/derivation#system-configuration)); the execution engine then enforces it, encoding the value into the block header's `extraData` and threading it through the `PayloadAttributesV3` parameters of the Engine API.
+
+### Minimum Base Fee in Block Header
+
+As with [Holocene's dynamic EIP-1559 parameters](../holocene/exec-engine#dynamic-eip-1559-parameters), Jovian packs fee parameters into each L2 block header's `extraData`. The layout grows by one `u64` field holding the minimum base fee in wei.
+
+| Name                | Type               | Byte Offset |
+| ------------------- | ------------------ | ----------- |
+| `minBaseFee`        | `u64 (big-endian)` | `[9, 17)`   |
+
+Constraints:
+
+- `version` MUST be `1` (raised from Holocene's `0`).
+- Nothing may appear past these 17 bytes.
+
+`minBaseFee` is an absolute floor expressed in wei. When the base fee is computed, a result below `minBaseFee` MUST be clamped up to it:
+
+```javascript
+if (baseFee < minBaseFee) {
+  baseFee = minBaseFee
+}
+```
+
+Note: `extraData` is capped at 32 bytes (matching the L1 beacon-chain `extraData` type), and future upgrades may extend it.
+
+### Minimum Base Fee in `PayloadAttributesV3`
+
+The Engine API [`PayloadAttributesV3`](../../protocol/execution/index#extended-payloadattributesv3) gains a new `minBaseFee` field. The existing `eip1559Params` stays at 8 bytes (the Holocene format).
+
+```text
+PayloadAttributesV3: {
+    timestamp: QUANTITY
+    prevRandao: DATA (32 bytes)
+    suggestedFeeRecipient: DATA (20 bytes)
+    withdrawals: array of WithdrawalV1
+    parentBeaconBlockRoot: DATA (32 bytes)
+    transactions: array of DATA
+    noTxPool: bool
+    gasLimit: QUANTITY or null
+    eip1559Params: DATA (8 bytes) or null
+    minBaseFee: QUANTITY or null
+}
+```
+
+`minBaseFee` MUST be `null` before the Jovian fork and non-`null` after it.
+
+### Rationale
+
+As with [Holocene's dynamic EIP-1559 parameters](../holocene/exec-engine#rationale), keeping the minimum base fee in the block header means block sealing never has to reach into state. The function that derives the next block's base fee from its parent header stays pure while the parameter remains dynamically configurable — handled much like `gasLimit`, with the derivation pipeline feeding the relevant `SystemConfig` values to the block builder through `PayloadAttributesV3`.
+
+## DA Footprint Block Limit
+
+Jovian introduces a _DA footprint block limit_ that caps the total estimated compressed transaction data a block may carry. Each transaction now tracks a new resource — its DA footprint — alongside gas usage. The figure is scaled into the gas dimension so its block total can be bounded by the block gas limit, just like total gas usage.
+
+A block's `daFootprint` is defined as:
+
+```python
+def daFootprint(block: Block) -> int:
+  daFootprint = 0
+
+  for tx in block.transactions:
+      if tx.type == DEPOSIT_TX_TYPE:
+          continue
+
+      daUsageEstimate = max(
+          minTransactionSize,
+          (intercept + fastlzCoef * tx.fastlzSize) // 1e6
+      )
+      daFootprint += daUsageEstimate * daFootprintGasScalar
+
+  return daFootprint 
+```
+
+Here `intercept`, `minTransactionSize`, `fastlzCoef`, and `fastlzSize` come from the [Fjord specs](../fjord/exec-engine), `DEPOSIT_TX_TYPE` is `0x7E`, and `//` denotes integer floor division.
+
+From Jovian onward, each block header's `blobGasUsed` property is set to that block's `daFootprint`. Pre-Jovian (since Ecotone) it was held at 0 because Base has no blob support; the field is now reused to carry the DA footprint.
+
+Block building must guarantee — and header validation must check — that a block's `daFootprint` stays under the `gasLimit`, exactly as it does for `gasUsed`. This implies a block may hold at most `gasLimit/daFootprintGasScalar` total estimated DA usage bytes.
+
+In addition, from Jovian the base fee update uses `gasMetered := max(gasUsed, blobGasUsed)` in place of the previous `gasUsed`. As a result, blocks with heavy DA usage can push the base fee up in following blocks.
+
+### Scalar loading
+
+`daFootprintGasScalar` loads in the same fashion as the `operatorFeeScalar` and `operatorFeeConstant` [introduced](../isthmus/exec-engine#operator-fee) in Isthmus. It can be read two interchangeable ways:
+
+- from the current L2 block's deposited L1 attributes (`daFootprintGasScalar`), decoded per the [jovian schema](./l1-attributes)
+- from the L1 Block Info contract (`0x4200000000000000000000000000000000000015`)
+  - through the Solidity getter `daFootprintGasScalar`
+  - by reading storage directly — a big-endian `uint16` in slot `8` at offset `12`.
+
+Its default value is given in the [L1 Attributes](./l1-attributes) section.
+
+### Receipts
+
+Once Jovian is active, transaction receipts gain a new `daFootprintGasScalar` field carrying its block's DA footprint gas scalar. The receipt's `blobGasUsed` field is also set to the transaction's DA footprint.
+
+### Rationale
+
+Today's L1 fee mechanism prices DA usage from an estimate of each transaction's DA footprint, yet nothing at the protocol level reflects how limited DA throughput on L1 actually is. For example, on Ethereum L1 with Pectra enabled, blob throughput is roughly `~96 kB/s` (target `~64 kB/s`), yet the calldata floor gas price of `40` for calldata-heavy L2 transactions permits more incompressible data than Ethereum blob space could absorb on most Base chains. This is currently handled at the policy level by batcher-sequencer throttling, which artificially constricts block building — and can drag base fees down, costing chain operators and worsening the user experience (inclusion delays, priority-fee auctions). Imposing a hard cap on a block's DA footprint that simultaneously feeds into the base fee resolves these shortcomings of the policy-based approach.
+
+## Operator Fee
+
+### Fee Formula Update
+
+Jovian revises the operator fee calculation so larger fees can be charged. From the Jovian activation onward, the operator fee MUST be derived as:
+
+$$
+\text{operatorFee} = (\text{gas} \times \text{operatorFeeScalar} \times 100) + \text{operatorFeeConstant}
+$$
+
+In effect, the per-gas scalar applied becomes `100 * operatorFeeScalar`. Every other data type and the operator-fee semantics from the [Isthmus spec](../isthmus/exec-engine#operator-fee) carry over unchanged.
+
+### Maximum value
+
+Under the new formula the operator fee's maximum value occupies 103 bits:
+
+```text
+operatorFee_max = (uint64_max * uint32_max * 100) + uint64_max ≈ 7.924660923989131 * 10^30
+```
+
+Implementations that use `uint256` for intermediate arithmetic need no extra overflow checks.
+
+## EVM Changes
+
+### Precompile Input Size Restrictions
+
+A few precompiles have revised input-size limits. The new caps are:
+
+- `bn256Pairing`: 81,984 bytes (427 pairs)
+- `BLS12-381 G1 MSM`: 288,960 bytes (1,806 pairs)
+- `BLS12-381 G2 MSM`: 278,784 bytes (968 pairs)
+- `BLS12-381 Pairing`: 156,672 bytes (408 pairs)

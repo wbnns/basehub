@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-13T03:05:03Z
+Generated 2026-06-17T03:19:18Z
 
-### base/base @ 2868053
+### base/base @ 0f629f6
 
-6015dfd1a37fff8924905686684b16d8a523cf3b  docs/guides/P2P.md
+c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
-2f1956f1a8f084fb92d4e83d16eb29ce4285d45a  docs/guides/UPGRADES.md
+3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
 
-### base/docs @ a452480
+### base/docs @ b3dd80c
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -22,7 +22,7 @@ c6b10ce97d785e5d1828b462ea9319c2198db195  docs/base-chain/api-reference/debug-ap
 1365bc3c8d169a3184e24019d763a2329746fad0  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBalance.mdx
 38e775f4434d8abc309fbcefb1dd34e475eb80eb  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByHash.mdx
 6d9ac38f5d40e56d53b459ad06667b243a3eca03  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByNumber.mdx
-c6dc3d2e7575f83b88bef3aef0673025527382dd  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockReceipts.mdx
+3ae137a78a96f0286d3e416732f48c65069230e8  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockReceipts.mdx
 41191fc1f7d9ca0abf5bcae5ae7b79011014a56c  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByHash.mdx
 ce6f542b42a66ff98915dedcdf1666eeacea4b1e  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByNumber.mdx
 a8c7b5c1cdba4c6dfb638dc206354457573da0ad  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getCode.mdx
@@ -51,9 +51,9 @@ d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integr
 f1b24eda592ee848413950a6f35da68eb7a7cf81  docs/base-chain/flashblocks/architecture.mdx
 c07f4264c0ded75d1f6bd5a44c9a4dbc34506378  docs/base-chain/flashblocks/faq.mdx
 21f2c7cc7ca4ecb66e25557b9c3aa8e9c53ae366  docs/base-chain/flashblocks/overview.mdx
-b919d42821a3643aee3615df249556b7fb5af03c  docs/base-chain/network-information/base-contracts.mdx
+8937b765157de58f12b852d7ea85852ab980be09  docs/base-chain/network-information/base-contracts.mdx
 fe83ea2ee1a9320abe9783e0356b3e60514c325b  docs/base-chain/network-information/block-building.mdx
-258a15b70a95a9b4bddb8522ffefc53e96ba4220  docs/base-chain/network-information/bridges.mdx
+39f7fcdfec55dcd29bdddd231be157dc61ab6a2b  docs/base-chain/network-information/bridges.mdx
 abde76c1b86631406354f6b0d79b54f3f46d20f0  docs/base-chain/network-information/configuration-changelog.mdx
 e78dbd55b528a0ef3f17c72e2edc0ab006452b68  docs/base-chain/network-information/diffs-ethereum-base.mdx
 663214bf3a4de899b92b2904dfe102d55000b538  docs/base-chain/network-information/network-faucets.mdx
@@ -121,13 +121,13 @@ e1143163b1d13daa9e0dafea79f67a42ddc042ad  docs/base-chain/specs/upgrades/holocen
 816921e65df738cc09ef87fe9ce90f821157a7f8  docs/base-chain/specs/upgrades/holocene/overview.mdx
 0ac796ef3dfde46c991e91808dd58cd896782fc3  docs/base-chain/specs/upgrades/holocene/system-config.mdx
 4f2d0ebf2d33f05dd1108b6b886f27f0e32caa99  docs/base-chain/specs/upgrades/isthmus/derivation.mdx
-ea6236ed835f91ba0fb65291b29a9d62220d17b0  docs/base-chain/specs/upgrades/isthmus/exec-engine.mdx
+6f303c013cf36e924dc83cea5d334c7adc05efd5  docs/base-chain/specs/upgrades/isthmus/exec-engine.mdx
 f98e57e4de382931f0b13f238e06905bf2844d75  docs/base-chain/specs/upgrades/isthmus/l1-attributes.mdx
 f8f58a54e4421ca2ac7b47d35dc65a6dba749779  docs/base-chain/specs/upgrades/isthmus/overview.mdx
 c8ffcf964ba23ca2f3426274e7ed63710c9174db  docs/base-chain/specs/upgrades/isthmus/predeploys.mdx
 10c32f2a065f019e127ab7a7dc76af66b39d2b64  docs/base-chain/specs/upgrades/isthmus/system-config.mdx
 eb486ba758c46aaecb2604df07038ba1b54865ec  docs/base-chain/specs/upgrades/jovian/derivation.mdx
-d97b707c0e7631e15e6c56359ecbc73ae1d1d191  docs/base-chain/specs/upgrades/jovian/exec-engine.mdx
+024b21bec396469f0729e731e6d3da95f8ab46d1  docs/base-chain/specs/upgrades/jovian/exec-engine.mdx
 cc720371f85228397694475dc773295d92dc3e9a  docs/base-chain/specs/upgrades/jovian/l1-attributes.mdx
 deaffc7df23d65547ac53b1921eb78616d66074c  docs/base-chain/specs/upgrades/jovian/overview.mdx
 d43e05f2726352d77f4aad3b87edeee836c5b50e  docs/base-chain/specs/upgrades/jovian/system-config.mdx
