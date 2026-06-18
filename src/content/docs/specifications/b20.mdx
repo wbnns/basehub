@@ -18,7 +18,7 @@ Two variants are available:
 
 ## ERC-20 compatibility
 
-Rather than living as EVM smart contracts, B20 tokens run as **Rust precompiles**, which makes them faster, cheaper, and closer to the chain itself. Every token is deployed through the singleton `IB20Factory` precompile.
+Rather than living as EVM smart contracts, B20 tokens run as **Rust precompiles**, which makes them faster, cheaper, and closer to the chain itself. Every token is deployed through the singleton B20Factory precompile.
 
 <Aside type="tip">
 B20 covers the entire ERC-20 surface with full selector parity, so it drops straight into existing tooling and integrations.
@@ -38,7 +38,7 @@ B20's access control builds on OpenZeppelin `AccessControl`, adding a fixed role
 | `UNPAUSE_ROLE` | `unpause` |
 | `METADATA_ROLE` | `updateName`, `updateSymbol`, `updateContractURI` |
 
-You can define your own roles through `setRoleAdmin` and `grantRole`, but they have no inherent effect — B20 only enforces the seven roles listed above.
+You can define your own roles through `setRoleAdmin` and `grantRole`, but they carry no behavior on their own — only the seven base-surface roles listed above are actually gated. One more, `OPERATOR_ROLE`, is introduced by the Asset variant (see [Variants](#variants)).
 
 ### Admin renunciation
 
@@ -86,17 +86,20 @@ Any consumer that stores a policy ID (for example via `updatePolicy`) MUST check
 
 ### Admin model
 
-Every policy has exactly one admin, and transfers happen in two steps: the sitting admin calls `transferPolicyAdmin(policyId, newAdmin)`, then the nominee calls `acceptPolicyAdmin(policyId)`. Calling `renouncePolicyAdmin(policyId)` freezes the policy for good — its membership can never change again.
+Every policy has exactly one admin, and transfers happen in two steps: the sitting admin calls `stageUpdateAdmin(policyId, newAdmin)`, then the nominee calls `finalizeUpdateAdmin(policyId)`. Calling `renounceAdmin(policyId)` freezes the policy for good — its membership can never change again.
 
 ### Creating and managing policies
 
 ```solidity
-// Create a policy
-uint64 policyId = policyRegistry.createPolicy(PolicyType.BLOCKLIST, adminAddress);
+// Create a policy (admin first, then type)
+uint64 policyId = policyRegistry.createPolicy(adminAddress, PolicyType.BLOCKLIST);
+// Or seed the initial member set in one call:
+// uint64 policyId = policyRegistry.createPolicyWithAccounts(adminAddress, PolicyType.BLOCKLIST, accounts);
 
-// Update membership (batched)
-policyRegistry.addToPolicy(policyId, accounts);
-policyRegistry.removeFromPolicy(policyId, accounts);
+// Update membership (batched). The setter is type-specific; the bool sets membership state.
+policyRegistry.updateBlocklist(policyId, true, accounts);   // block these accounts
+policyRegistry.updateBlocklist(policyId, false, accounts);  // unblock these accounts
+// For ALLOWLIST policies: policyRegistry.updateAllowlist(policyId, allowed, accounts)
 ```
 
 ### Read interface
@@ -116,7 +119,7 @@ B20 exposes a fixed set of policy scopes, each holding a `uint64` policy ID into
 |-------|-------|
 | `TRANSFER_SENDER_POLICY` | The `from` of `transfer` / `transferFrom` |
 | `TRANSFER_RECEIVER_POLICY` | The `to` of `transfer` / `transferFrom` |
-| `TRANSFER_EXECUTOR_POLICY` | The `msg.sender` of `transferFrom` (not checked on `transfer`) |
+| `TRANSFER_EXECUTOR_POLICY` | The `msg.sender` of `transferFrom`, when distinct from `from` (not checked on `transfer`) |
 | `MINT_RECEIVER_POLICY` | The `to` of `mint` |
 
 Note that `approve` is never policy-gated — only real balance movement through `transfer` / `transferFrom` is checked.
@@ -140,7 +143,7 @@ There are two ways to burn:
 
 ## Supply cap
 
-Capping supply is opt-in. The sentinel `type(uint256).max` signals no cap, which is what a token starts with. `updateSupplyCap(newCap)` is admin-gated and emits `SupplyCapUpdated`, and a cap set beneath the current `totalSupply` reverts with `InvalidSupplyCap`.
+Capping supply is opt-in. The sentinel `type(uint128).max` signals no cap, which is what a token starts with; it doubles as the highest permitted cap, so `totalSupply` can never climb past it. `updateSupplyCap(newCap)` is admin-gated and emits `SupplyCapUpdated`, reverting with `InvalidSupplyCap` if `newCap` falls beneath the current `totalSupply` or rises above `type(uint128).max`.
 
 ## Memos
 
@@ -169,20 +172,22 @@ B20 supports ERC-2612 signed approvals over an EIP-712 domain of `(name, version
 
 ## Factory
 
-Every B20 token is minted through the singleton `IB20Factory` precompile via `createB20(variant, params, initCalls, salt)`.
+Every B20 token is minted through the singleton B20Factory precompile via `createB20(variant, salt, params, initCalls)`.
 
 | Parameter | Description |
 |-----------|-------------|
 | `variant` | `ASSET` or `STABLECOIN` |
-| `params` | ABI-encoded, variant-specific creation struct (versioned by leading byte) |
-| `initCalls` | Optional array of ABI-encoded calls dispatched post-creation with admin privilege bypass |
 | `salt` | Caller-chosen entropy for address derivation |
+| `params` | ABI-encoded, variant-specific creation struct (versioned by leading byte) |
+| `initCalls` | Optional array of ABI-encoded calls dispatched post-creation; calls originating from the factory bypass role gates and transfer-side policy gates during this window |
+
+If the chain has not yet switched on the feature backing the requested variant, `createB20` reverts with `IActivationRegistry.FeatureNotActivated`.
 
 ### Address derivation
 
 A B20 address is deterministic and carries its variant inline:
 
-```
+```text
 [10-byte B20 prefix][1-byte variant][9-byte keccak256(deployer, salt)]
 ```
 
@@ -190,7 +195,7 @@ Because the variant lives in the address, it's recoverable without an RPC call. 
 
 ### initCalls semantics
 
-`initCalls` run after creation with an admin-privilege bypass, so configuration (setting policies, granting roles) can happen in the same transaction as deployment. That bypass is only partial:
+`initCalls` run after creation. While this bootstrap window is open, anything the factory dispatches skips two enforcement layers at once: the token's role checks, plus the sender/receiver/executor transfer policies (`TRANSFER_SENDER_POLICY`, `TRANSFER_RECEIVER_POLICY`, `TRANSFER_EXECUTOR_POLICY`) — letting a deployer apply admin-gated setup (policies, role grants) and seed opening balances all inside the deploy transaction. That relaxation is deliberately partial:
 
 - `MINT_RECEIVER_POLICY` is enforced even inside `initCalls`.
 - Pause state is never bypassed.
@@ -202,7 +207,7 @@ Because the variant lives in the address, it's recoverable without an RPC call. 
 
 The general-purpose variant, suitable for any kind of asset. Decimals are chosen between 6 and 18 at deployment and locked thereafter.
 
-On top of everything in the base surface, the Asset variant introduces an `OPERATOR_ROLE` covering the capabilities below.
+On top of everything in the base surface, the Asset variant layers on extra capabilities. The newly added `OPERATOR_ROLE` guards the multiplier and announcements, while batch mint stays under `MINT_ROLE` and extra metadata under `METADATA_ROLE`.
 
 #### Multiplier
 

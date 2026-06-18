@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-17T03:19:18Z
+Generated 2026-06-18T03:05:38Z
 
-### base/base @ 0f629f6
+### base/base @ 972d07b
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
 
-### base/docs @ b3dd80c
+### base/docs @ 69bf0f1
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -49,7 +49,7 @@ b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblo
 25dc9aa9441b1bc9f93b8498ad4ba98aca53de75  docs/base-chain/api-reference/rpc-overview.mdx
 d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integration.mdx
 f1b24eda592ee848413950a6f35da68eb7a7cf81  docs/base-chain/flashblocks/architecture.mdx
-c07f4264c0ded75d1f6bd5a44c9a4dbc34506378  docs/base-chain/flashblocks/faq.mdx
+750ec7ddbeca6a9bdc2d0ba35a1f6d8913c5cab0  docs/base-chain/flashblocks/faq.mdx
 21f2c7cc7ca4ecb66e25557b9c3aa8e9c53ae366  docs/base-chain/flashblocks/overview.mdx
 8937b765157de58f12b852d7ea85852ab980be09  docs/base-chain/network-information/base-contracts.mdx
 fe83ea2ee1a9320abe9783e0356b3e60514c325b  docs/base-chain/network-information/block-building.mdx
@@ -67,7 +67,7 @@ d74693c54a3d0a98134bd14d22dfa640e7e0b44e  docs/base-chain/node-operators/snapsho
 4508dd7afaa3f3509697f3dc3f8e3d928f42233f  docs/base-chain/node-operators/troubleshooting.mdx
 92ae9dd3d4fe2e572cf802b86fb9177a04aac818  docs/base-chain/quickstart/base-solana-bridge.mdx
 d3d326288a002ffec883435167175f97d0631c0e  docs/base-chain/quickstart/connecting-to-base.mdx
-af591acd6f7b640f3a42ed17956a3fa7344b6359  docs/base-chain/quickstart/deploy-on-base.mdx
+f6e32f1451f6778b4674c474bbb83fc18db6cf68  docs/base-chain/quickstart/deploy-on-base.mdx
 ffa86161d7844cd0ec7afeef0e454106039f98c0  docs/base-chain/quickstart/why-base.mdx
 b42043992cd46cc68d8e8a4a6520bd389dd93e6f  docs/base-chain/security/avoid-malicious-flags.mdx
 d5ad135d5c21aab587be3d16dfe74b12d286e4fa  docs/base-chain/security/bug-bounty.mdx
@@ -78,15 +78,15 @@ f5e60bf06138f0932e5818033a33a4876d2ac78f  docs/base-chain/specs/protocol/batcher
 cbec5debcc167af7797f4b8f55afdc9042993198  docs/base-chain/specs/protocol/bridging/bridges.mdx
 c09f7b7a12c4e5a4ec5f00ea82194583a3ad8d5f  docs/base-chain/specs/protocol/bridging/deposits.mdx
 60fdac2bc6ab9bebf838b99ece4af20ae53a8957  docs/base-chain/specs/protocol/bridging/messengers.mdx
-a0caa4a7a7b2f445b6e8d42cdc260e31ad689805  docs/base-chain/specs/protocol/bridging/withdrawals.mdx
+ddc1cfa04ae00b5f8c0f742cc37b35fd7338c2c7  docs/base-chain/specs/protocol/bridging/withdrawals.mdx
 e7295d8500dab048a01dae6bb246d8d814819787  docs/base-chain/specs/protocol/consensus/derivation.mdx
-c09e42bced696a291d49980170ac9815786d4076  docs/base-chain/specs/protocol/consensus/index.mdx
-3b40bf8a2267f992dfc37196a5a5b706a564d31e  docs/base-chain/specs/protocol/consensus/p2p.mdx
+d7640084222c7ac8cdb8f0a187bad1e450c8e9d9  docs/base-chain/specs/protocol/consensus/index.mdx
+8630568e8b9962115f94be55274a5e312f19fd15  docs/base-chain/specs/protocol/consensus/p2p.mdx
 6816e37d9c7617775e59e734f9e81ba581c4dbde  docs/base-chain/specs/protocol/consensus/rpc.mdx
 cf03550203babad23856f86180443e5cd53ef0f3  docs/base-chain/specs/protocol/execution/evm/precompiles.mdx
 fc1c4b7a496cf663ad2710a8df741fbcb3d6177e  docs/base-chain/specs/protocol/execution/evm/predeploys.mdx
 ce156598a47aa069158a34c5949e0c25ab7291b0  docs/base-chain/specs/protocol/execution/evm/preinstalls.mdx
-2350d3cdf82405a54de12c52fad8adcd8b06506f  docs/base-chain/specs/protocol/execution/index.mdx
+830c8e36ac7ee770a8f217c44ceac3b694d3e6de  docs/base-chain/specs/protocol/execution/index.mdx
 7d7870f340de06e8f0849b7b678fc275c1ac839d  docs/base-chain/specs/protocol/overview.mdx
 4262e8a10d7d9a455aa735b07e8a67255b9ff7c1  docs/base-chain/specs/protocol/proofs/challenger.mdx
 4331c45bea795991c6b0cfdf6cc3ba9b444b480a  docs/base-chain/specs/protocol/proofs/contracts.mdx
@@ -95,42 +95,42 @@ ce156598a47aa069158a34c5949e0c25ab7291b0  docs/base-chain/specs/protocol/executi
 a4fd1a959db7f7ad4b6fb5d10fd5b91ec9df6c56  docs/base-chain/specs/protocol/proofs/registrar.mdx
 4fa6ea89eb0c793885e98b41814beb71cc863007  docs/base-chain/specs/protocol/proofs/tee-prover.mdx
 152286087f391a2734f1385f45aac6becd4c3298  docs/base-chain/specs/protocol/proofs/zk-prover.mdx
-d0df7caba290fa6bc40ec98e94f9e4ca1874205c  docs/base-chain/specs/reference/configurability.mdx
-845db204ce7b41376c4b5533b6080896cb40fcc5  docs/base-chain/specs/reference/glossary.mdx
+9f3d4ce26f7743f31df16e1a1168fee5c148c8e8  docs/base-chain/specs/reference/configurability.mdx
+41f2e464c121eb00b174bac038f42ddc37c66c23  docs/base-chain/specs/reference/glossary.mdx
 d92150b26bbda21b1e3bf78648005998fd5c194b  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
 d7b84323d59159531741666673c5114a347277f4  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
 cb43419f87628601f9cd8d6d3c982a9c0acd54fd  docs/base-chain/specs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
-02f77efe13911def67280b517a50fbb85e18eb2f  docs/base-chain/specs/upgrades/beryl/b20.mdx
+2f62086be2d2d02e21aae1cdc0eb275b8b585795  docs/base-chain/specs/upgrades/beryl/b20.mdx
 5dcd1abc1f17f1add0fc38c0c4a57a5ae416b84d  docs/base-chain/specs/upgrades/beryl/overview.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx
-3cd04b13fe4def1cc83263064cd96a36d23229db  docs/base-chain/specs/upgrades/delta/span-batches.mdx
-3b8b66dabe67d5813ec522b4d7098a48bea23a10  docs/base-chain/specs/upgrades/ecotone/derivation.mdx
+bdfd9fe90b988d24008145403dbabcf46897f08a  docs/base-chain/specs/upgrades/delta/span-batches.mdx
+cc0a7ef93ba25246618d70bd927cedb67827936f  docs/base-chain/specs/upgrades/ecotone/derivation.mdx
 9dea8230971c1fe876d233b75c85fe68e5150fcd  docs/base-chain/specs/upgrades/ecotone/l1-attributes.mdx
 8405ca5c0fe1f06044bdd40904408d1120e6202d  docs/base-chain/specs/upgrades/ecotone/overview.mdx
-e0c3d354ae101180108d89da05b0512454ccd50d  docs/base-chain/specs/upgrades/fjord/derivation.mdx
+8ca215004addd9c1a8d2b160c5510f6560d1f880  docs/base-chain/specs/upgrades/fjord/derivation.mdx
 eedfef0cd0c9bf69fb43ad8e31756753dfe3d6b2  docs/base-chain/specs/upgrades/fjord/exec-engine.mdx
 d6c3c7bcf4afbffa375015f460ca5557ddada798  docs/base-chain/specs/upgrades/fjord/overview.mdx
-bd2e96f178f4063a37f10e36c5477aa72fc0e1b1  docs/base-chain/specs/upgrades/fjord/predeploys.mdx
+63f176417e45f7f33b87102090d222396bbcc2c2  docs/base-chain/specs/upgrades/fjord/predeploys.mdx
 6a965dc3342eb2bc722a7e99850af76864ece330  docs/base-chain/specs/upgrades/granite/derivation.mdx
 964f70f500645b1f8eba89fd370d6e4b14129a05  docs/base-chain/specs/upgrades/granite/exec-engine.mdx
 7bc3d9ef9e485984a6652402dc76a73a565a3d85  docs/base-chain/specs/upgrades/granite/overview.mdx
-e1143163b1d13daa9e0dafea79f67a42ddc042ad  docs/base-chain/specs/upgrades/holocene/derivation.mdx
+4a970c5edf9703a7caa9b384a1f9117e63e4a713  docs/base-chain/specs/upgrades/holocene/derivation.mdx
 27dcf9dcfcfefad09f40a124027c1c0efa1343a4  docs/base-chain/specs/upgrades/holocene/exec-engine.mdx
 816921e65df738cc09ef87fe9ce90f821157a7f8  docs/base-chain/specs/upgrades/holocene/overview.mdx
 0ac796ef3dfde46c991e91808dd58cd896782fc3  docs/base-chain/specs/upgrades/holocene/system-config.mdx
-4f2d0ebf2d33f05dd1108b6b886f27f0e32caa99  docs/base-chain/specs/upgrades/isthmus/derivation.mdx
+92ef76a8f655e8260f1a27e87710584ae5507a9b  docs/base-chain/specs/upgrades/isthmus/derivation.mdx
 6f303c013cf36e924dc83cea5d334c7adc05efd5  docs/base-chain/specs/upgrades/isthmus/exec-engine.mdx
 f98e57e4de382931f0b13f238e06905bf2844d75  docs/base-chain/specs/upgrades/isthmus/l1-attributes.mdx
 f8f58a54e4421ca2ac7b47d35dc65a6dba749779  docs/base-chain/specs/upgrades/isthmus/overview.mdx
-c8ffcf964ba23ca2f3426274e7ed63710c9174db  docs/base-chain/specs/upgrades/isthmus/predeploys.mdx
+cb0372c39a8410f5eababb2e10efe02e1a37c4e6  docs/base-chain/specs/upgrades/isthmus/predeploys.mdx
 10c32f2a065f019e127ab7a7dc76af66b39d2b64  docs/base-chain/specs/upgrades/isthmus/system-config.mdx
-eb486ba758c46aaecb2604df07038ba1b54865ec  docs/base-chain/specs/upgrades/jovian/derivation.mdx
+c8c2c1d60b7bc91d9b15ae2f1501ce2780ca8e0d  docs/base-chain/specs/upgrades/jovian/derivation.mdx
 024b21bec396469f0729e731e6d3da95f8ab46d1  docs/base-chain/specs/upgrades/jovian/exec-engine.mdx
 cc720371f85228397694475dc773295d92dc3e9a  docs/base-chain/specs/upgrades/jovian/l1-attributes.mdx
 deaffc7df23d65547ac53b1921eb78616d66074c  docs/base-chain/specs/upgrades/jovian/overview.mdx
-d43e05f2726352d77f4aad3b87edeee836c5b50e  docs/base-chain/specs/upgrades/jovian/system-config.mdx
+aa44cb2758cad1f80db4122ab7fcc6b7addf4460  docs/base-chain/specs/upgrades/jovian/system-config.mdx
 
 ### blog.base.dev RSS
 
@@ -158,7 +158,7 @@ g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 
 ### base-l2.statuspage.io RSS
 
 https://base-l2.statuspage.io/incidents/5zdg2sd9dchm	Sepolia Testnet: Base Beryl Upgrade - June 18th	Thu, 18 Jun 2026 18:00:00 +0000
-https://base-l2.statuspage.io/incidents/sj3qyrxy27dl	Base Mainnet p2p peering stability	Fri, 12 Jun 2026 21:28:56 +0000
+https://base-l2.statuspage.io/incidents/sj3qyrxy27dl	Base Mainnet p2p peering stability	Mon, 15 Jun 2026 17:59:12 +0000
 https://base-l2.statuspage.io/incidents/t8rgbdb6bfds	Node Peering Stability on Base Testnet and Mainnet	Thu, 04 Jun 2026 19:42:05 +0000
 https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Tue, 02 Jun 2026 22:32:28 +0000
 https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Delay	Sun, 31 May 2026 03:38:45 +0000
