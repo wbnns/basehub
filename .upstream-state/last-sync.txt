@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-18T03:05:38Z
+Generated 2026-06-19T03:04:26Z
 
-### base/base @ 972d07b
+### base/base @ 6452411
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
 
-### base/docs @ 69bf0f1
+### base/docs @ 9aace7f
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -102,7 +102,7 @@ d7b84323d59159531741666673c5114a347277f4  docs/base-chain/specs/upgrades/azul/no
 cb43419f87628601f9cd8d6d3c982a9c0acd54fd  docs/base-chain/specs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
 2f62086be2d2d02e21aae1cdc0eb275b8b585795  docs/base-chain/specs/upgrades/beryl/b20.mdx
-5dcd1abc1f17f1add0fc38c0c4a57a5ae416b84d  docs/base-chain/specs/upgrades/beryl/overview.mdx
+dba87a6b956fc964cfc8f373f893993a83bccdd1  docs/base-chain/specs/upgrades/beryl/overview.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx
 bdfd9fe90b988d24008145403dbabcf46897f08a  docs/base-chain/specs/upgrades/delta/span-batches.mdx
@@ -134,6 +134,7 @@ aa44cb2758cad1f80db4122ab7fcc6b7addf4460  docs/base-chain/specs/upgrades/jovian/
 
 ### blog.base.dev RSS
 
+n1IisUDstG6YSmyLvo4f	Introducing Base Beryl	Thu, 18 Jun 2026 19:38:55 GMT
 AKWz1qqJ9CRS2MrO4zeI	Multiproofs on Base	Thu, 21 May 2026 20:49:36 GMT
 jbzghxF4nZhRDPk3XcSa	Introducing Base Azul	Tue, 21 Apr 2026 17:00:01 GMT
 Sei1pO8j8DHvrCL3iU4N	A new, unified stack for Base Chain	Wed, 18 Feb 2026 17:03:12 GMT
@@ -153,11 +154,11 @@ Y2oHEGG2eVfbX4IDSSCf	L2 Primary Names are coming to Basenames:  ENSIP-19	Fri, 15
 rcyL3EUXctJtW3hl710J	Introducing free security reviews for Base builders	Tue, 29 Jul 2025 18:31:49 GMT
 g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 GMT
 889BK4qRSxfu04XWUCU4	Scaling Base in 2025: Sustaining 10x growth while maintaining sub-cent transactions	Wed, 18 Jun 2025 18:19:26 GMT
-6Yx9LNFutCWhgUSP65Th	Engineering the Commerce Payments Protocol Powering Shopify	Thu, 12 Jun 2025 18:26:15 GMT
 
 ### base-l2.statuspage.io RSS
 
-https://base-l2.statuspage.io/incidents/5zdg2sd9dchm	Sepolia Testnet: Base Beryl Upgrade - June 18th	Thu, 18 Jun 2026 18:00:00 +0000
+https://base-l2.statuspage.io/incidents/rq17m0n3jn36	Mainnet: Base Beryl Upgrade - June 25th	Thu, 25 Jun 2026 18:00:00 +0000
+https://base-l2.statuspage.io/incidents/5zdg2sd9dchm	Sepolia Testnet: Base Beryl Upgrade - June 18th	Thu, 18 Jun 2026 20:00:07 +0000
 https://base-l2.statuspage.io/incidents/sj3qyrxy27dl	Base Mainnet p2p peering stability	Mon, 15 Jun 2026 17:59:12 +0000
 https://base-l2.statuspage.io/incidents/t8rgbdb6bfds	Node Peering Stability on Base Testnet and Mainnet	Thu, 04 Jun 2026 19:42:05 +0000
 https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Tue, 02 Jun 2026 22:32:28 +0000
@@ -181,4 +182,3 @@ https://base-l2.statuspage.io/incidents/tlvzszwdy2z3	Mempool upgrade	Thu, 05 Feb
 https://base-l2.statuspage.io/incidents/z6l4xm9gc08m	Base Mainnet minimum base fee increase	Tue, 03 Feb 2026 03:30:21 +0000
 https://base-l2.statuspage.io/incidents/zfvvgt46j9d8	High Rate of Transaction Drops and Transaction Inclusion Delays	Sat, 31 Jan 2026 21:51:55 +0000
 https://base-l2.statuspage.io/incidents/9yrk7wlc2bp1	Base Mainnet minimum base fee increase	Thu, 22 Jan 2026 20:30:22 +0000
-https://base-l2.statuspage.io/incidents/c9cjh8jbz8b0	Periodically delayed block building on Base Mainnet	Tue, 20 Jan 2026 14:30:00 +0000
