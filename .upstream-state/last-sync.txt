@@ -1,14 +1,14 @@
 ## Upstream snapshot
 
-Generated 2026-06-19T03:04:26Z
+Generated 2026-06-21T03:05:00Z
 
-### base/base @ 6452411
+### base/base @ df7cdc7
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
 
-### base/docs @ 9aace7f
+### base/docs @ 854cdc1
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -51,7 +51,7 @@ d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integr
 f1b24eda592ee848413950a6f35da68eb7a7cf81  docs/base-chain/flashblocks/architecture.mdx
 750ec7ddbeca6a9bdc2d0ba35a1f6d8913c5cab0  docs/base-chain/flashblocks/faq.mdx
 21f2c7cc7ca4ecb66e25557b9c3aa8e9c53ae366  docs/base-chain/flashblocks/overview.mdx
-8937b765157de58f12b852d7ea85852ab980be09  docs/base-chain/network-information/base-contracts.mdx
+154ab30c175fe807125789d33556933a274583a3  docs/base-chain/network-information/base-contracts.mdx
 fe83ea2ee1a9320abe9783e0356b3e60514c325b  docs/base-chain/network-information/block-building.mdx
 39f7fcdfec55dcd29bdddd231be157dc61ab6a2b  docs/base-chain/network-information/bridges.mdx
 abde76c1b86631406354f6b0d79b54f3f46d20f0  docs/base-chain/network-information/configuration-changelog.mdx
