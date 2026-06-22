@@ -83,9 +83,6 @@ export default defineConfig({
 					content: '<img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" />',
 				},
 			],
-			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/wbnns/basehub' },
-			],
 			editLink: {
 				baseUrl: 'https://github.com/wbnns/basehub/edit/main/',
 			},
