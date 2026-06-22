@@ -117,9 +117,9 @@ Today's L1 fee mechanism prices DA usage from an estimate of each transaction's 
 
 Jovian revises the operator fee calculation so larger fees can be charged. From the Jovian activation onward, the operator fee MUST be derived as:
 
-$$
-\text{operatorFee} = (\text{gas} \times \text{operatorFeeScalar} \times 100) + \text{operatorFeeConstant}
-$$
+```text
+operatorFee = (gas * operatorFeeScalar * 100) + operatorFeeConstant
+```
 
 In effect, the per-gas scalar applied becomes `100 * operatorFeeScalar`. Every other data type and the operator-fee semantics from the [Isthmus spec](../isthmus/exec-engine#operator-fee) carry over unchanged.
 
