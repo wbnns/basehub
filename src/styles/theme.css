@@ -70,16 +70,21 @@
   /* Reading measure */
   --sl-content-width: 46rem;
 
+  /* Nav height — tall enough to fit the 4.5rem logo with breathing room.
+     Must live on :root so it also drives .main-frame's top padding
+     (a sibling of the header), not just the header itself. */
+  --sl-nav-height: 8.5rem;
+
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Header — tall enough to fit the 4.5rem logo with breathing room */
+/* Header — tall enough to fit the 4.5rem logo with breathing room.
+   Height comes from --sl-nav-height (set on :root above). */
 header.header {
-  --sl-nav-height: 8.5rem;
   padding-block: 2rem;
   height: auto;
-  min-height: 8.5rem;
+  min-height: var(--sl-nav-height);
 }
 .page > .header {
   height: auto;
