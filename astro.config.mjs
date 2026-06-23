@@ -394,6 +394,7 @@ export default defineConfig({
 						{ label: 'Beryl Upgrade Overview', slug: 'specifications/beryl-overview' },
 						{ label: 'B20 Token Standard', slug: 'specifications/b20' },
 						{ label: 'Reth V2', slug: 'specifications/reth-v2' },
+						{ label: 'Transaction Event Journal', slug: 'specifications/transaction-events' },
 						{ label: 'Glossary', slug: 'specifications/glossary' },
 					],
 				},

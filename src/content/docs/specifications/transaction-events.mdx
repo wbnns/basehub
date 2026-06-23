@@ -1,0 +1,260 @@
+---
+title: Transaction Event Journal
+description: The transaction-event/v1 contract — a shared JSONL business-event journal for Base transaction observability.
+---
+
+The `transaction-event/v1` contract gives Base components a common way to record business-level transaction events. Each producer appends newline-delimited JSON to a dedicated journal file rather than mixing these records into ordinary application output. The usual stdout/stderr path (and its Kubernetes-to-Datadog pipeline) is reserved for logs and must not double as this journal.
+
+A Vector agent follows those JSONL files and forwards each record to `audit-archiver`. Because the audit ingest endpoint is collector-facing, it reads exactly one event object per line and does not accept a wrapped JSON batch.
+
+:::note
+The canonical source is [`docs/transaction-events/README.md`](https://github.com/base/base/blob/main/docs/transaction-events/README.md) in the base/base repository.
+:::
+
+## Configuration Fields
+
+Rust producers are expected to surface the following settings, either at the top level or behind a producer-specific prefix:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `enabled` | boolean | Enables transaction event journal writes. |
+| `file_path` | string | Dedicated JSONL file path tailed by Vector. |
+| `queue_capacity` | integer | Upper bound on the in-process event queue. Under backpressure a producer discards events rather than stalling its transaction-serving path. |
+| `flush_interval` | duration | How often the background writer flushes to the file. |
+| `required` | boolean | When true, startup fails if the writer cannot open the file. A failure to write at runtime stays non-fatal and is still surfaced for observability. |
+| `producer` | string | One of the producer identities below. |
+| `network` | string | Network label, for example `base-mainnet` or `base-sepolia`. |
+
+Go and proxyd builds carry the identical field names in TOML:
+
+```toml
+[transaction_events]
+enabled = true
+file_path = "/var/log/base/transaction-events.jsonl"
+queue_capacity = 16384
+flush_interval = "1s"
+required = false
+producer = "base-routing/proxyd"
+network = "base-mainnet"
+```
+
+## Envelope
+
+Every line is a single JSON object:
+
+```json
+{
+  "schema_version": "transaction-event/v1",
+  "event_id": "0x7d5c4f...",
+  "event_time": "2026-06-02T00:00:00.000000000Z",
+  "producer": "base-reth-node",
+  "event_type": "TXPOOL_PENDING",
+  "network": "base-mainnet",
+  "tx_hash": "0x1111111111111111111111111111111111111111111111111111111111111111",
+  "block_hash": null,
+  "block_number": null,
+  "payload_id": null,
+  "request_id": null,
+  "data": {
+    "pool": "pending"
+  }
+}
+```
+
+These fields are mandatory:
+
+- `schema_version`
+- `event_id`
+- `event_time`
+- `producer`
+- `event_type`
+
+In normal operation at least one join key should be set — either `tx_hash`, the `block_hash`/`block_number` pair, or `payload_id`. The `request_id` field is not required but helps correlate records across proxies and ingress. Producers should avoid emitting journal records for aggregate operational states that cannot be attributed to one of those join keys: broadcast lag, for instance, stays in logs and metrics because the receiver only sees a skipped count, whereas `INGRESS_METERING_SEND_DROPPED` fires once per dropped transaction precisely because ingress still holds the original `tx_hash`.
+
+Anything producer-specific goes inside `data`. Never journal raw transaction bytes, calldata, full request bodies, API keys, secrets, private keys, bearer tokens, authorization headers, raw forwarding headers, or raw client IP forwarding chains.
+
+A collector sidecar may attach deployment-specific origin metadata under `data.observability_source` before handing events off to `audit-archiver`. The archiver persists that object alongside the rest of `data`, but the shared contract places no schema constraints on it.
+
+On the Rust side, the `TransactionEvent::validate` helper rejects a mismatched schema version, an empty `event_id`, and a short, exact denylist of unsafe `data` keys — among them `raw_tx`, `calldata`, `request_body`, `authorization`, `api_key`, `headers`, and `x-forwarded-for`. Vector collector pipelines are expected to catch wider case and delimiter variants — such as `rawTransaction`, `requestBody`, `secret_key`, and `privateKey` — before anything is ingested.
+
+## Local Devnet Verification
+
+The ingress devnet brings up a local Postgres, a Vector shipper, and a Postgres-backed `audit-archiver` ingest path:
+
+```bash
+just devnet ingress
+just devnet tx-observability-smoke
+```
+
+To exercise proxyd transaction events before that code ships in the default proxyd image, point `BASE_ROUTING_CONTEXT` at a local `protocols/base-routing` checkout:
+
+```bash
+BASE_ROUTING_CONTEXT=/path/to/base-routing just devnet ingress
+just devnet tx-observability-smoke
+```
+
+The smoke test pushes a single transaction through ingress, waits for Vector to deliver the JSONL records from the ingress, proxyd, txpool-tracing, and builder producers, and then confirms `audit-archiver` can read the stored events back out of Postgres by transaction hash.
+
+## Producer Values
+
+- `base-reth-node`
+- `base-builder`
+- `ingress-rpc`
+- `base-routing/proxyd`
+
+## Txpool Tracing Example
+
+When `--enable-transaction-event-journal` and `--transaction-event-journal-path` are supplied, `base-reth-node` txpool tracing can route its existing live LRU events into the durable journal:
+
+```json
+{"schema_version":"transaction-event/v1","event_id":"0x4d6d...","event_time":"2026-06-02T00:00:00Z","producer":"base-reth-node","event_type":"TXPOOL_PENDING","network":"base-mainnet","tx_hash":"0x1111111111111111111111111111111111111111111111111111111111111111","block_hash":null,"block_number":null,"payload_id":null,"request_id":null,"data":{"event_source":"txpool-tracing","txpool_event":"pending","event_index":0,"node_role":"mempool","pool":"pending"}}
+```
+
+## Event Vocabulary
+
+Edge/proxy:
+
+- `PROXY_RECEIVED`
+- `PROXY_REJECTED`
+- `PROXY_VALIDATION_ACCEPTED`
+- `PROXY_VALIDATION_REJECTED`
+- `PROXY_ROUTED_TO_BACKEND`
+- `PROXY_BACKEND_SUCCESS`
+- `PROXY_BACKEND_FAILURE`
+- `PROXY_INGRESS_RPC_ATTEMPT`
+- `PROXY_INGRESS_RPC_SUCCESS`
+- `PROXY_INGRESS_RPC_FAILURE`
+
+Ingress/audit:
+
+- `INGRESS_RECEIVED`
+- `SIMULATION_STARTED`
+- `SIMULATION_SUCCEEDED`
+- `SIMULATION_FAILED`
+- `INGRESS_TX_FORWARD_ATTEMPT`
+- `INGRESS_TX_FORWARD_SUCCESS`
+- `INGRESS_TX_FORWARD_FAILURE`
+- `INGRESS_METERING_SEND_ATTEMPT`
+- `INGRESS_METERING_SEND_SUCCESS`
+- `INGRESS_METERING_SEND_FAILURE`
+- `INGRESS_METERING_SEND_DROPPED`
+
+Mempool/node:
+
+- `TXPOOL_PENDING`
+- `TXPOOL_QUEUED`
+- `TXPOOL_PENDING_TO_QUEUED`
+- `TXPOOL_QUEUED_TO_PENDING`
+- `TXPOOL_DROPPED`
+- `TXPOOL_REPLACED`
+- `TXPOOL_TRACKING_OVERFLOWED`
+- `TXPOOL_BLOCK_INCLUDED`
+- `TXPOOL_FLASHBLOCK_INCLUDED`
+
+Forwarding:
+
+- `TXPOOL_BUILDER_FORWARD_ATTEMPT`
+- `TXPOOL_BUILDER_FORWARD_SUCCESS`
+- `TXPOOL_BUILDER_FORWARD_FAILURE`
+- `TXPOOL_BUILDER_FORWARD_DROPPED`
+- `TXPOOL_VALIDATED_INSERT_ACCEPTED`
+- `TXPOOL_VALIDATED_INSERT_REJECTED`
+
+`TXPOOL_BUILDER_FORWARD_DROPPED` is reserved for transaction-scoped drops where the forwarding task still has the `tx_hash` in hand, such as a final RPC failure after the retries are exhausted. Broadcast lag is deliberately kept out of the journal and stays visible only through logs and metrics.
+
+Builder:
+
+- `BUILDER_CONSIDERED`
+- `BUILDER_ACCEPTED`
+- `BUILDER_REJECTED`
+- `BUILDER_INCLUDED`
+- `BUILDER_PAYLOAD_FINALIZED`
+- `BUILDER_FLASHBLOCK_STARTED`
+- `BUILDER_FLASHBLOCK_PUBLISHED`
+- `BUILDER_FLASHBLOCK_BUILD_STOPPED`
+
+Builder caveat: `BUILDER_CONSIDERED`, `BUILDER_ACCEPTED`, and `BUILDER_REJECTED` fire once per payload-building attempt and, where relevant, carry `payload_id`, `block_number`, and `flashblock_index`. As a result, one transaction can generate several decision events across consecutive flashblocks. `BUILDER_INCLUDED` is recorded once the builder finalizes the payload it can serve through `engine_getPayload`, and it sets `data.inclusion_signal = "builder_finalized_payload"`. Nonce and validation skips are recorded by the payload loop as `BUILDER_REJECTED` rather than fabricating replacement relationships. `BUILDER_PAYLOAD_FINALIZED` is written once for every built payload — even an empty one with no user transactions — and ties the `payload_id` to the builder's block hash and number; it includes `data.parent_hash`, `data.transaction_count`, `data.gas_used`, `data.gas_limit`, and `data.timestamp`. `BUILDER_FLASHBLOCK_STARTED`, `BUILDER_FLASHBLOCK_PUBLISHED`, and `BUILDER_FLASHBLOCK_BUILD_STOPPED` are scoped to a payload/flashblock and carry top-level `payload_id` and `block_number` plus `data.parent_hash`, `data.flashblock_index`, and `data.target_flashblock_count`. Published events additionally set top-level `block_hash` and `data.transaction_count`, `data.byte_size`, and `data.build_duration_ms`. Build-stopped events use `data.reason` to label control-flow stops, for example payload resolution winning the race before publish.
+
+Canonicality caveat: builder events describe local payload construction, not canonical-chain or consensus-finality state. A builder event that carries `block_hash` means the builder computed or published that payload shape — it is not, on its own, evidence that the block became canonical. Tie records back to canonical history through canonical-state observers such as txpool tracing by matching `block_hash`, `block_number`, and transaction hashes.
+
+## Event ID Guidance
+
+Prefer deterministic `event_id` values whenever the source has stable inputs. Reasonable components to combine include:
+
+- `producer`
+- `event_type`
+- source timestamp bucket or source sequence
+- `tx_hash`
+- `request_id`
+- backend/node identifier when applicable
+- attempt index when applicable
+
+When a source genuinely cannot produce a deterministic ID, record the reason in the producer implementation and pack enough fields into `data` for `audit-archiver` to enforce uniqueness on the database side.
+
+## proxyd Examples
+
+Received raw transaction request:
+
+```json
+{
+  "schema_version": "transaction-event/v1",
+  "event_id": "0x1f3f...",
+  "event_time": "2026-06-02T00:00:00.000000000Z",
+  "producer": "base-routing/proxyd",
+  "event_type": "PROXY_RECEIVED",
+  "network": "base-mainnet",
+  "tx_hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+  "block_hash": null,
+  "block_number": null,
+  "payload_id": null,
+  "request_id": "req-abc",
+  "data": {
+    "rpc_method": "eth_sendRawTransaction"
+  }
+}
+```
+
+Validation rejection:
+
+```json
+{
+  "schema_version": "transaction-event/v1",
+  "event_id": "0x2a4b...",
+  "event_time": "2026-06-02T00:00:00.000000000Z",
+  "producer": "base-routing/proxyd",
+  "event_type": "PROXY_VALIDATION_REJECTED",
+  "network": "base-mainnet",
+  "tx_hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+  "block_hash": null,
+  "block_number": null,
+  "payload_id": null,
+  "request_id": "req-abc",
+  "data": {
+    "rpc_method": "eth_sendRawTransaction",
+    "validation_service": "tx-validation",
+    "fail_open": false
+  }
+}
+```
+
+Routed to node:
+
+```json
+{
+  "schema_version": "transaction-event/v1",
+  "event_id": "0x3b5c...",
+  "event_time": "2026-06-02T00:00:00.000000000Z",
+  "producer": "base-routing/proxyd",
+  "event_type": "PROXY_ROUTED_TO_BACKEND",
+  "network": "base-mainnet",
+  "tx_hash": "0x2222222222222222222222222222222222222222222222222222222222222222",
+  "block_hash": null,
+  "block_number": null,
+  "payload_id": null,
+  "request_id": "req-abc",
+  "data": {
+    "backend": "reth-mainnet-0",
+    "attempt_index": 0
+  }
+}
+```

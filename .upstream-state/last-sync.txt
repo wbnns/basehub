@@ -1,14 +1,15 @@
 ## Upstream snapshot
 
-Generated 2026-06-21T03:05:00Z
+Generated 2026-06-23T03:05:10Z
 
-### base/base @ df7cdc7
+### base/base @ 4cf8a3e
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
+58640c1ddbe11ad0a248046a5a2b39f1ee03c8cd  docs/transaction-events/README.md
 
-### base/docs @ 854cdc1
+### base/docs @ 63d6e5d
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
