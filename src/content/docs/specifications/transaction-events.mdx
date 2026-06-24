@@ -258,3 +258,31 @@ Routed to node:
   }
 }
 ```
+
+## TIPS S3/Postgres Parity Checklist
+
+The journal feeds the audit-archiver/Postgres query path that backs the TIPS UI. Before an environment flips `TIPS_UI_QUERY_BACKEND=audit`, the Postgres route should return the same answers the existing S3-backed route does. Keep S3 serving traffic until the samples below match against audit-archiver, then cut over.
+
+**Sample inputs.** Pick a representative set and reuse it across both backends:
+
+- A recent block hash that includes at least one non-system transaction, plus that same block addressed by number.
+- A transaction hash from that block carrying a `SIMULATION_SUCCEEDED` event.
+- A bundle hash or bundle id drawn from that transaction's event data.
+- A rejected transaction from the trailing 31 days, if one exists.
+
+**Route comparisons.** Run each sample through both backends and check that they line up:
+
+- On `GET /api/block/<block-hash>`, the two paths should agree on block hash, number, gas limits, the ordering of transactions, and the transaction hashes themselves.
+- Addressing the block by number via `GET /api/block/<block-number>` should land on that same canonical block.
+- Per sampled non-system transaction, both backends should concur on whether simulation data is present; where it is, the bundle hash/id, state block number, total gas used, total execution time, state-root time, and the per-transaction gas/time summaries should all match.
+- `GET /api/txn/<tx-hash>` should hand back a matching transaction hash along with at least one bundle id/hash join key.
+- Events from `GET /api/bundle/<bundle-id-or-hash>` should arrive in event-time order, with the accepted simulation event for the sample among them.
+- Where a rejected sample exists, `GET /api/rejected` should echo its transaction hash, block number, rejection reason, timestamp, and metering summary.
+
+**Operational checks:**
+
+- On `audit-archiver`, `TIPS_AUDIT_POSTGRES_URL` is configured, and the audit service port answers both JSON-RPC and transaction-event HTTP ingest — that same port is where Vector delivers NDJSON, at `/v1/transaction-events/batch`.
+- `ingress-rpc` carries `TIPS_INGRESS_TRANSACTION_EVENTS_ENABLED=true` in the test environment alone, its JSONL path aligned with the Vector sidecar mount.
+- On the UI side, `TIPS_UI_QUERY_BACKEND=audit` is set with `TIPS_UI_AUDIT_RPC_URL` aimed at the audit service.
+- Writes to S3 keep flowing across the whole comparison window.
+- Nothing in the rollout drops a Kafka, S3, or existing RPC persistence path.

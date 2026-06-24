@@ -1,15 +1,17 @@
 ## Upstream snapshot
 
-Generated 2026-06-23T03:05:10Z
+Generated 2026-06-24T03:05:10Z
 
-### base/base @ 4cf8a3e
+### base/base @ 7030a91
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
+3792e8c42c87bccfd86a406e5b292a60aa285d69  docs/transaction-events/pr-description-note.md
 58640c1ddbe11ad0a248046a5a2b39f1ee03c8cd  docs/transaction-events/README.md
+81d0a9988c358ede6e491e10094aa7b62ef916b9  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 63d6e5d
+### base/docs @ 7cad997
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -47,7 +49,7 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 0dac07d409417e02b97b3a169be5176fdbfde155  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
-25dc9aa9441b1bc9f93b8498ad4ba98aca53de75  docs/base-chain/api-reference/rpc-overview.mdx
+d03cfe1e78c901288bccbc2b696402c41791c27a  docs/base-chain/api-reference/rpc-overview.mdx
 d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integration.mdx
 f1b24eda592ee848413950a6f35da68eb7a7cf81  docs/base-chain/flashblocks/architecture.mdx
 750ec7ddbeca6a9bdc2d0ba35a1f6d8913c5cab0  docs/base-chain/flashblocks/faq.mdx
@@ -67,7 +69,7 @@ b20699edecc5f4384a4db8cf084f49851a11f811  docs/base-chain/network-information/tr
 d74693c54a3d0a98134bd14d22dfa640e7e0b44e  docs/base-chain/node-operators/snapshots.mdx
 4508dd7afaa3f3509697f3dc3f8e3d928f42233f  docs/base-chain/node-operators/troubleshooting.mdx
 92ae9dd3d4fe2e572cf802b86fb9177a04aac818  docs/base-chain/quickstart/base-solana-bridge.mdx
-d3d326288a002ffec883435167175f97d0631c0e  docs/base-chain/quickstart/connecting-to-base.mdx
+35dfa19f69b607391d1c264ce340d3df7aa7042e  docs/base-chain/quickstart/connecting-to-base.mdx
 f6e32f1451f6778b4674c474bbb83fc18db6cf68  docs/base-chain/quickstart/deploy-on-base.mdx
 ffa86161d7844cd0ec7afeef0e454106039f98c0  docs/base-chain/quickstart/why-base.mdx
 b42043992cd46cc68d8e8a4a6520bd389dd93e6f  docs/base-chain/security/avoid-malicious-flags.mdx
