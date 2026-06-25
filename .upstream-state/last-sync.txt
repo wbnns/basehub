@@ -1,17 +1,17 @@
 ## Upstream snapshot
 
-Generated 2026-06-24T03:05:10Z
+Generated 2026-06-25T03:05:53Z
 
-### base/base @ 7030a91
+### base/base @ bcacf5e
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
 3792e8c42c87bccfd86a406e5b292a60aa285d69  docs/transaction-events/pr-description-note.md
-58640c1ddbe11ad0a248046a5a2b39f1ee03c8cd  docs/transaction-events/README.md
+77fee972dc9fb3f63cf2bfd9e23d32be12950ab2  docs/transaction-events/README.md
 81d0a9988c358ede6e491e10094aa7b62ef916b9  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 7cad997
+### base/docs @ 450e050
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -65,7 +65,7 @@ db3df4c1520a79c444d8365184ed8aeec1b6e4c6  docs/base-chain/network-information/ne
 b20699edecc5f4384a4db8cf084f49851a11f811  docs/base-chain/network-information/troubleshooting-transactions.mdx
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
-4d36be28e66712189ba68a9f7564c0f0512be046  docs/base-chain/node-operators/run-a-base-node.mdx
+89efac9d2037c3ca5089bded7038097831ad70d2  docs/base-chain/node-operators/run-a-base-node.mdx
 d74693c54a3d0a98134bd14d22dfa640e7e0b44e  docs/base-chain/node-operators/snapshots.mdx
 4508dd7afaa3f3509697f3dc3f8e3d928f42233f  docs/base-chain/node-operators/troubleshooting.mdx
 92ae9dd3d4fe2e572cf802b86fb9177a04aac818  docs/base-chain/quickstart/base-solana-bridge.mdx
@@ -104,7 +104,7 @@ d92150b26bbda21b1e3bf78648005998fd5c194b  docs/base-chain/specs/upgrades/azul/ex
 d7b84323d59159531741666673c5114a347277f4  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
 cb43419f87628601f9cd8d6d3c982a9c0acd54fd  docs/base-chain/specs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
-2f62086be2d2d02e21aae1cdc0eb275b8b585795  docs/base-chain/specs/upgrades/beryl/b20.mdx
+f408d7fd1b53f18027b22fc652fc9d40e12928af  docs/base-chain/specs/upgrades/beryl/b20.mdx
 dba87a6b956fc964cfc8f373f893993a83bccdd1  docs/base-chain/specs/upgrades/beryl/overview.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx

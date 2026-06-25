@@ -21,8 +21,10 @@ Two variants are available:
 Rather than living as EVM smart contracts, B20 tokens run as **Rust precompiles**, which makes them faster, cheaper, and closer to the chain itself. Every token is deployed through the singleton B20Factory precompile.
 
 <Aside type="tip">
-B20 covers the entire ERC-20 surface with full selector parity, so it drops straight into existing tooling and integrations.
+B20 is a strict superset of ERC-20. The standard calls — `transfer`, `transferFrom`, `approve`, `balanceOf`, `allowance`, and the canonical events — carry their usual ERC-20 semantics, so off-the-shelf tooling and integrations keep working without modification.
 </Aside>
+
+Beyond that base surface, B20 layers on methods ERC-20 lacks: memos, mint/burn, policy gating, granular pause, and ERC-2612 `permit`. The containment runs one way only — anything ERC-20 defines is present on B20, but the additions don't flow back. Full ABIs are published as [interface definitions](https://github.com/base/base-std/tree/main/src/interfaces) in the Base Standard Library.
 
 ## Roles model
 
@@ -172,7 +174,7 @@ B20 supports ERC-2612 signed approvals over an EIP-712 domain of `(name, version
 
 ## Factory
 
-Every B20 token is minted through the singleton B20Factory precompile via `createB20(variant, salt, params, initCalls)`.
+Every B20 token is minted through the singleton B20Factory precompile via `createB20(variant, salt, params, initCalls)`. Within `base-std` the factory is reachable as `StdPrecompiles.B20_FACTORY`.
 
 | Parameter | Description |
 |-----------|-------------|
@@ -191,7 +193,7 @@ A B20 address is deterministic and carries its variant inline:
 [10-byte B20 prefix][1-byte variant][9-byte keccak256(deployer, salt)]
 ```
 
-Because the variant lives in the address, it's recoverable without an RPC call. The factory also exposes `getB20Address(variant, deployer, salt)`, `isB20(addr)`, and `isB20Initialized(addr)`.
+Because the variant lives in the address, it's recoverable without an RPC call — read byte 10 (zero-indexed) to learn the token type. The factory also exposes `getB20Address(variant, deployer, salt)`, `isB20(addr)`, and `isB20Initialized(addr)`.
 
 ### initCalls semantics
 
@@ -202,6 +204,13 @@ Because the variant lives in the address, it's recoverable without an RPC call. 
 - Token invariants (the supply cap and so on) are never bypassed.
 
 ## Variants
+
+Each variant has a 1-byte identifier written directly into the token's address (see [Address derivation](#address-derivation)):
+
+| Variant | Byte |
+|---------|------|
+| `ASSET` | `0x00` |
+| `STABLECOIN` | `0x01` |
 
 ### Asset
 
@@ -245,6 +254,16 @@ An open-ended store of issuer-set on-chain metadata, addressed by key.
 A fiat-backed carveout with locked decimals. The decimal count is fixed at `6` and isn't configurable.
 
 It adds `currency()`, returning an ISO-style currency code (`"USD"`, `"EUR"`, and the like). That code is set once at creation through `B20StablecoinCreateParams.currency`, limited to the characters `A`-`Z`. It's self-declared and isn't checked against any outside registry.
+
+## Precompile addresses
+
+The supporting precompiles sit at the same fixed addresses on every network where B20 is live — Mainnet, Base Sepolia, Vibenet, and a local `base-anvil` instance alike.
+
+| Precompile | Address |
+|---|---|
+| [B20Factory](#factory) | `0xB20f000000000000000000000000000000000000` |
+| Activation Registry | `0x8453000000000000000000000000000000000001` |
+| [Policy registry](#policy-registry) | `0x8453000000000000000000000000000000000002` |
 
 ## Roadmap
 

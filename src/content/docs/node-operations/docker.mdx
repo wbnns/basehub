@@ -59,6 +59,8 @@ Common flags:
 
 In addition to the ingress ports above, the node needs outbound access to the Base bootnodes for initial peer discovery. Operators running behind strict egress filtering must allow outgoing traffic to ports `30301` (TCP/UDP) and `9200` (UDP); without these, the node cannot bootstrap into the peer set.
 
+If egress is controlled with network ACLs rather than a stateful firewall (for example AWS security groups), open the ephemeral port range **32768–60999** (TCP/UDP) for outbound traffic as well. Stateful firewalls recognize and admit return packets on their own; ACLs do not, so omitting this range causes responses from peers to be dropped without warning.
+
 ## Docker Compose
 
 The repository includes a Docker Compose configuration for running a local devnet:
