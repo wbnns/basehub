@@ -9,6 +9,10 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-06-25 — Mainnet chain stall
+
+Beginning at 16:03 UTC on Thursday, June 25th, Base Mainnet block production turned unhealthy. The team traced it to a consensus fault: an invalid block had been sequenced, which kept new blocks from being built past block `47806542`. Sequencing of fresh blocks was restored by around 17:51 UTC, though ecosystem node operators had to restart their Base nodes to resume syncing. Healthy block building was confirmed shortly after, and the Beryl hardfork still activated on schedule at 18:00 UTC. By 19:22 UTC the network was stable with recovery verified across the ecosystem; any nodes still stuck at block `47806542` recover on restart. The root cause was identified and a fix put under verification, with a full post-mortem and root-cause analysis promised to the ecosystem.
+
 ### 2026-06-25 — Mainnet Beryl upgrade (scheduled)
 
 Base Mainnet is scheduled to activate the Beryl hardfork on Thursday, June 25th at 18:00 UTC (Unix timestamp `1782410400`). Operators of Mainnet nodes must move to the `1.1.1` release or later of `github.com/base/base`, with matching preconfigured binaries published as the [`v1.1.1`](https://github.com/base/node/releases/tag/v1.1.1) release of `github.com/base/node`. Migration steps are documented in the [Beryl Upgrade Overview](/specifications/beryl-overview#required-software).

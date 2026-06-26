@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-06-25T03:05:53Z
+Generated 2026-06-26T03:03:53Z
 
-### base/base @ bcacf5e
+### base/base @ fb63d0f
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -11,7 +11,7 @@ b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 77fee972dc9fb3f63cf2bfd9e23d32be12950ab2  docs/transaction-events/README.md
 81d0a9988c358ede6e491e10094aa7b62ef916b9  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 450e050
+### base/docs @ fed8710
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -104,7 +104,7 @@ d92150b26bbda21b1e3bf78648005998fd5c194b  docs/base-chain/specs/upgrades/azul/ex
 d7b84323d59159531741666673c5114a347277f4  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
 cb43419f87628601f9cd8d6d3c982a9c0acd54fd  docs/base-chain/specs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
-f408d7fd1b53f18027b22fc652fc9d40e12928af  docs/base-chain/specs/upgrades/beryl/b20.mdx
+52e63b224a15f675fb867db3a8ebe925d8f77a6f  docs/base-chain/specs/upgrades/beryl/b20.mdx
 dba87a6b956fc964cfc8f373f893993a83bccdd1  docs/base-chain/specs/upgrades/beryl/overview.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx
@@ -160,11 +160,12 @@ g1dq2jzeQaR9QbV7w4Zt	Introducing the Base Account SDK	Wed, 16 Jul 2025 22:00:02 
 
 ### base-l2.statuspage.io RSS
 
-https://base-l2.statuspage.io/incidents/rq17m0n3jn36	Mainnet: Base Beryl Upgrade - June 25th	Thu, 25 Jun 2026 18:00:00 +0000
+https://base-l2.statuspage.io/incidents/rq17m0n3jn36	Mainnet: Base Beryl Upgrade - June 25th	Thu, 25 Jun 2026 20:00:13 +0000
+https://base-l2.statuspage.io/incidents/5c4gm1wzbjs4	Base Mainnet Chain Stall	Thu, 25 Jun 2026 19:22:55 +0000
+https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Mon, 22 Jun 2026 16:35:05 +0000
+https://base-l2.statuspage.io/incidents/sj3qyrxy27dl	Base Mainnet p2p peering stability	Mon, 22 Jun 2026 16:34:04 +0000
 https://base-l2.statuspage.io/incidents/5zdg2sd9dchm	Sepolia Testnet: Base Beryl Upgrade - June 18th	Thu, 18 Jun 2026 20:00:07 +0000
-https://base-l2.statuspage.io/incidents/sj3qyrxy27dl	Base Mainnet p2p peering stability	Mon, 15 Jun 2026 17:59:12 +0000
 https://base-l2.statuspage.io/incidents/t8rgbdb6bfds	Node Peering Stability on Base Testnet and Mainnet	Thu, 04 Jun 2026 19:42:05 +0000
-https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Tue, 02 Jun 2026 22:32:28 +0000
 https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Delay	Sun, 31 May 2026 03:38:45 +0000
 https://base-l2.statuspage.io/incidents/64vlxm4l3lb2	Mainnet: Base Azul Upgrade - May 28th	Thu, 28 May 2026 20:00:10 +0000
 https://base-l2.statuspage.io/incidents/0h468wjw300f	Delayed Transactions	Thu, 14 May 2026 05:04:08 +0000
@@ -184,4 +185,3 @@ https://base-l2.statuspage.io/incidents/xf39x32bm8ms	Base Mainnet Upgrade 18	Tue
 https://base-l2.statuspage.io/incidents/tlvzszwdy2z3	Mempool upgrade	Thu, 05 Feb 2026 20:00:21 +0000
 https://base-l2.statuspage.io/incidents/z6l4xm9gc08m	Base Mainnet minimum base fee increase	Tue, 03 Feb 2026 03:30:21 +0000
 https://base-l2.statuspage.io/incidents/zfvvgt46j9d8	High Rate of Transaction Drops and Transaction Inclusion Delays	Sat, 31 Jan 2026 21:51:55 +0000
-https://base-l2.statuspage.io/incidents/9yrk7wlc2bp1	Base Mainnet minimum base fee increase	Thu, 22 Jan 2026 20:30:22 +0000
