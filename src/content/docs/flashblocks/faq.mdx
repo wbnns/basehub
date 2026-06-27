@@ -31,16 +31,13 @@ The sequencer will not stop publishing Flashblocks unless an extreme situation m
 
 ### Why is my transaction having trouble getting included?
 
-Transactions with large gas limits (greater than ~18.75M gas, which is 1/10 of the ~187.5M block limit) can take longer to include. The builder allocates gas cumulatively — Flashblock `j` may use up to `j/10` of the total block gas limit — so large transactions are admitted once enough cumulative capacity exists.
+Inclusion timing is driven mainly by priority fee, not transaction size. The builder allocates gas cumulatively — Flashblock `j` may use up to `j/10` of the total block gas limit — so in principle a very large transaction has a harder time landing in the first Flashblock. In practice this rarely bites: Base's [per-transaction gas maximum](/network/block-building/#per-transaction-gas-maximum) of 16,777,216 gas (~16.7M) is already below Flashblock 1's ~40M budget, so any valid transaction fits in the first Flashblock on size alone. When a transaction is slow to include, the usual cause is a low priority fee relative to others competing in the same 200ms window.
 
-See [Gas and transaction sizing](/flashblocks/app-integration/#gas--transaction-sizing) for the full breakdown.
+See [Block Building](/network/block-building/) for the gas budget breakdown and throughput limits.
 
 ### How do I make sure my transaction lands in the first Flashblock?
 
-There is no way to guarantee inclusion in a specific Flashblock, just as there is no way to guarantee a specific block. To improve the odds of fast inclusion:
-
-- Set a higher priority fee.
-- Keep the gas limit below ~18.75M (1/10 of the block limit) so the transaction is eligible for Flashblock 1.
+There is no way to guarantee inclusion in a specific Flashblock, just as there is no way to guarantee a specific block. Since the per-transaction gas maximum (~16.7M) sits below Flashblock 1's ~40M capacity, gas size is not the limiting factor — every valid transaction is eligible for the first Flashblock. To improve the odds of fast inclusion, set a higher priority fee.
 
 ### Why do transactions sometimes appear out of fee order?
 

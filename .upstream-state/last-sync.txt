@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-06-26T03:03:53Z
+Generated 2026-06-27T03:10:21Z
 
-### base/base @ fb63d0f
+### base/base @ 4c109e1
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -11,13 +11,13 @@ b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 77fee972dc9fb3f63cf2bfd9e23d32be12950ab2  docs/transaction-events/README.md
 81d0a9988c358ede6e491e10094aa7b62ef916b9  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ fed8710
+### base/docs @ 4b29391
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
 c6b10ce97d785e5d1828b462ea9319c2198db195  docs/base-chain/api-reference/debug-api/debug_traceTransaction.mdx
 2e758a200073d281f769d14ec1c0768746e7e58f  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_blockNumber.mdx
-89e905ed22625e906c51e2a25473f4d204205b7f  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_call.mdx
+dfe2a16c8e17cf6a24688e3b504f024cffe4ac55  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_call.mdx
 22b0db7ad6bd53bd6f073daa01583dd54d22fd93  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_chainId.mdx
 49cb8f27f60153de5670f28842161cc4ae05fa8e  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_estimateGas.mdx
 9ab11eb35b2150348317fb17848f3f6a63a6a597  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_feeHistory.mdx
@@ -45,33 +45,24 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 0c13fbb5a8a0033f8c567c92fcf73dacd4e30b7c  docs/base-chain/api-reference/ethereum-json-rpc-api/web3_clientVersion.mdx
 89280c7613256cd789047d13e5304c43f9097425  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 8c464acad1e672a91b94bd96f079fd4d3f7c1ef7  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
-40648d0017cd03c293c57c122e7195e8fecddb5f  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
+9382125ead03cec308df7f91fcbcdb84ad2416f4  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
 1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 0dac07d409417e02b97b3a169be5176fdbfde155  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 d03cfe1e78c901288bccbc2b696402c41791c27a  docs/base-chain/api-reference/rpc-overview.mdx
-d7b417fe82191104516b40c427740b4f32a811ad  docs/base-chain/flashblocks/app-integration.mdx
-f1b24eda592ee848413950a6f35da68eb7a7cf81  docs/base-chain/flashblocks/architecture.mdx
-750ec7ddbeca6a9bdc2d0ba35a1f6d8913c5cab0  docs/base-chain/flashblocks/faq.mdx
-21f2c7cc7ca4ecb66e25557b9c3aa8e9c53ae366  docs/base-chain/flashblocks/overview.mdx
+bbff11673c87d2433e251c36ef4bdc4a0d765df6  docs/base-chain/flashblocks/faq.mdx
 154ab30c175fe807125789d33556933a274583a3  docs/base-chain/network-information/base-contracts.mdx
-fe83ea2ee1a9320abe9783e0356b3e60514c325b  docs/base-chain/network-information/block-building.mdx
-39f7fcdfec55dcd29bdddd231be157dc61ab6a2b  docs/base-chain/network-information/bridges.mdx
-abde76c1b86631406354f6b0d79b54f3f46d20f0  docs/base-chain/network-information/configuration-changelog.mdx
-e78dbd55b528a0ef3f17c72e2edc0ab006452b68  docs/base-chain/network-information/diffs-ethereum-base.mdx
+13528d5db6a3997e22b8dce82b11b44a4c9f4ac4  docs/base-chain/network-information/configuration-changelog.mdx
 663214bf3a4de899b92b2904dfe102d55000b538  docs/base-chain/network-information/network-faucets.mdx
 db3df4c1520a79c444d8365184ed8aeec1b6e4c6  docs/base-chain/network-information/network-fees.mdx
 01ae095080c515efb24a7e2f9b09baa070b5f64b  docs/base-chain/network-information/transaction-finality.mdx
-b20699edecc5f4384a4db8cf084f49851a11f811  docs/base-chain/network-information/troubleshooting-transactions.mdx
+135288ede521810c1cbfd37ec8ad3db9d4f12bfd  docs/base-chain/network-information/troubleshooting-transactions.mdx
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
-1cc6db77d827f5842c190c99cf4806568d7384a3  docs/base-chain/node-operators/performance-tuning.mdx
-89efac9d2037c3ca5089bded7038097831ad70d2  docs/base-chain/node-operators/run-a-base-node.mdx
+d3143f2ee26663d6ffb9771509072e87054195b8  docs/base-chain/node-operators/performance-tuning.mdx
+25fc948b147e30e52ed6f88c1766962f0b470a23  docs/base-chain/node-operators/run-a-base-node.mdx
 d74693c54a3d0a98134bd14d22dfa640e7e0b44e  docs/base-chain/node-operators/snapshots.mdx
 4508dd7afaa3f3509697f3dc3f8e3d928f42233f  docs/base-chain/node-operators/troubleshooting.mdx
-92ae9dd3d4fe2e572cf802b86fb9177a04aac818  docs/base-chain/quickstart/base-solana-bridge.mdx
 35dfa19f69b607391d1c264ce340d3df7aa7042e  docs/base-chain/quickstart/connecting-to-base.mdx
-f6e32f1451f6778b4674c474bbb83fc18db6cf68  docs/base-chain/quickstart/deploy-on-base.mdx
-ffa86161d7844cd0ec7afeef0e454106039f98c0  docs/base-chain/quickstart/why-base.mdx
 b42043992cd46cc68d8e8a4a6520bd389dd93e6f  docs/base-chain/security/avoid-malicious-flags.mdx
 d5ad135d5c21aab587be3d16dfe74b12d286e4fa  docs/base-chain/security/bug-bounty.mdx
 b0b05b8b73f93e8b8249f9d64612c64b1398bbbf  docs/base-chain/security/report-vulnerability.mdx
@@ -104,7 +95,7 @@ d92150b26bbda21b1e3bf78648005998fd5c194b  docs/base-chain/specs/upgrades/azul/ex
 d7b84323d59159531741666673c5114a347277f4  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
 cb43419f87628601f9cd8d6d3c982a9c0acd54fd  docs/base-chain/specs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
-52e63b224a15f675fb867db3a8ebe925d8f77a6f  docs/base-chain/specs/upgrades/beryl/b20.mdx
+05497b181699069188cf266f7cf31326f859127e  docs/base-chain/specs/upgrades/beryl/b20.mdx
 dba87a6b956fc964cfc8f373f893993a83bccdd1  docs/base-chain/specs/upgrades/beryl/overview.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx

@@ -34,14 +34,14 @@ Three properties distinguish Flashblocks from vanilla ordering:
 
    | Flashblock | Available gas |
    |------------|---------------|
-   | 1 | ~14M gas (1/10) |
-   | 2 | ~28M gas (2/10) |
-   | 3 | ~42M gas (3/10) |
+   | 1 | ~40M gas (1/10) |
+   | 2 | ~80M gas (2/10) |
+   | 3 | ~120M gas (3/10) |
    | ... | ... |
-   | 10 | ~140M gas (full) |
+   | 10 | ~400M gas (full) |
 
-   <Aside type="caution">
-   A transaction that needs more than ~14M gas cannot land in Flashblock 1 and will wait for a later Flashblock. Track inclusion latency if your application submits large transactions.
+   <Aside type="note">
+   In practice, transaction size rarely decides which Flashblock you land in. The [per-transaction gas maximum](#per-transaction-gas-maximum) of 16,777,216 gas (~16.7M) sits below Flashblock 1's ~40M budget, so any valid transaction is already eligible for the first Flashblock. Inclusion timing is driven mainly by priority fee relative to others competing in the same 200ms window.
    </Aside>
 
 3. **Dynamic mempool** — The builder keeps accepting new transactions while a Flashblock is being assembled. This minimizes inclusion latency, but transactions are ordered by fee *at the moment of selection*, not against every transaction that arrived during the 200ms window. A high-fee transaction that arrives late may appear after a lower-fee transaction that was already committed.

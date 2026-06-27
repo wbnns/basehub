@@ -39,11 +39,11 @@ The gas budget is **cumulative**, not per-Flashblock. Each Flashblock unlocks an
 
 | Flashblock | Cumulative gas available |
 |------------|--------------------------|
-| 1 | 1/10 of block limit (~18.75M gas) |
-| 2 | 2/10 of block limit (~37.5M gas) |
-| 3 | 3/10 of block limit (~56.25M gas) |
+| 1 | 1/10 of block limit (~40M gas) |
+| 2 | 2/10 of block limit (~80M gas) |
+| 3 | 3/10 of block limit (~120M gas) |
 | ... | ... |
-| 10 | Full block limit (~187.5M gas) |
+| 10 | Full block limit (~400M gas) |
 
 <Aside type="tip">
 **Unused gas carries forward.** If Flashblock 1 only uses 0.3/10 of the budget, Flashblock 2 can use up to 1.7/10 (the cumulative 2/10 limit minus what was already consumed).
@@ -51,9 +51,8 @@ The gas budget is **cumulative**, not per-Flashblock. Each Flashblock unlocks an
 
 **Implications for large transactions:**
 
-- Transactions exceeding 1/10 of block gas (~18.75M) may not land in the first Flashblock — they wait for enough cumulative capacity.
-- A separate **per-transaction max gas limit** applies on Base, distinct from Flashblock capacity.
-- For best inclusion latency, keep individual transactions below ~18.75M gas so they qualify for the first Flashblock.
+- In practice, gas size is rarely the limiting factor. Base's **per-transaction gas maximum** of 16,777,216 gas (~16.7M) is already below Flashblock 1's ~40M budget, so any valid transaction qualifies for the first Flashblock on size alone.
+- Inclusion timing is governed primarily by priority fee relative to others competing in the same 200ms window, not by transaction size.
 
 ## Reliability and fallback
 
