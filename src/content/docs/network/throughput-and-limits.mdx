@@ -1,0 +1,72 @@
+---
+title: Throughput and Limits
+description: Gas limits, Flashblock performance figures, fee parameters, data availability throttling, and endpoint limits that shape practical throughput on Base.
+sources:
+- base/docs:docs/base-chain/network-information/throughput-and-limits.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Several things bound throughput on Base simultaneously: how much gas a block allows, how much data the chain can publish for availability, the parameters of the fee market, and the limits imposed at the RPC endpoint. No single transactions-per-second number describes every workload, since transactions differ widely in the gas and data they each consume.
+
+Base has sustained several bursts above 5,000 TPS, and capacity keeps growing as the chain scales. The [Introducing Base Azul](https://blog.base.dev/introducing-base-azul) post has more background.
+
+## Current limits
+
+| Limit | Value |
+|-------|-------|
+| Full block gas budget | ~400M gas |
+| First Flashblock gas budget | ~40M gas |
+| Per-transaction gas maximum | 16,777,216 gas (2^24) |
+| Deposit transaction limit | Maximum gas includable in an L1 block (20,000,000 gas) |
+
+While a block is being assembled, the full gas budget is divided across its Flashblocks: Flashblock 1 can use one tenth of the limit, Flashblock 2 two tenths, and so on up to Flashblock 10, which has the full budget. See [Block Building](/network/block-building/#flashblocks) for how this shapes transaction ordering.
+
+## Flashblock performance
+
+Flashblocks emit incremental block updates roughly every 200ms, so apps receive sub-second preconfirmations inside the standard 2-second block.
+
+| Metric | Value |
+|--------|-------|
+| Flashblock build time (P50) | ~10ms |
+| Preconfirmation latency | ~200ms |
+| Full block time | 2 seconds |
+| Flashblocks per block | 10 |
+| Reorg rate | < 0.1% |
+
+For how reorgs are handled — and other recurring questions — see the [Flashblocks FAQ](/flashblocks/faq/).
+
+## Per-transaction gas maximum
+
+Since the [Azul hardfork](/specifications/azul-overview/), any single transaction is held to a protocol-level ceiling of **16,777,216 gas (2^24)**, as set out in [EIP-7825](https://eips.ethereum.org/EIPS/eip-7825). A transaction that declares a gas limit above this value is **rejected during block validation**, and `eth_sendTransaction` or `eth_sendRawTransaction` returns a JSON-RPC error such as `exceeds maximum per-transaction gas limit`.
+
+<Aside type="note">
+Deposit transactions are exempt and are bounded instead by the largest amount of gas that fits in an L1 block (20,000,000 gas).
+</Aside>
+
+Operators running bundlers for smart contract wallets need to size each bundle to stay under this cap.
+
+## Fee parameters
+
+Fees feed back into real-world throughput: as load climbs toward the ceiling, the fee a transaction offers governs whether it makes it into a block.
+
+| Parameter | Current value |
+|-----------|---------------|
+| Minimum base fee | 5,000,000 wei (0.005 gwei) |
+| EIP-1559 elasticity | 6 |
+| EIP-1559 denominator | 125 |
+| Maximum L2 base fee change per block | 4% |
+
+For how Base fees are structured — the L2 execution fee and the L1 security fee — see [Network Fees](/network/network-fees/).
+
+## Data availability throughput
+
+Base posts its transaction data to Ethereum for data availability. When DA bandwidth is constrained, the sequencer can throttle L2 throughput while the batcher catches up.
+
+While DA throttling is active, even transactions paying a high priority fee may be delayed, and no RPC endpoint estimates priority fees with throttling in mind. The [troubleshooting guide](/network/troubleshooting-transactions/) covers what this means for transaction submission.
+
+## Endpoint limits
+
+Public endpoints carry rate limits and are not built for production traffic. A hosted RPC provider may layer on further constraints — caps on requests per second or compute units, restricted method sets, limits on archive data, or ceilings on WebSocket subscriptions.
+
+None of that alters the protocol's own capacity, but any of it can turn into the practical ceiling for an app, wallet, indexer, or monitoring system. For production traffic, route through a node provider or [run your own Base node](/getting-started/running/).

@@ -9,6 +9,10 @@ A running index of paraphrased entries from the [Base engineering blog](https://
 
 ## 2026
 
+### Postmortem: June 25th Block Production Outage — 27 June 2026
+
+Base published a detailed postmortem for the two mainnet block production halts on June 25 and 26, 2026 (116 minutes and 20 minutes). Both traced to the same sequencer bug: a failed transaction left the EVM journal state dirty, so a following valid transaction was charged the wrong gas and produced a block no other node would accept, stopping the chain. The patch ([PR #3806](https://github.com/base/base/pull/3806)) restored correct journal handling, and a separate engine-reset race in the sequencers ([PR #3805](https://github.com/base/base/pull/3805/changes)) explains the second-day recurrence. See the local [June 2026 block production outage](/architecture/june-2026-block-production-outage/) deep-dive for the full timeline, or read the original at [blog.base.dev/postmortem-june-25th-block-production-outage](https://blog.base.dev/postmortem-june-25th-block-production-outage).
+
 ### Introducing Base Beryl — 18 June 2026
 
 Beryl, Base's second network upgrade, is live on testnet and reaches mainnet on June 25, 2026. It turns Base into a first-class issuance platform through the B20 native token standard, tightens capital efficiency by shortening the withdrawal delay, and raises throughput with Reth V2. The post frames Beryl as the next step after Azul, which laid down the Base Stack and the multiproof system. See the local [Beryl hardfork overview](/specifications/beryl-overview/) for the paraphrased spec, or read the original at [blog.base.dev/introducing-base-beryl](https://blog.base.dev/introducing-base-beryl).

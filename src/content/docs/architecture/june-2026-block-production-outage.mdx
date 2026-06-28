@@ -1,0 +1,72 @@
+---
+title: June 2026 Block Production Outage
+description: Postmortem of the two June 2026 Base mainnet block production halts caused by stale EVM journal state in the sequencer, plus the mitigation and follow-up work.
+sources:
+- blog.base.dev:postmortem-june-25th-block-production-outage
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Base mainnet halted block production twice in late June 2026. The first halt began at 11:47am EDT on June 25 and ran for 116 minutes; the second began at 11:28am EDT on June 26 and lasted 20 minutes. Both share a single root cause, so this page treats them together. Chain integrity was preserved and user funds were never at risk — sequencing resumed safely once the underlying bug was patched.
+
+<Aside type="note">
+This page paraphrases Base's public postmortem. For the original write-up, see [Postmortem: June 25th Block Production Outage](https://blog.base.dev/postmortem-june-25th-block-production-outage).
+</Aside>
+
+## Root cause
+
+The defect lived in the sequencer's block-building path: after a transaction failed validation, the EVM journal — the record of accounts and storage slots touched during execution — was not reset. When an invalid transaction arrived at the builder, it failed during execution as designed, but the dirty journal state survived instead of being rolled back.
+
+The next valid transaction then executed against that leftover state before the journal was cleared. Because the journal no longer reflected reality, the gas charged to the valid transaction was wrong, and the block it landed in carried an invalid state transition. No other node would accept a block produced from that corrupted state, so the chain stopped advancing.
+
+## Impact
+
+For the duration of each outage, two effects were visible across the network:
+
+- **Block production stopped.** No new L2 blocks were sealed. Both sequencer and validator nodes were stuck behind the invalid block and could not move forward until sequencing was restored.
+- **Transactions could not be included.** Pending transactions piled up in the mempool, which eventually exceeded its storage capacity and began rejecting new submissions. Calls to `eth_sendRawTransaction` returned errors throughout the incident.
+
+## Mitigation
+
+The fix patched the sequencers so the journal state is correctly updated during execution. It shipped as [base/base PR #3806](https://github.com/base/base/pull/3806).
+
+Recovery took longer than the patch alone would suggest, because of an unrelated infrastructure condition. The sequencers in the active/passive cluster sync at the consensus layer rather than via execution sync like validator nodes do, and the engine reset path carried a race condition that stopped the sequencers from catching back up to the chain tip after a restart. That second bug — visible in [base/base PR #3805](https://github.com/base/base/pull/3805/changes) — affected only the sequencers and is why the chain halted again the following day.
+
+## Incident timeline
+
+### Phase 1 — the chain halt
+
+| Time | Event | What happened |
+|------|-------|---------------|
+| 11:47:13 AM ET (15:47:13 UTC) | Journal left dirty | An invalid transaction fails while block 47806543 is being built, but the error path never clears the in-memory journal, so it stays dirty. |
+| 11:47:13 AM ET (15:47:13 UTC) | Execution on bad state | In that same ~2-second window, the next valid transaction runs against the dirty journal and computes a wrong receipts root. The bad block is then sealed and broadcast by the sequencer. |
+| 11:47:13 AM ET (15:47:13 UTC) | Validators reject, chain halts | Validators re-execute the block. Because they skip the excluded invalid transaction, they derive a different receipts root from a clean journal, reject the block, and the chain stops at block 47806542. |
+
+### Phase 2 — response and triage
+
+| Time | Milestone | Action |
+|------|-----------|--------|
+| 11:49:00 AM ET (15:49:00 UTC) | T + 2 minutes | Monitors detect the production stall and fire an automated alert. |
+| 11:52:00 AM ET (15:52:00 UTC) | T + 5 minutes | An engineering war room opens; within three minutes of the alert the bad block hash is identified. |
+| 11:53:00 AM ET (15:53:00 UTC) | T + 6 minutes | The public status page is updated. |
+
+### Phase 3 — mitigation and recovery
+
+| Time | Status | Steps |
+|------|--------|-------|
+| 12:24 PM ET (16:24 UTC) | Investigating | Teams work multiple parallel tracks to isolate the cause. |
+| 12:55 PM ET (16:55 UTC) | Root cause found | The cause is confirmed and the invalid block pinpointed; fix implementation and testing begin. |
+| 1:20 PM ET (17:20 UTC) | Internal nodes recover | The EVM journal patch reaches internal sequencers and core nodes, which achieve preliminary recovery. |
+| 1:51 PM ET (17:51 UTC) | Blocks resume | New blocks start sealing again; downstream ecosystem operators are told to restart stalled nodes. Total outage ~116 minutes. |
+| 1:58 PM ET (17:58 UTC) | Network stable | Ecosystem-wide syncing is verified and the network holds stable under active monitoring. |
+
+The June 26 halt shared the same root cause, started at 11:28am EDT, and was resolved in roughly 20 minutes.
+
+## Follow-up work
+
+Base outlined several reliability investments coming out of the incident:
+
+- Stronger protocol fuzz testing and load-testing harnesses, aimed at surfacing adversarial transaction patterns that can trigger bugs like the journal-state defect, alongside broader operational and monitoring improvements.
+- Graceful recovery support in `base-consensus`, since this incident required validator nodes to be restarted before they could resume syncing. The goal is faster, lower-effort recovery across the ecosystem in similar situations.
+
+Node operators and integrators can subscribe to updates at [status.base.org](https://status.base.org) to stay informed about future events.
