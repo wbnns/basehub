@@ -1,13 +1,13 @@
 ## Upstream snapshot
 
-Generated 2026-07-13T03:02:32Z
+Generated 2026-07-14T03:03:40Z
 
-### base/base @ 135fb5c
+### base/base @ 4e5924a
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
-77fee972dc9fb3f63cf2bfd9e23d32be12950ab2  docs/transaction-events/README.md
+3431c40faf70b50d232cb8449d6b5c1e7668ff13  docs/transaction-events/README.md
 3792e8c42c87bccfd86a406e5b292a60aa285d69  docs/transaction-events/pr-description-note.md
 81d0a9988c358ede6e491e10094aa7b62ef916b9  docs/transaction-events/tips-parity-checklist.md
 

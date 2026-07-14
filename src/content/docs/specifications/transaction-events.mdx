@@ -93,6 +93,8 @@ just devnet tx-observability-smoke
 
 The smoke test pushes a single transaction through ingress, waits for Vector to deliver the JSONL records from the ingress, proxyd, txpool-tracing, and builder producers, and then confirms `audit-archiver` can read the stored events back out of Postgres by transaction hash.
 
+To keep an eye on the local shipper, alert on or inspect the `component_discarded_events_total` metric. Two transforms account for what it counts: `parse_transaction_events` sheds malformed JSONL lines, while `validate_transaction_events` discards already-parsed records whose `data` keys are flagged unsafe.
+
 ## Producer Values
 
 - `base-reth-node`
@@ -129,9 +131,6 @@ Ingress/audit:
 - `SIMULATION_STARTED`
 - `SIMULATION_SUCCEEDED`
 - `SIMULATION_FAILED`
-- `INGRESS_TX_FORWARD_ATTEMPT`
-- `INGRESS_TX_FORWARD_SUCCESS`
-- `INGRESS_TX_FORWARD_FAILURE`
 - `INGRESS_METERING_SEND_ATTEMPT`
 - `INGRESS_METERING_SEND_SUCCESS`
 - `INGRESS_METERING_SEND_FAILURE`
