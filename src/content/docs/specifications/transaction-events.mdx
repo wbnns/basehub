@@ -145,8 +145,6 @@ Mempool/node:
 - `TXPOOL_DROPPED`
 - `TXPOOL_REPLACED`
 - `TXPOOL_TRACKING_OVERFLOWED`
-- `TXPOOL_BLOCK_INCLUDED`
-- `TXPOOL_FLASHBLOCK_INCLUDED`
 
 Forwarding:
 
@@ -271,7 +269,7 @@ The journal feeds the audit-archiver/Postgres query path that backs the TIPS UI.
 
 - On `GET /api/block/<block-hash>`, the two paths should agree on block hash, number, gas limits, the ordering of transactions, and the transaction hashes themselves.
 - Addressing the block by number via `GET /api/block/<block-number>` should land on that same canonical block.
-- Per sampled non-system transaction, both backends should concur on whether simulation data is present; where it is, the bundle hash/id, state block number, total gas used, total execution time, state-root time, and the per-transaction gas/time summaries should all match.
+- Per sampled non-system transaction, both backends should concur on whether simulation data is present; where it is, the bundle hash/id, state block number, total gas used, total execution time, and the per-transaction gas/time summaries should all match.
 - `GET /api/txn/<tx-hash>` should hand back a matching transaction hash along with at least one bundle id/hash join key.
 - Events from `GET /api/bundle/<bundle-id-or-hash>` should arrive in event-time order, with the accepted simulation event for the sample among them.
 - Where a rejected sample exists, `GET /api/rejected` should echo its transaction hash, block number, rejection reason, timestamp, and metering summary.
