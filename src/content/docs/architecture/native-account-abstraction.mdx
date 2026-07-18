@@ -1,0 +1,45 @@
+---
+title: Native Account Abstraction
+description: How Base brings account abstraction into the protocol itself via EIP-8130, cutting per-transaction cost over the ERC-4337 smart-account model while keeping accounts portable across EVM chains.
+sources:
+- blog.base.dev:native-account-abstraction
+---
+
+Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, and it reaches Base with the **Cobalt** upgrade scheduled for September 2026, and the rest of the OP Stack later in the year. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
+
+## Why move account abstraction into the protocol
+
+Smart accounts have carried much of the UX progress in crypto over the past few years — gas abstraction, batched actions, and flexible key management all became possible. But the ERC-4337 design that delivered them sits above the EVM, and that placement carries a tax: higher gas, added latency, and more moving parts. Native AA removes that overhead by making these behaviors first-class properties of a chain-level transaction type.
+
+Co-designing **EIP-8130** with the surrounding protocol let Base keep the transaction opinionated and easy to optimize. The savings show up directly in gas and calldata:
+
+| Transaction type | ERC-4337 | Native AA |
+| --- | --- | --- |
+| USDC Transfer | 125,000 gas / 1,090 bytes | 46,000 gas (-63.2%) / 180 bytes (-83.4%) |
+| USDC Transfer (Passkey, Sponsored) | 173,000 gas / 1,940 bytes | 68,700 gas (-60.3%) / 890 bytes (-56.1%) |
+
+## What becomes native to the chain
+
+With EIP-8130, the following capabilities are provided by the chain itself rather than by contract-level machinery:
+
+- **Batch calls** — bundle several actions into one transaction.
+- **Sponsorship** — an application can cover its users' gas, or let them pay in a token of their choice.
+- **Portability** — the same account travels to any chain, including ones that have not yet adopted Native AA.
+- **Quantum readiness** — support for key rotation and multiple authentication schemes leaves room to move to post-quantum authentication.
+- **High throughput** — parallel nonces and generous sender limits allow a high degree of concurrency.
+- **Session keys** — an application can act for you within bounded, revocable permissions.
+- **Sub-accounts** — a fully isolated account you own that an application can operate.
+- **Metadata** — attach memos and attribution to transactions.
+
+A key point of the design is that adopting Native AA on Base does not tie an account to Base — accounts remain usable on other EVM chains regardless of whether those chains support the feature yet.
+
+## What changes for each audience
+
+- **Users.** A standard EOA gains access to new behaviors such as gas sponsorship and batching automatically. An existing ERC-4337 smart account takes a one-time upgrade to move onto the cheaper, faster-to-include path.
+- **Application developers.** Existing integrations keep working unchanged — for example, `wallet_sendCalls` continues to function against Native AA — while new capabilities like memos (for attribution), session keys, and sub-accounts become available.
+- **Wallets.** No changes are required to keep working as they do today. Adding Native AA support opens new revenue paths through subscriptions and **ERC-8168** payer services.
+- **Node operators.** The only required step is upgrading nodes for Base Cobalt and permitting access to several new RPC methods.
+
+## Testing ahead of activation
+
+To let developers exercise EIP-8130 before it goes live, Base is introducing **Base Vibenet**, an ephemeral devnet for trying out chain-level features prior to their activation. Native AA is meant to run on any EVM chain, and Base is inviting chains, wallets, and applications to integrate it. See the original announcement at [blog.base.dev/native-account-abstraction](https://blog.base.dev/native-account-abstraction).

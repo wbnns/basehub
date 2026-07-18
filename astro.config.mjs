@@ -368,6 +368,7 @@ export default defineConfig({
 						{ label: 'Execution Pipeline', slug: 'architecture/execution-pipeline' },
 						{ label: 'Flashblocks Pipeline', slug: 'architecture/flashblocks-pipeline' },
 						{ label: 'June 2026 Outage Postmortem', slug: 'architecture/june-2026-block-production-outage' },
+						{ label: 'Native Account Abstraction', slug: 'architecture/native-account-abstraction' },
 					],
 				},
 				{

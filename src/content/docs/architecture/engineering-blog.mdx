@@ -9,6 +9,10 @@ A running index of paraphrased entries from the [Base engineering blog](https://
 
 ## 2026
 
+### Native Account Abstraction — 17 July 2026
+
+Base, working with Optimism, Coinbase, and WalletConnect, is bringing account abstraction into the protocol itself via EIP-8130, replacing the above-the-EVM ERC-4337 model that made smart accounts expensive and slow. Co-designing the transaction type with the chain cuts per-transaction cost to users by more than 2x — a USDC transfer drops from 125,000 to 46,000 gas — while adding native batching, sponsorship, session keys, sub-accounts, and cross-chain portability. It ships on Base in the Cobalt upgrade in September 2026, with a new ephemeral devnet (Base Vibenet) for early testing. See the local [Native Account Abstraction](/architecture/native-account-abstraction/) deep-dive, or read the original at [blog.base.dev/native-account-abstraction](https://blog.base.dev/native-account-abstraction).
+
 ### Postmortem: June 25th Block Production Outage — 27 June 2026
 
 Base published a detailed postmortem for the two mainnet block production halts on June 25 and 26, 2026 (116 minutes and 20 minutes). Both traced to the same sequencer bug: a failed transaction left the EVM journal state dirty, so a following valid transaction was charged the wrong gas and produced a block no other node would accept, stopping the chain. The patch ([PR #3806](https://github.com/base/base/pull/3806)) restored correct journal handling, and a separate engine-reset race in the sequencers ([PR #3805](https://github.com/base/base/pull/3805/changes)) explains the second-day recurrence. See the local [June 2026 block production outage](/architecture/june-2026-block-production-outage/) deep-dive for the full timeline, or read the original at [blog.base.dev/postmortem-june-25th-block-production-outage](https://blog.base.dev/postmortem-june-25th-block-production-outage).
