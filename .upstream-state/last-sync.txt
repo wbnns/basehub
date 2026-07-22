@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-07-21T03:02:40Z
+Generated 2026-07-22T03:02:47Z
 
-### base/base @ 4e85224
+### base/base @ a3ebd80
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
@@ -157,6 +157,7 @@ rcyL3EUXctJtW3hl710J	Introducing free security reviews for Base builders	Tue, 29
 
 ### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/5lv261chmyvh	Reduced Capacity on Base Mainnet Flashblocks Websocket stream	Tue, 21 Jul 2026 19:30:00 +0000
 https://base-l2.statuspage.io/incidents/5c4gm1wzbjs4	Base Mainnet Chain Stall	Fri, 26 Jun 2026 20:03:41 +0000
 https://base-l2.statuspage.io/incidents/rq17m0n3jn36	Mainnet: Base Beryl Upgrade - June 25th	Thu, 25 Jun 2026 20:00:13 +0000
 https://base-l2.statuspage.io/incidents/ymyly059grcv	Base Mainnet Periodic Flashblocks Instability	Mon, 22 Jun 2026 16:35:05 +0000
@@ -181,4 +182,3 @@ https://base-l2.statuspage.io/incidents/wf93c6q4xjl6	Sepolia block building issu
 https://base-l2.statuspage.io/incidents/xf39x32bm8ms	Base Mainnet Upgrade 18	Tue, 10 Feb 2026 18:00:09 +0000
 https://base-l2.statuspage.io/incidents/tlvzszwdy2z3	Mempool upgrade	Thu, 05 Feb 2026 20:00:21 +0000
 https://base-l2.statuspage.io/incidents/z6l4xm9gc08m	Base Mainnet minimum base fee increase	Tue, 03 Feb 2026 03:30:21 +0000
-https://base-l2.statuspage.io/incidents/zfvvgt46j9d8	High Rate of Transaction Drops and Transaction Inclusion Delays	Sat, 31 Jan 2026 21:51:55 +0000
