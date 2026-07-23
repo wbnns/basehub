@@ -9,21 +9,17 @@ import { Aside } from '@astrojs/starlight/components';
 
 Restoring from a snapshot drastically reduces initial Base node sync time. Snapshots are refreshed regularly.
 
+Whether you're planning to run a Base node or already operate one, seeding from a snapshot lets you skip most of the initial sync. Work through the steps below carefully.
+
 ## Restoring from a snapshot
 
-These steps assume you are inside the cloned `node` directory (the one containing `docker-compose.yml`).
+These steps assume you're working from the cloned `node` directory — the one that holds `docker-compose.yml`.
 
-1. **Install aria2c.** Snapshot downloads rely on `aria2c` — a resumable downloader that gracefully recovers from the periodic connection drops Cloudflare imposes on long transfers. If it isn't already on your machine:
+<Aside type="note">
+Downloads are driven by the `base-reth-node` CLI. If you don't already have it, install it first via the [installation instructions](https://github.com/base/base#install-binaries).
+</Aside>
 
-   ```bash
-   # macOS
-   brew install aria2
-
-   # Ubuntu / Debian
-   sudo apt-get install aria2
-   ```
-
-2. **Prepare the data directory.**
+1. **Prepare the data directory.**
    - **Before launching Docker for the first time**, create the host directory that will be mapped into the container. The path must match the `volumes` entry in `docker-compose.yml`:
 
      ```bash
@@ -32,40 +28,47 @@ These steps assume you are inside the cloned `node` directory (the one containin
 
    - If a previous run left an existing data directory, **stop the node first** (`docker compose down`), wipe the contents (for example, `rm -rf ./reth-data/*`), then continue.
 
-3. **Download the snapshot.** Pick the row that matches your network and client, and run the command from inside the `node` directory.
+2. **Choose the chain.** Select the network with the `--chain` flag:
 
-   | Network  | Snapshot type        | Download command |
-   | -------- | -------------------- | ---------------- |
-   | Testnet  | Archive (recommended)| `aria2c -c -x 16 -s 16 "https://sepolia-reth-archive-snapshots.base.org/$(curl -s https://sepolia-reth-archive-snapshots.base.org/latest)"` |
-   | Testnet  | Pruned               | `aria2c -c -x 16 -s 16 "https://sepolia-reth-pruned-snapshots.base.org/$(curl -s https://sepolia-reth-pruned-snapshots.base.org/latest)"` |
-   | Mainnet  | Archive (recommended)| `aria2c -c -x 16 -s 16 "https://mainnet-reth-archive-snapshots.base.org/$(curl -s https://mainnet-reth-archive-snapshots.base.org/latest)"` |
-   | Mainnet  | Pruned               | `aria2c -c -x 16 -s 16 "https://mainnet-reth-pruned-snapshots.base.org/$(curl -s https://mainnet-reth-pruned-snapshots.base.org/latest)"` |
+   | Network       | `--chain` value |
+   |---------------|-----------------|
+   | Base Mainnet  | `base`          |
+   | Base Sepolia  | `base-sepolia`  |
+
+3. **Download the snapshot.** Pick the configuration that fits your node from the table below.
+
+   | Config      | Flag        | What you get | Use when |
+   |-------------|-------------|--------------|----------|
+   | **Minimal** | `--minimal` | The leanest bootable set: current state and headers, carrying only the history that's strictly required. | Best when you want the quickest, lightest download and have no need for historical data. |
+   | **Full**    | `--full`    | Everything a default full node prunes down to — state, headers, and a capped span of recent transactions, receipts, and history. | Best for running an ordinary full node without holding the entire archive. |
+   | **Archive** | `--archive` | The complete dataset — every transaction, receipt, and account/storage record, with nothing pruned. | Best when you need the full history, such as for archive queries or indexing. |
 
    <Aside type="note">
-   Make sure you have enough free disk space for both the archive (`.tar.gz` / `.tar.zst`) and the extracted contents — extraction yields significantly more data than the archive itself.
+   Confirm you have room on disk for both the download itself and its unpacked contents — extraction produces significantly more data than the snapshot you pulled.
    </Aside>
 
-4. **Extract the snapshot.** Replace `snapshot-filename` with the actual download:
-
    ```bash
-   tar -xzvf <snapshot-filename.tar.gz>
+   # Minimal node on Base Mainnet
+   base-reth-node download --minimal --datadir ./reth-data --chain base --resumable
 
-   # For .tar.zst
-   tar -I zstd -xvf <snapshot-filename.tar.zst>
+   # Full node on Base Sepolia
+   base-reth-node download --full --datadir ./reth-data --chain base-sepolia --resumable
    ```
 
-5. **Move the data into place.** Extraction typically produces a `reth/` directory.
+   For archival nodes only, you can alternatively run `base db migrate-v2` — but expect it to take **much** longer than a download, and note that `--resumable` is not supported by `migrate-v2`.
 
-   - Move its contents into the data directory created in step 2:
+4. **(Optional) Tune download concurrency.**
 
-     ```bash
-     mv ./reth/* ./reth-data/
-     rm -rf ./reth    # remove the now-empty extracted folder
-     ```
+   The `--download-concurrency` flag governs how many HTTP downloads the snapshot job runs at once. Its default of `8` is a solid baseline for most machines.
 
-   - The chain data subdirectories (`chaindata`, `nodes`, `segments`, etc.) must sit directly under `./reth-data` — not in a nested folder.
+   On high-end hardware you can raise it to speed things up. A reasonable rule of thumb is **2× the number of physical CPU cores**:
 
-6. **Start the node.** Return to the root of your Base node folder and bring it up:
+   ```bash
+   # Example: a 16 physical-core machine
+   base-reth-node download --full --datadir ./reth-data --chain base --download-concurrency 32
+   ```
+
+5. **Start the node.** With the snapshot data in place, return to the root of your Base node folder and bring it up:
 
    ```bash
    cd ..
@@ -74,23 +77,57 @@ These steps assume you are inside the cloned `node` directory (the one containin
 
    The node should pick up syncing from the last block recorded in the snapshot.
 
-7. **Verify and clean up.** Tail the logs (`docker compose logs -f <service_name>`) or use the [sync monitoring](/getting-started/running/) command to confirm the node starts at the snapshot's block height. Once verified, delete the downloaded archive (`.tar.gz`) to reclaim disk space.
+6. **Verify.** Tail the logs (`docker compose logs -f <service_name>`) or use the [sync monitoring](/getting-started/running/) command to confirm the node starts at the snapshot's block height.
 
 ## Proofs snapshots
 
+<Aside type="note">
+V2 proofs snapshots are coming soon.
+</Aside>
+
 If you run the [historical proofs ExEx](/getting-started/running/), proof database snapshots are available so you can skip the 24-48 hour backfill.
+
+Because proofs snapshots are still packaged as archives, grab `aria2c` first — it's a resumable downloader that gracefully recovers from the periodic connection drops Cloudflare imposes on long transfers. If it isn't already installed:
+
+```bash
+# macOS
+brew install aria2
+
+# Ubuntu / Debian
+sudo apt-get install aria2
+```
 
 | Network | Download command |
 | ------- | ---------------- |
 | Testnet | `aria2c -c -x 16 -s 16 "https://sepolia-reth-proofs-snapshots.base.org/$(curl -s https://sepolia-reth-proofs-snapshots.base.org/latest)"` |
 | Mainnet | `aria2c -c -x 16 -s 16 "https://mainnet-reth-proofs-snapshots.base.org/$(curl -s https://mainnet-reth-proofs-snapshots.base.org/latest)"` |
 
-The restore process matches the steps above — follow [Restoring from a snapshot](#restoring-from-a-snapshot) using this archive.
+<Aside type="note">
+Make sure you have enough free disk space for both the archive (`.tar.gz` / `.tar.zst`) and the extracted contents — extraction yields significantly more data than the archive itself.
+</Aside>
+
+With the download complete, unpack the archive — swap `snapshot-filename` for the file you actually pulled:
+
+```bash
+tar -xzvf <snapshot-filename.tar.gz>
+
+# For .tar.zst
+tar -I zstd -xvf <snapshot-filename.tar.zst>
+```
+
+Extraction typically produces a `reth/` directory. Move its contents into the data directory you created back in **Prepare the data directory**:
+
+```bash
+mv ./reth/* ./reth-data/
+rm -rf ./reth    # remove the now-empty extracted folder
+```
+
+The chain data subdirectories (`chaindata`, `nodes`, `segments`, etc.) must sit directly under `./reth-data`, not in a nested folder. Once that's confirmed, you can delete the downloaded archive (`.tar.gz`) to reclaim disk space, then pick back up from **Start the node** above.
 
 ## FAQ
 
-**Why does Base ship a Pruned snapshot instead of a Full node snapshot?**
+**How does Base's Full snapshot retention compare to Reth's `--full` preset, and why the difference?**
 
 In Reth, "full" is not a separate node type — it is just a pruned node configured with a specific preset. Reth's `--full` preset keeps the most recent **10,064 blocks**, which is roughly 1.4 days on Ethereum but only about 5-6 hours on Base because of the faster block cadence.
 
-Base's _pruned_ snapshot instead uses a 31-day rolling retention window. If you want a smaller on-disk footprint, you can override `reth.toml` to match the 10,064-block preset.
+Base's `--full` snapshot instead uses a 31-day rolling retention window. If you want a smaller on-disk footprint, you can override `reth.toml` to match the 10,064-block preset.
