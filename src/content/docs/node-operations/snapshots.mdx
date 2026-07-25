@@ -35,13 +35,15 @@ Downloads are driven by the `base-reth-node` CLI. If you don't already have it, 
    | Base Mainnet  | `base`          |
    | Base Sepolia  | `base-sepolia`  |
 
-3. **Download the snapshot.** Pick the configuration that fits your node from the table below.
+3. **Download the snapshot.** V2 snapshots are no longer a single archive — they're broken into many small, segmented files. The CLI advertises just one `archive` snapshot because it holds every file; `full` and `minimal` simply pull progressively smaller subsets of it. Pick the configuration that fits your node from the table below.
 
    | Config      | Flag        | What you get | Use when |
    |-------------|-------------|--------------|----------|
    | **Minimal** | `--minimal` | The leanest bootable set: current state and headers, carrying only the history that's strictly required. | Best when you want the quickest, lightest download and have no need for historical data. |
    | **Full**    | `--full`    | Everything a default full node prunes down to — state, headers, and a capped span of recent transactions, receipts, and history. | Best for running an ordinary full node without holding the entire archive. |
    | **Archive** | `--archive` | The complete dataset — every transaction, receipt, and account/storage record, with nothing pruned. | Best when you need the full history, such as for archive queries or indexing. |
+
+   These three presets are just the ready-made defaults published at [chain.base.org/snapshots](https://chain.base.org/snapshots). If none of them matches your retention needs, you can still supply custom pruning flags via the [pruning flag](https://github.com/base/node/blob/main/.env.mainnet#L55) — but to do so you must pull the archival snapshot first and then apply your own pruning arguments on top of it.
 
    <Aside type="note">
    Confirm you have room on disk for both the download itself and its unpacked contents — extraction produces significantly more data than the snapshot you pulled.
@@ -131,3 +133,7 @@ The chain data subdirectories (`chaindata`, `nodes`, `segments`, etc.) must sit 
 In Reth, "full" is not a separate node type — it is just a pruned node configured with a specific preset. Reth's `--full` preset keeps the most recent **10,064 blocks**, which is roughly 1.4 days on Ethereum but only about 5-6 hours on Base because of the faster block cadence.
 
 Base's `--full` snapshot instead uses a 31-day rolling retention window. If you want a smaller on-disk footprint, you can override `reth.toml` to match the 10,064-block preset.
+
+**I'm seeing "Archive extracted, but output verification failed." What went wrong?**
+
+Almost always this means a fresh snapshot was published while your download was in flight. Stop the `download` command and start it again — it's idempotent, so it won't re-pull files already on disk and will only fetch the delta.

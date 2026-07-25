@@ -3,6 +3,7 @@ title: Native Account Abstraction
 description: How Base brings account abstraction into the protocol itself via EIP-8130, cutting per-transaction cost over the ERC-4337 smart-account model while keeping accounts portable across EVM chains.
 sources:
 - blog.base.dev:native-account-abstraction
+- base/docs:docs/base-chain/specs/upgrades/cobalt/eip-8130.mdx
 ---
 
 Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, and it reaches Base with the **Cobalt** upgrade scheduled for September 2026, and the rest of the OP Stack later in the year. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
@@ -32,6 +33,26 @@ With EIP-8130, the following capabilities are provided by the chain itself rathe
 - **Metadata** — attach memos and attribution to transactions.
 
 A key point of the design is that adopting Native AA on Base does not tie an account to Base — accounts remain usable on other EVM chains regardless of whether those chains support the feature yet.
+
+## How EIP-8130 works
+
+Every 8130 transaction identifies the account it is sent from, demonstrates that whoever submitted it is permitted to act on that account's behalf, and bundles a group of calls to execute together. The whole model reduces to five pieces:
+
+- **Account.** Addresses are deterministic — a client derives them locally with `CREATE2`, so an account address exists before any code is deployed and its creation can ride along inside the first transaction it sends. Each account is a thin proxy that routes its calls into a shared implementation contract; `DefaultAccount` is the minimal version and also backs EOAs upgraded through EIP-7702. A variant tuned for high transaction rates locks up outbound ETH mid-execution in return for looser mempool rate-limit ceilings.
+- **Signer and actor.** A *signer* is what generates the authorization attached to a transaction; the *actor* is the onchain identity that authorization maps back to, as recorded in the `AccountConfiguration` system contract. One account can authorize many actors and revoke any of them independently.
+- **Scope and policy.** Every actor carries scope flags — `SCOPE_NONCE`, `SCOPE_POLICY` — that bound what it can do, and it can bind to an onchain policy setting per-token spend limits and allowed contracts/functions. This is the native session-key model: give an app an actor scoped to precisely the permissions it should have, and pull that grant back whenever you want.
+- **Authenticators.** Signature checking is pluggable through contracts implementing `IAuthenticator.authenticate(hash, data)`. The reference set covers secp256k1, P-256, and WebAuthn, so passkeys validate at the protocol level instead of through wrapper contracts.
+- **Payer.** A transaction may name a payer to cover gas for the sender. The draft [ERC-8168](https://eip.tools/eip/8168) standardizes how apps discover and request that sponsorship.
+
+## Trying it on vibenet
+
+EIP-8130 is experimental and, for now, only runs on the vibenet devnet (chain ID `84538453`, RPC `https://rpc.vibes.base.org`). Client-side support currently ships in an experimental fork of viem:
+
+```bash
+bun add "viem@github:chunter-cb/viem#feat/eip-8130"
+```
+
+The `viem/experimental/eip8130` helpers let a single transaction create an account, fund it from the vibenet faucet, and send an atomic batch of calls — an 8130 receipt reports per-phase results, so a successful send still has to be checked phase by phase. The reference contracts (`AccountConfiguration`, the account implementations, and the authenticators, with Foundry tests) live at [github.com/base/eip-8130](https://github.com/base/eip-8130).
 
 ## What changes for each audience
 

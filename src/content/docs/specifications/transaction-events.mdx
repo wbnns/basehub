@@ -77,7 +77,7 @@ On the Rust side, the `TransactionEvent::validate` helper rejects a mismatched s
 
 ## Local Devnet Verification
 
-The ingress devnet brings up a local Postgres, a Vector shipper, and a Postgres-backed `audit-archiver` ingest path:
+Journaling is split across two devnet layers. The core devnet — `just devnet up` or `just devnet up-single` — switches on durable node journals for `base-client` and `base-builder`, which write their JSONL under `.devnet/transaction-events/`. The ingress overlay then layers the collection side on top: a Vector shipper, a local Postgres, the `audit-archiver` ingest path, and the ingress/proxyd producers. That overlay never touches the node journal configuration — it only consumes what the core layer already emits.
 
 ```bash
 just devnet ingress
