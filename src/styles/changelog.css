@@ -1,0 +1,170 @@
+/* ============================================================
+   BaseHub /changelog subpage. Scoped under .changelog to
+   prevent leakage into docs pages. Mirrors homepage idiom.
+   ============================================================ */
+
+.changelog {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1.25rem 5rem;
+  color: var(--sl-color-text);
+}
+
+.changelog .sl-markdown-content {
+  max-width: none;
+}
+
+/* -------------------- Hero -------------------- */
+.changelog .changelog-hero {
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+  margin-bottom: 2.5rem;
+}
+
+.changelog .changelog-eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  margin-bottom: 1.25rem;
+}
+
+.changelog .changelog-hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  margin: 0 0 1rem;
+  color: var(--sl-color-text);
+}
+
+.changelog .changelog-hero p {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--sl-color-gray-2);
+  max-width: 42rem;
+  margin: 0;
+}
+
+.changelog .changelog-hero code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.9em;
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--code-border);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+/* -------------------- Year sections -------------------- */
+.changelog .changelog-year {
+  margin-bottom: 2.5rem;
+}
+
+.changelog .changelog-year h2 {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  /* Override theme.css's global `.sl-markdown-content h2` divider (margin-top !important + border-top + padding-top). */
+  margin: 0 0 1rem !important;
+  padding-top: 0;
+  border-top: none;
+}
+
+.changelog .changelog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--sl-color-hairline-light);
+}
+
+.changelog .changelog-item {
+  display: grid;
+  grid-template-columns: 10.5rem 1fr;
+  align-items: start;
+  gap: 1rem;
+  padding: 1.125rem 0;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+.changelog .changelog-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.changelog .changelog-meta time {
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  color: var(--sl-color-gray-3);
+  white-space: nowrap;
+}
+
+.changelog .changelog-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid var(--sl-color-hairline-light);
+  color: var(--sl-color-gray-2);
+}
+
+.changelog .changelog-badge--site {
+  color: var(--sl-color-accent);
+  background: var(--sl-color-accent-tint);
+  border-color: transparent;
+}
+
+.changelog .changelog-body h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  /* Override theme.css's global `.sl-markdown-content h3 { margin-top: 2.5rem !important }`. */
+  margin: 0 0 0.3rem !important;
+  color: var(--sl-color-text);
+}
+
+.changelog .changelog-body h3 a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s var(--ease-out);
+}
+
+.changelog .changelog-body h3 a:hover {
+  color: var(--sl-color-accent);
+}
+
+.changelog .changelog-body p {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--sl-color-gray-2);
+  margin: 0;
+}
+
+/* -------------------- Responsive -------------------- */
+@media (max-width: 40rem) {
+  .changelog {
+    padding: 0 1rem 4rem;
+  }
+  .changelog .changelog-hero {
+    padding-top: 2rem;
+  }
+  .changelog .changelog-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+}

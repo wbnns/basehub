@@ -99,6 +99,130 @@
   border-radius: 4px;
 }
 
+/* -------------------- Changelog (What's new) -------------------- */
+.home .home-changelog {
+  margin-bottom: 3rem;
+}
+
+.home .home-changelog-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.home .home-changelog-head h2 {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+  /* Override theme.css's global `.sl-markdown-content h2` divider (margin-top !important + border-top + padding-top). */
+  margin: 0 !important;
+  padding-top: 0;
+  border-top: none;
+}
+
+.home .home-changelog-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--sl-color-text-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.home .home-changelog-more span {
+  color: var(--sl-color-accent);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.home .home-changelog-more:hover span {
+  transform: translateX(3px);
+}
+
+.home .home-changelog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--sl-color-hairline-light);
+}
+
+.home .home-changelog-item {
+  display: grid;
+  grid-template-columns: 10.5rem 1fr;
+  align-items: start;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--sl-color-hairline-light);
+}
+
+.home .home-changelog-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.home .home-changelog-meta time {
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  color: var(--sl-color-gray-3);
+  white-space: nowrap;
+}
+
+.home .home-changelog-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid var(--sl-color-hairline-light);
+  color: var(--sl-color-gray-2);
+}
+
+.home .home-changelog-badge--site {
+  color: var(--sl-color-accent);
+  background: var(--sl-color-accent-tint);
+  border-color: transparent;
+}
+
+.home .home-changelog-body h3 {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  /* Override theme.css's global `.sl-markdown-content h3 { margin-top: 2.5rem !important }`. */
+  margin: 0 0 0.25rem !important;
+  color: var(--sl-color-text);
+}
+
+.home .home-changelog-body h3 a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s var(--ease-out);
+}
+
+.home .home-changelog-body h3 a:hover {
+  color: var(--sl-color-accent);
+}
+
+.home .home-changelog-body p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--sl-color-gray-2);
+  margin: 0;
+}
+
 /* -------------------- Cards grid -------------------- */
 .home .home-cards {
   display: grid;
@@ -303,6 +427,10 @@
   .home .home-cards,
   .home .home-popular ul {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .home .home-changelog-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
   }
 }
 

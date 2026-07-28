@@ -26,6 +26,8 @@ export const GET: APIRoute = async () => {
       page_count: pages.length,
       llms_index: `${SITE}/llms.txt`,
       llms_full: `${SITE}/llms-full.txt`,
+      changelog: `${SITE}/changelog.md`,
+      changelog_json: `${SITE}/changelog.json`,
       feeds: [
         {
           name: 'eng blog mirror',

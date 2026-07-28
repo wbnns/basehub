@@ -1,0 +1,55 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getChangelog } from '../lib/changelog';
+
+const entries = getChangelog();
+const years = [...new Set(entries.map((e) => e.date.slice(0, 4)))].sort((a, b) => (a < b ? 1 : -1));
+const byYear = years.map((year) => ({
+  year,
+  items: entries.filter((e) => e.date.slice(0, 4) === year),
+}));
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Changelog',
+    description: 'Updates to BaseHub and notable Base network and protocol changes, newest first.',
+    template: 'splash',
+    hero: { tagline: '' },
+    pagefind: false,
+  }}
+>
+  <div class="changelog not-content">
+    <header class="changelog-hero">
+      <span class="changelog-eyebrow">Changelog</span>
+      <h1>Changelog</h1>
+      <p>
+        Updates to BaseHub and notable Base network and protocol changes, newest first.
+        This feed is also available as raw Markdown at <a href="/changelog.md"><code>/changelog.md</code></a>
+        and JSON at <a href="/changelog.json"><code>/changelog.json</code></a>.
+      </p>
+    </header>
+
+    {byYear.map((group) => (
+      <section class="changelog-year" aria-label={group.year}>
+        <h2>{group.year}</h2>
+        <ul class="changelog-list">
+          {group.items.map((entry) => (
+            <li class="changelog-item">
+              <div class="changelog-meta">
+                <time datetime={entry.date}>{entry.date}</time>
+                <span class={`changelog-badge changelog-badge--${entry.kind}`}>
+                  {entry.kind === 'site' ? 'Site' : 'Network'}
+                </span>
+              </div>
+              <div class="changelog-body">
+                <h3>{entry.href ? <a href={entry.href}>{entry.title}</a> : entry.title}</h3>
+                <p>{entry.summary}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</StarlightPage>

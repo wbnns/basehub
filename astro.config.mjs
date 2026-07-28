@@ -15,6 +15,7 @@ export default defineConfig({
 				'./src/styles/theme.css',
 				'./src/styles/code.css',
 				'./src/styles/homepage.css',
+					'./src/styles/changelog.css',
 			],
 			expressiveCode: {
 				themes: ['github-light'],
@@ -92,6 +93,7 @@ export default defineConfig({
 				SiteTitle: './src/components/SiteTitle.astro',
 			},
 			sidebar: [
+				{ label: 'Changelog', link: '/changelog/' },
 				{
 					label: 'Introduction',
 					items: [
