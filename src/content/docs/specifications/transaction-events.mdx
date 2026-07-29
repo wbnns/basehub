@@ -20,6 +20,8 @@ Rust producers are expected to surface the following settings, either at the top
 | `enabled` | boolean | Enables transaction event journal writes. |
 | `file_path` | string | Dedicated JSONL file path tailed by Vector. |
 | `queue_capacity` | integer | Upper bound on the in-process event queue. Under backpressure a producer discards events rather than stalling its transaction-serving path. |
+| `max_file_bytes` | integer | Size ceiling for the live JSONL segment. Once it is crossed, the writer rolls over: the current file is renamed and a fresh segment takes its place. |
+| `max_files` | integer | How many JSONL segments are kept on disk at any one time, counting the segment currently being written. |
 | `required` | boolean | When true, startup fails if the writer cannot open the file. A failure to write at runtime stays non-fatal and is still surfaced for observability. |
 | `producer` | string | One of the producer identities below. |
 | `network` | string | Network label, for example `base-mainnet` or `base-sepolia`. |
@@ -31,6 +33,8 @@ Go and proxyd builds carry the identical field names in TOML:
 enabled = true
 file_path = "/var/log/base/transaction-events.jsonl"
 queue_capacity = 16384
+max_file_bytes = 134217728
+max_files = 8
 required = false
 producer = "base-routing/proxyd"
 network = "base-mainnet"

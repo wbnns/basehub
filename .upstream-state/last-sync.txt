@@ -1,17 +1,17 @@
 ## Upstream snapshot
 
-Generated 2026-07-28T03:02:18Z
+Generated 2026-07-29T03:03:05Z
 
-### base/base @ 64c1402
+### base/base @ a1987e9
 
 c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
-ac6bfc847b1ad1808333af2a47e4e16880425ddd  docs/transaction-events/README.md
+74d64ac09e0a3cc72c21057a8b8f273cbbd99d70  docs/transaction-events/README.md
 3792e8c42c87bccfd86a406e5b292a60aa285d69  docs/transaction-events/pr-description-note.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 7adb5b7
+### base/docs @ bc6be6f
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -159,6 +159,7 @@ rcyL3EUXctJtW3hl710J	Introducing free security reviews for Base builders	Tue, 29
 
 ### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/j6y12tshwkcg	Base Mainnet Safe head delayed	Tue, 28 Jul 2026 15:13:23 +0000
 https://base-l2.statuspage.io/incidents/5lv261chmyvh	Reduced Capacity on Base Mainnet Flashblocks Websocket stream	Tue, 21 Jul 2026 19:30:00 +0000
 https://base-l2.statuspage.io/incidents/5c4gm1wzbjs4	Base Mainnet Chain Stall	Fri, 26 Jun 2026 20:03:41 +0000
 https://base-l2.statuspage.io/incidents/rq17m0n3jn36	Mainnet: Base Beryl Upgrade - June 25th	Thu, 25 Jun 2026 20:00:13 +0000
@@ -183,4 +184,3 @@ https://base-l2.statuspage.io/incidents/3qtvwp60xfb8	Base Mainnet minimum base f
 https://base-l2.statuspage.io/incidents/wf93c6q4xjl6	Sepolia block building issue	Wed, 18 Feb 2026 16:56:51 +0000
 https://base-l2.statuspage.io/incidents/xf39x32bm8ms	Base Mainnet Upgrade 18	Tue, 10 Feb 2026 18:00:09 +0000
 https://base-l2.statuspage.io/incidents/tlvzszwdy2z3	Mempool upgrade	Thu, 05 Feb 2026 20:00:21 +0000
-https://base-l2.statuspage.io/incidents/z6l4xm9gc08m	Base Mainnet minimum base fee increase	Tue, 03 Feb 2026 03:30:21 +0000

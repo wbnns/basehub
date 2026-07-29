@@ -9,6 +9,10 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-07-28 — Mainnet safe head fell behind
+
+At 13:10 UTC on Tuesday, July 28th, the safe head on Base Mainnet was reported as lagging. Unsafe block production was unaffected — the delay was confined to the batching of L2 data down to Ethereum L1, so chain progress at the tip continued as normal. The safe head was advancing again by 15:13 UTC, when the incident was closed.
+
 ### 2026-07-21 — Mainnet Flashblocks websocket capacity reduced
 
 On Tuesday, July 21st, the Flashblocks websocket stream on Base Mainnet ran at reduced capacity for roughly fifty minutes, spanning 19:50 to 20:42 UTC. Subscribers were likely to see messages arrive late over that window, and fresh connection attempts could come back rate limited. The event was marked resolved once stream capacity recovered.
