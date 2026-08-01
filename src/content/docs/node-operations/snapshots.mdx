@@ -128,11 +128,15 @@ The chain data subdirectories (`chaindata`, `nodes`, `segments`, etc.) must sit 
 
 ## FAQ
 
-**How does Base's Full snapshot retention compare to Reth's `--full` preset, and why the difference?**
+**What actually separates a Full node from a Minimal one?**
 
 In Reth, "full" is not a separate node type — it is just a pruned node configured with a specific preset. Reth's `--full` preset keeps the most recent **10,064 blocks**, which is roughly 1.4 days on Ethereum but only about 5-6 hours on Base because of the faster block cadence.
 
-Base's `--full` snapshot instead uses a 31-day rolling retention window. If you want a smaller on-disk footprint, you can override `reth.toml` to match the 10,064-block preset.
+For a tier-by-tier breakdown of exactly what each one holds on disk, Reth's own [storage documentation](https://reth.rs/run/storage/minimal) is the reference to work from.
+
+**I was already running a pruned node on v1 storage. How do I bring that setup over to v2?**
+
+It comes down to how far back your pruning distance reached. If it extended past 10,064 blocks, the Full snapshot cannot carry you — that window is all it holds, and everything older is simply absent. Pull the Archive snapshot instead, then layer your pruning arguments on top of it.
 
 **I'm seeing "Archive extracted, but output verification failed." What went wrong?**
 
