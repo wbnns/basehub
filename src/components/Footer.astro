@@ -43,13 +43,16 @@ const chatgptUrl = isDoc
 
 {isDoc && (
   <aside class="bh-support" aria-label="Support this site">
-    <p class="bh-support__text">
-      <strong>Did this page save you time?</strong> BaseHub carries no ads and no paid placements — one maintainer, funded by readers.
-    </p>
-    <a class="bh-support__btn" href="https://github.com/sponsors/wbnns" target="_blank" rel="noopener">
-      <Icon name="heart" aria-hidden="true" />
-      Support this site
-    </a>
+    <div class="bh-support__row">
+      <p class="bh-support__text">
+        <strong>Did this page save you time?</strong> BaseHub carries no ads and no paid placements — one maintainer, funded by readers.
+      </p>
+      <a class="bh-support__btn" href="https://github.com/sponsors/wbnns" target="_blank" rel="noopener">
+        <Icon name="heart" aria-hidden="true" />
+        Support this site
+      </a>
+    </div>
+    <p class="bh-support__crypto">Or send a crypto donation to <code>wbnns.eth</code>.</p>
   </aside>
 )}
 
@@ -198,15 +201,28 @@ const chatgptUrl = isDoc
   }
   .bh-support {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem 1.25rem;
+    flex-direction: column;
+    gap: 0.625rem;
     margin: 2rem 0 0;
     padding: 1rem 1.25rem;
     border: 1px solid var(--sl-color-hairline-light);
     border-radius: 10px;
     background: var(--sl-color-gray-7, #f5f6f8);
+  }
+  .bh-support__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+  }
+  .bh-support__crypto {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+  }
+  .bh-support__crypto code {
+    font-size: 0.8125em;
   }
   .bh-support__text {
     margin: 0;

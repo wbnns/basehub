@@ -313,7 +313,16 @@ h1, h2, h3, h4, h5, h6,
   border-spacing: 0;
   border: 1px solid var(--sl-color-hairline-light);
   border-radius: 8px;
-  overflow: hidden;
+  /* `auto`, not `hidden` — Starlight's own table rule already sets this as a
+     horizontal-scroll fallback for narrow columns; `hidden` (unlayered here,
+     so it beats Starlight's layered rule) was silently cancelling it. */
+  overflow: auto;
+  /* A table nested inside a <li> (e.g. a numbered-step continuation)
+     inherits `overflow-wrap: anywhere` from Starlight's list-item rule,
+     which lets short labels in a narrow column break mid-word instead of
+     the table just scrolling. Reset it back to normal here. */
+  overflow-wrap: normal;
+  word-break: normal;
   margin: 1.5rem 0;
   font-size: var(--text-sm);
 }
