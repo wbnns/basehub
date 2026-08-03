@@ -91,9 +91,9 @@ export default defineConfig({
 				Head: './src/components/Head.astro',
 				Footer: './src/components/Footer.astro',
 				SiteTitle: './src/components/SiteTitle.astro',
+				SocialIcons: './src/components/SocialIcons.astro',
 			},
 			sidebar: [
-				{ label: 'Changelog', link: '/changelog/' },
 				{
 					label: 'Introduction',
 					items: [
@@ -413,6 +413,7 @@ export default defineConfig({
 						{ label: 'Avoid Malicious Flags', slug: 'security/avoid-malicious-flags' },
 					],
 				},
+				{ label: 'Changelog', link: '/changelog/' },
 				{
 					label: 'Contributing',
 					slug: 'contributing',

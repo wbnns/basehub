@@ -1,5 +1,6 @@
 ---
 import Default from '@astrojs/starlight/components/Footer.astro';
+import { Icon } from '@astrojs/starlight/components';
 
 const { entry, hasSidebar } = Astro.locals.starlightRoute;
 const isDoc = !!entry?.id && entry.id !== 'index';
@@ -39,6 +40,18 @@ const chatgptUrl = isDoc
 )}
 
 <Default><slot /></Default>
+
+{isDoc && (
+  <aside class="bh-support" aria-label="Support this site">
+    <p class="bh-support__text">
+      <strong>Did this page save you time?</strong> BaseHub carries no ads and no paid placements — one maintainer, funded by readers.
+    </p>
+    <a class="bh-support__btn" href="https://github.com/sponsors/wbnns" target="_blank" rel="noopener">
+      <Icon name="heart" aria-hidden="true" />
+      Support this site
+    </a>
+  </aside>
+)}
 
 <aside class="bh-disclaimer" role="contentinfo" aria-label="Project disclaimer">
   <p>
@@ -182,6 +195,52 @@ const chatgptUrl = isDoc
   }
   .bh-agent-actions__hint code {
     font-size: 0.8125em;
+  }
+  .bh-support {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.25rem;
+    margin: 2rem 0 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 10px;
+    background: var(--sl-color-gray-7, #f5f6f8);
+  }
+  .bh-support__text {
+    margin: 0;
+    max-width: 34rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-2);
+  }
+  .bh-support__text strong {
+    color: var(--sl-color-text);
+    font-weight: 600;
+  }
+  .bh-support__btn {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.4375rem;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--sl-color-accent);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+  .bh-support__btn:hover {
+    border-color: var(--sl-color-accent);
+    background: var(--sl-color-accent-tint);
+  }
+  .bh-support__btn:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
   }
   .bh-disclaimer {
     margin-top: 2rem;

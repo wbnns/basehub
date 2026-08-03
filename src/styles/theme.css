@@ -572,13 +572,14 @@ starlight-sidebar-state-persist ul li a[aria-current='page'],
 :root[data-theme='dark'] .site-title { color: var(--sl-color-white) !important; }
 :root[data-theme='dark'] .site-title:hover { color: var(--sl-color-accent) !important; }
 
-/* Social icons: neutral gray, not accent, no borders */
-.social-icons a {
+/* Social icons: neutral gray, not accent, no borders. The Support link
+   (src/components/SocialIcons.astro) styles itself and is excluded. */
+.social-icons a:not(.bh-support-link) {
   color: var(--sl-color-gray-2) !important;
   border: 0 !important;
   background: transparent !important;
 }
-.social-icons a:hover {
+.social-icons a:not(.bh-support-link):hover {
   color: var(--sl-color-text) !important;
 }
 /* Kill Starlight's social-icons::after divider — it pointed at the

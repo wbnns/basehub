@@ -28,6 +28,7 @@ export const GET: APIRoute = async () => {
       llms_full: `${SITE}/llms-full.txt`,
       changelog: `${SITE}/changelog.md`,
       changelog_json: `${SITE}/changelog.json`,
+      sponsor_url: 'https://github.com/sponsors/wbnns',
       feeds: [
         {
           name: 'eng blog mirror',
