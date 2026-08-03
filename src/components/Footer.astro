@@ -43,16 +43,26 @@ const chatgptUrl = isDoc
 
 {isDoc && (
   <aside class="bh-support" aria-label="Support this site">
-    <div class="bh-support__row">
-      <p class="bh-support__text">
-        <strong>Did this page save you time?</strong> BaseHub carries no ads and no paid placements — one maintainer, funded by readers.
-      </p>
-      <a class="bh-support__btn" href="https://github.com/sponsors/wbnns" target="_blank" rel="noopener">
-        <Icon name="heart" aria-hidden="true" />
-        Support this site
-      </a>
+    <div class="bh-support__note">
+      <span class="bh-support__mark" aria-hidden="true"></span>
+      <div class="bh-support__lines">
+        <p class="bh-support__line1">No ads, no paid placements, one maintainer.</p>
+        <p class="bh-support__line2">If this page saved you time, readers are the only thing funding the next update.</p>
+      </div>
     </div>
-    <p class="bh-support__crypto">Or send a crypto donation to <code>wbnns.eth</code>.</p>
+    <div class="bh-support__actions">
+      <a class="bh-support__action" href="https://github.com/sponsors/wbnns" target="_blank" rel="noopener">
+        <Icon name="heart" aria-hidden="true" />
+        <span>GitHub Sponsors</span>
+      </a>
+      <button class="bh-support__action" type="button" data-bh-copy-eth="wbnns.eth">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M11.944 17.97 4.58 13.62 11.943 24l7.37-10.38-7.372 4.35Z"></path>
+          <path d="M12.056 0 4.69 12.223l7.365 4.354 7.365-4.35Z"></path>
+        </svg>
+        <span data-bh-copy-label>wbnns.eth</span>
+      </button>
+    </div>
   </aside>
 )}
 
@@ -78,6 +88,22 @@ const chatgptUrl = isDoc
       setTimeout(() => {
         if (btn.textContent === 'Copied') btn.textContent = original;
       }, 1500);
+    });
+  });
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement | null;
+    const btn = target?.closest<HTMLElement>('[data-bh-copy-eth]');
+    if (!btn) return;
+    const value = btn.getAttribute('data-bh-copy-eth');
+    const label = btn.querySelector<HTMLElement>('[data-bh-copy-label]');
+    if (!value || !label) return;
+    navigator.clipboard?.writeText(value).then(() => {
+      const original = label.textContent;
+      label.textContent = 'Copied';
+      setTimeout(() => {
+        if (label.textContent === 'Copied') label.textContent = original;
+      }, 1600);
     });
   });
 
@@ -202,61 +228,93 @@ const chatgptUrl = isDoc
   .bh-support {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
+    gap: 0.75rem;
     margin: 2rem 0 0;
-    padding: 1rem 1.25rem;
+    padding: 0.875rem;
     border: 1px solid var(--sl-color-hairline-light);
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--sl-color-gray-7, #f5f6f8);
   }
-  .bh-support__row {
+  .bh-support__note {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem 1.25rem;
+    align-items: stretch;
+    gap: 0.625rem;
   }
-  .bh-support__crypto {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--sl-color-gray-3);
-  }
-  .bh-support__crypto code {
-    font-size: 0.8125em;
-  }
-  .bh-support__text {
-    margin: 0;
-    max-width: 34rem;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: var(--sl-color-gray-2);
-  }
-  .bh-support__text strong {
-    color: var(--sl-color-text);
-    font-weight: 600;
-  }
-  .bh-support__btn {
-    display: inline-flex;
+  .bh-support__mark {
     flex: none;
+    width: 2px;
+    align-self: stretch;
+    border-radius: 1px;
+    background: var(--sl-color-accent);
+  }
+  .bh-support__lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .bh-support__line1 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--sl-color-text);
+  }
+  .bh-support__line2 {
+    margin: 0;
+    font-size: 0.71875rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--sl-color-text) 58%, transparent);
+  }
+  .bh-support__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .bh-support__action {
+    display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 0.4375rem;
-    padding: 0.5rem 0.875rem;
+    height: 2.375rem;
+    padding: 0 0.75rem;
     border: 1px solid color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
     border-radius: 8px;
     background: transparent;
     color: var(--sl-color-accent);
-    font-size: 0.8125rem;
+    font-size: 0.78125rem;
     font-weight: 500;
     text-decoration: none;
+    cursor: pointer;
     transition: border-color 120ms ease, background-color 120ms ease;
   }
-  .bh-support__btn:hover {
+  .bh-support__action:hover {
     border-color: var(--sl-color-accent);
     background: var(--sl-color-accent-tint);
   }
-  .bh-support__btn:focus-visible {
+  .bh-support__action:focus-visible {
     outline: 2px solid var(--sl-color-accent);
     outline-offset: 2px;
+  }
+  .bh-support__action :global(svg) {
+    flex: none;
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+  .bh-support__action span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bh-support__action[data-bh-copy-eth] span {
+    font-family: var(--sl-font-mono);
+  }
+  @media (max-width: 30rem) {
+    .bh-support__actions {
+      grid-template-columns: 1fr;
+    }
+    .bh-support__action {
+      height: 2.75rem;
+    }
   }
   .bh-disclaimer {
     margin-top: 2rem;
