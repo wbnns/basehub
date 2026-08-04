@@ -1,11 +1,12 @@
 ## Upstream snapshot
 
-Generated 2026-08-03T03:02:02Z
+Generated 2026-08-04T03:08:34Z
 
-### base/base @ 5761d83
+### base/base @ 4998b92
 
-c884ce123e451606d7260a01e7082b93500e6d5f  docs/guides/P2P.md
+276df3398de1fd1a84aec641140cfc031aed409a  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
+2e7b1514fecddad4cb3cca96d9ee277806f92a5a  docs/guides/TESTING.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
 74d64ac09e0a3cc72c21057a8b8f273cbbd99d70  docs/transaction-events/README.md
 3792e8c42c87bccfd86a406e5b292a60aa285d69  docs/transaction-events/pr-description-note.md

@@ -350,9 +350,9 @@ pub enum BaseOrdering<T> {
 
 ### Transaction forwarding
 
-For non-sequencer nodes, transactions accepted into the mempool need to be forwarded to the sequencer for inclusion. This is handled by the consumer/forwarder pipeline in the txpool crate.
+A node that is not the sequencer cannot include transactions itself, so whatever lands in its mempool has to be relayed onward to the sequencer. The reader/forwarder pipeline that handles this now lives in a dedicated `tx-forwarding` crate, split out of `txpool`.
 
-The [`SpawnedConsumer`](https://github.com/base/base/blob/main/crates/execution/txpool/src/consumer/mod.rs) polls the transaction pool for new pending transactions and broadcasts them through a `tokio::broadcast` channel. The [`SpawnedForwarder`](https://github.com/base/base/blob/main/crates/execution/txpool/src/forwarder/mod.rs) subscribes to that channel and forwards each transaction via a custom JSON-RPC method (`base_insertValidatedTransactions`) to configured builder endpoints. One forwarder task is spawned per builder URL, so multiple downstream builders can receive transactions simultaneously. The pipeline runs as background tasks on the node's task executor.
+The [`DestinationReader`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/reader/task.rs) polls the transaction pool for pending transactions and queues them onto a bounded `tokio::mpsc` channel. The [`DestinationForwarder`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/forwarder/task.rs) drains that queue and relays each transaction to the configured builder endpoints through a custom JSON-RPC method (`base_insertValidatedTransactions`). A separate forwarder task is spawned for each builder URL, so several downstream builders can be fed at once. Both halves of the pipeline run in the background, scheduled on the node's task executor.
 
 ### EL P2P configuration flags
 
@@ -408,8 +408,8 @@ Discovery on each layer is independent. The CL uses discv5 on a UDP port (defaul
 
 - [`crates/execution/txpool/src/validator.rs`](https://github.com/base/base/blob/main/crates/execution/txpool/src/validator.rs) — OpTransactionValidator with L1 data gas checks
 - [`crates/execution/txpool/src/ordering.rs`](https://github.com/base/base/blob/main/crates/execution/txpool/src/ordering.rs) — BaseOrdering (fee-based vs FIFO)
-- [`crates/execution/txpool/src/consumer/`](https://github.com/base/base/tree/main/crates/execution/txpool/src/consumer) — Transaction pool consumer
-- [`crates/execution/txpool/src/forwarder/`](https://github.com/base/base/tree/main/crates/execution/txpool/src/forwarder) — Transaction forwarder to sequencer
+- [`crates/execution/tx-forwarding/src/reader/`](https://github.com/base/base/tree/main/crates/execution/tx-forwarding/src/reader) — Transaction pool reader
+- [`crates/execution/tx-forwarding/src/forwarder/`](https://github.com/base/base/tree/main/crates/execution/tx-forwarding/src/forwarder) — Transaction forwarder to sequencer
 
 ## Glossary
 

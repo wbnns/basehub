@@ -1,0 +1,155 @@
+---
+title: Testing
+description: The four tiers of tests in base/base — unit, action, system, and fuzz — and the CI stages that run them.
+---
+
+Tests in `base/base` are organized into four tiers. Each step up the ladder puts more of the production system under test and costs proportionally more time to run. Knowing which tier a change belongs in is most of the work: reach for the fastest one that actually covers the behavior you changed.
+
+For the day-to-day `just` recipes themselves, see [Development Workflow](/getting-started/development/).
+
+## Before Opening a Pull Request
+
+One command covers the full local gate:
+
+```bash
+just ci
+```
+
+It applies the auto-fixers first, then runs every static check and the complete unit test suite:
+
+```
+fix → check::all (format, clippy, udeps, deny) → test → lychee → zepter → check::no-std → check::no-std-proof
+```
+
+When you have only touched a handful of crates, there is a narrower variant that scopes clippy and the test run to the crates your branch actually affects, relative to `main`:
+
+```bash
+just pr
+```
+
+Both need Docker, [`just`](https://github.com/casey/just), and Foundry (`forge`) available on your machine — see [Prerequisites](/getting-started/prerequisites/).
+
+## The Four Tiers
+
+| Tier | Speed | Scope | Location |
+|---|---|---|---|
+| Unit | milliseconds | One function or type on its own | Colocated `#[cfg(test)] mod tests` blocks |
+| Action | milliseconds | Real protocol logic — batching, derivation — against in-memory actors | `actions/harness` (`base-action-harness`) |
+| System | minutes | The whole L1 + L2 stack under Docker/testcontainers | `etc/systems` (`base-system-tests`) |
+| Fuzz | hours (nightly) | Randomized transaction streams hunting sync-parity regressions | `base-system-tests`, nightly only |
+
+### Unit Tests
+
+Unit tests sit in the same file as the code under test, in a `#[cfg(test)] mod tests { ... }` block placed at the end. Run the whole workspace suite with:
+
+```bash
+just test
+```
+
+Behind that recipe is `cargo nextest run --workspace --all-features --exclude base-system-tests --no-fail-fast`, preceded by a build of the test contracts and SP1 ELFs. The system-test crate is excluded here because it is covered by its own tier below.
+
+To limit the run to crates your branch touches:
+
+```bash
+just test-affected
+```
+
+### Action Tests
+
+Action tests are the middle tier: an integration framework that models the L1 block producer, batcher, sequencer, and verifier as lightweight in-memory actors, drives them through a scripted list of actions, and asserts on the chain state that results. Nothing real is spun up — no nodes, no sockets, no containers — but batch encoding, channel compression, and derivation all go through the same production types they would in a live network. That combination is the point: protocol-boundary bugs that slip past unit tests get caught in milliseconds instead of minutes.
+
+```bash
+just actions test
+```
+
+Or invoke the harness crate directly:
+
+```bash
+cargo nextest run -p base-action-harness
+```
+
+The [`actions/README.md`](https://github.com/base/base/blob/main/actions/README.md) in the repository documents the actor architecture and how to add a scenario.
+
+### System Tests
+
+System tests bring up an isolated L1 + L2 stack with [testcontainers](https://testcontainers.com/) and drive the node end to end against real components — Reth for L1, Lighthouse, and real Base sequencer and validator processes. It is the slowest and most complete tier:
+
+```bash
+just devnet tests
+```
+
+That recipe builds the test contracts, then runs `cargo nextest run -p base-system-tests`. Docker is required.
+
+Because they are expensive, system tests are skipped on pull requests and run on the merge queue instead. Every commit passes through the queue before it lands, so `main` still never accrues an untested integration path — the cost just moves off the PR feedback loop.
+
+### Fuzz Tests
+
+A scheduled nightly job throws randomized transaction streams at the node to shake out sync-parity regressions, spreading the work over 4 parallel shards. Every shard draws its own random seed and logs it, so any failure can be replayed deterministically:
+
+```bash
+cargo nextest run -P ci -p base-system-tests --cargo-profile ci --no-capture -E 'test(fuzz_sync_parity)'
+```
+
+Neither pull requests nor the merge queue trigger it. It fires on the daily schedule at 07:00 UTC, or through a manual `workflow_dispatch` when you want to replay a particular seed.
+
+## Static Checks
+
+Alongside the tests, `just ci` and `just pr` run a set of static checks:
+
+| Check | Command | Purpose |
+|---|---|---|
+| Format | `cargo +nightly fmt --all -- --check` | Enforces `rustfmt.toml` (2024 edition style) |
+| Clippy | `cargo clippy --workspace --all-features --all-targets -- -D warnings` | Lints, warnings denied |
+| Unused deps | `cargo +nightly udeps --locked --workspace --all-features --all-targets` | Flags unused `Cargo.toml` dependencies |
+| Dependency bans/licenses | `cargo deny check bans --hide-inclusion-graph` | Enforces `deny.toml` — allowed licenses, banned crates, source restrictions |
+| `no_std` | `etc/scripts/ci/check-no-std.sh` | Confirms `no_std` crates still build without `std` |
+| `no_std` (proof) | `etc/scripts/ci/check-no-std-proof.sh` | The same, for the bare-metal FPVM proof crates |
+| Feature flags | `zepter format features && zepter` | Validates Cargo feature propagation across the workspace |
+| Links | `lychee --config ./lychee.toml .` | Looks for dead links repository-wide |
+
+Every one of these has its own `just check::<name>` recipe — `just check::clippy`, `just check::udeps`, and so on. Run `just check` for the full list, and `just fix` to auto-repair formatting, clippy, and zepter issues where that is possible.
+
+## CI Stages
+
+Which checks run depends on where a change sits in its lifecycle:
+
+| Stage | Trigger | Workflow | Scope |
+|---|---|---|---|
+| Pull request | `pull_request` | `ci-pr.yml` → `ci-core.yml` | Build/clippy/test, **affected crates only** vs. the base branch |
+| Pull request | `pull_request` | `no-std.yml`, `zepter.yml`, `lychee.yml`, `action-tests.yml`, `base-std-fork-tests.yml` | Full workspace — these are already fast |
+| Merge queue | `merge_group` | `ci-merge-queue.yml` → `ci-core.yml` | **Full** workspace build/clippy/test, plus **system tests** |
+| Push to `main` | `push` | `ci-main-cache.yml` | Warms the shared Rust build cache |
+| Nightly | `schedule` (07:00 UTC) | `fuzz-nightly.yml` | Sharded sync-parity fuzzing |
+| Nightly | `schedule` (13:00 UTC) | `udeps-report.yml` | Unused-dependency report; opens a GitHub issue on findings |
+| Release | manual / push to `releases/v*` | See [Release Process](/node-operations/release-process/) | Release builds, RC tags, Docker images |
+
+Pull requests scope to affected crates through `etc/scripts/local/affected-crates.py`, which is exactly why the two local recipes differ: `just pr` mirrors what PR CI will do, while `just ci` mirrors the broader bar the merge queue eventually enforces.
+
+One naming trap worth knowing: `action-tests.yml` is not a workflow that tests GitHub Actions, despite how it reads. It drives the [action-test](#action-tests) tier covered earlier on this page, via `just actions::lint-ci` and `just actions::test-ci`, and does so for both pull requests and merge-queue runs.
+
+## Conventions
+
+- Any behavioral change should come with tests that cover it.
+- Pick the cheapest tier that genuinely exercises what you changed. Logic that stands on its own belongs in a unit test; anything crossing a protocol boundary — batching, derivation, channel encoding — belongs in an action test; reserve system tests for the cases that truly need a live L1/L2 stack.
+- Keep unit tests next to the implementation, in a trailing `#[cfg(test)] mod tests { ... }` block.
+- Run `just pr` while iterating for quick feedback, and `just ci` before you ask for review, so nothing surprises you at the merge queue.
+
+## Command Reference
+
+| Command | Runs |
+|---|---|
+| `just ci` | The full local gate — fix, all checks, full test suite |
+| `just pr` | Affected-crates-only variant of `just ci` |
+| `just fix` | Auto-fixes formatting, clippy, and zepter issues |
+| `just test` | Unit tests across the whole workspace |
+| `just test-affected` | Unit tests for affected crates only |
+| `just actions test` | Action tests (`base-action-harness`) |
+| `just devnet tests` | System tests (`base-system-tests`, needs Docker) |
+| `just check` | Lists every `check::*` static-check recipe |
+| `just lychee` | Link check |
+| `just zepter` | Feature-flag validation |
+
+## Next Steps
+
+- [Development Workflow](/getting-started/development/) — the everyday check, test, and fix recipes.
+- [Local Devnet](/getting-started/devnet/) — bring up a full local network for integration work.

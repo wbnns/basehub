@@ -9,10 +9,12 @@ The `base/base` repository drives day-to-day development through [Just](https://
 
 | Command | What it does |
 |---|---|
-| `just check` | Runs the full check suite (format, udeps, clippy, test, deny) |
+| `just check` | Lists the individual `check::*` static-check recipes |
+| `just check::all` | Runs the full static-check suite (format, clippy, udeps, deny) |
 | `just test` | Runs the test suite via cargo-nextest |
 | `just fix` | Auto-fixes formatting, clippy, and zepter issues |
-| `just ci` | Full CI pipeline (fix, check, lychee, zepter, no-std check) |
+| `just ci` | Full local gate (fix, checks, tests, lychee, zepter, no-std checks) |
+| `just pr` | Same as `just ci`, but with tests scoped to affected crates |
 
 ## Running Tests
 
@@ -54,19 +56,26 @@ See [Building from Source](/getting-started/building/#building-solidity-test-con
 
 ## Checking Code Quality
 
-The `check` recipe runs the full quality gate in sequence:
+The static checks live in a `check` module, so each one is addressed as `check::<name>`. Running the module on its own lists what is available:
 
 ```bash
 just check
 ```
 
-This is equivalent to running each of these in order:
+To run the whole static-check suite at once:
 
-1. **`check-format`** -- Verifies that all Rust source files match `rustfmt` style.
-2. **`check-udeps`** -- Detects unused dependencies in `Cargo.toml` files.
-3. **`check-clippy`** -- Runs Clippy with the project's configured lints.
-4. **`test`** -- Runs the full test suite.
-5. **`check-deny`** -- Checks dependencies for known vulnerabilities and license issues via `cargo-deny`.
+```bash
+just check::all
+```
+
+That expands to these four, in order:
+
+1. **`check::format`** -- Verifies that all Rust source files match `rustfmt` style.
+2. **`check::clippy`** -- Runs Clippy with the project's configured lints.
+3. **`check::udeps`** -- Detects unused dependencies in `Cargo.toml` files.
+4. **`check::deny`** -- Checks dependencies for known vulnerabilities and license issues via `cargo-deny`.
+
+Note that the test suite is *not* part of `check::all` -- it is a separate step, run on its own or as part of `just ci`. Two further checks, `check::no-std` and `check::no-std-proof`, sit outside `check::all` as well and are invoked directly by the CI recipes.
 
 If any step fails, the pipeline stops. Fix the issue and re-run.
 
@@ -88,7 +97,7 @@ Run `just fix` before committing to avoid CI failures.
 
 ## Full CI Pipeline
 
-To run the same checks that CI runs on pull requests:
+To run the same gate the merge queue will ultimately enforce:
 
 ```bash
 just ci
@@ -97,19 +106,26 @@ just ci
 This encompasses:
 
 1. `fix` -- auto-fix everything fixable
-2. `check` -- the full quality gate
-3. `lychee` -- checks for broken links in documentation
-4. `zepter` -- validates Cargo feature propagation
-5. `check-no-std` -- ensures `no_std` compatibility for crates that require it
+2. `check::all` -- the static-check quality gate
+3. `test` -- the full workspace test suite
+4. `lychee` -- checks for broken links in documentation
+5. `zepter` -- validates Cargo feature propagation
+6. `check::no-std` and `check::no-std-proof` -- ensure `no_std` compatibility for the crates that require it, including the bare-metal proof crates
 
-Running `just ci` locally before pushing is the best way to catch issues early.
+For faster iteration there is `just pr`, which runs the same checks but swaps the full test suite for `test-affected`, limiting tests to the crates your branch changes relative to `main`:
+
+```bash
+just pr
+```
+
+Use `just pr` while iterating and `just ci` before requesting review. See [Testing](/getting-started/testing/) for the tiers those tests are drawn from and how each CI stage differs.
 
 ## Formatting
 
 Check formatting without modifying files:
 
 ```bash
-just check-format
+just check::format
 ```
 
 Auto-format all files:
@@ -125,7 +141,7 @@ The project uses the standard `rustfmt` configuration. If your editor supports f
 Run Clippy to catch common mistakes and non-idiomatic patterns:
 
 ```bash
-just check-clippy
+just check::clippy
 ```
 
 Apply Clippy's suggestions automatically:
@@ -150,5 +166,6 @@ For the best development experience, configure your editor with:
 
 ## Next Steps
 
+- [Testing](/getting-started/testing/) -- the four testing tiers and what each CI stage runs.
 - [Local Devnet](/getting-started/devnet/) -- run a full local network for integration testing.
 - [Contributing](/contributing/) -- guidelines for submitting pull requests.

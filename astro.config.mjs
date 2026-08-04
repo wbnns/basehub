@@ -198,6 +198,7 @@ export default defineConfig({
 						{ label: 'Docker', slug: 'getting-started/docker' },
 						{ label: 'Running', slug: 'getting-started/running' },
 						{ label: 'Development', slug: 'getting-started/development' },
+						{ label: 'Testing', slug: 'getting-started/testing' },
 						{ label: 'Devnet', slug: 'getting-started/devnet' },
 					],
 				},
