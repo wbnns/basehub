@@ -25,7 +25,12 @@ Stage 1 Decentralization requires that the group approving Base Chain contract u
 - a ≥75% quorum
 - a quorum-blocking group outside the main rollup operator (Base)
 
-In addition to Coinbase, the Security Council includes 11 independent entities and individuals from geographically diverse regions. To meet the ≥75% quorum, 9 of the 12 entities (the 11 Security Council members plus Coinbase) must approve any Base upgrade. Upgrades cannot take effect until that quorum signs and approves them. This composition meets all requirements.
+Upgrade authority sits behind a **2-of-2 multisig** — two separate parties that each have to sign off before a change can take effect:
+
+- **CB Signers** — a 3-of-6 multisig run by Coinbase. The whole group resolves to one signature in the overall tally.
+- **Security Council** — an 8-of-11 multisig whose members are the 11 independent entities and individuals listed below, drawn from a spread of geographic regions.
+
+With the CB Signers collapsed to a single participant, the tally runs across 12 in total, 9 of which must approve any upgrade — the CB Signers plus a minimum of 8 council signatures. Neither party can move an upgrade on its own; both have to clear their own threshold first. This composition meets all of the requirements above.
 
 **Member selection criteria**
 

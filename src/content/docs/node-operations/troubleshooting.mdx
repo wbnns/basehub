@@ -64,6 +64,7 @@ Before chasing specific issues, work through these baseline checks.
 - **Issue:** `Error: nonce has already been used` when sending transactions.
   - **Cause:** The node is still catching up to the chain head.
   - **Action:** Wait for full sync. Track progress via `optimism_syncStatus` or logs.
+  - **Tip:** [`basectl`](/node-operations/basectl/), the Base node operator CLI, surfaces richer node data and diagnostic checks than the raw RPC output.
 
 ### Performance
 
