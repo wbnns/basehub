@@ -199,6 +199,7 @@ export default defineConfig({
 						{ label: 'Running', slug: 'getting-started/running' },
 						{ label: 'Development', slug: 'getting-started/development' },
 						{ label: 'Testing', slug: 'getting-started/testing' },
+						{ label: 'Block Production Review', slug: 'getting-started/block-production-review' },
 						{ label: 'Devnet', slug: 'getting-started/devnet' },
 					],
 				},
@@ -372,6 +373,7 @@ export default defineConfig({
 						{ label: 'Flashblocks Pipeline', slug: 'architecture/flashblocks-pipeline' },
 						{ label: 'June 2026 Outage Postmortem', slug: 'architecture/june-2026-block-production-outage' },
 						{ label: 'Native Account Abstraction', slug: 'architecture/native-account-abstraction' },
+						{ label: 'Onchain Nitro Attestation Validation', slug: 'architecture/nitro-validator' },
 					],
 				},
 				{

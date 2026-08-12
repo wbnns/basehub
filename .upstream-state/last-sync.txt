@@ -1,9 +1,10 @@
 ## Upstream snapshot
 
-Generated 2026-08-11T03:02:00Z
+Generated 2026-08-12T03:08:00Z
 
-### base/base @ 2ee423b
+### base/base @ 032be68
 
+d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 276df3398de1fd1a84aec641140cfc031aed409a  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 2e7b1514fecddad4cb3cca96d9ee277806f92a5a  docs/guides/TESTING.md
@@ -137,6 +138,7 @@ aa44cb2758cad1f80db4122ab7fcc6b7addf4460  docs/base-chain/specs/upgrades/jovian/
 
 ### blog.base.dev RSS
 
+yQptAPol05pPuVFRj9pm	Making AWS Nitro Validation feasible onchain	Tue, 11 Aug 2026 19:01:49 GMT
 BHYEaAslDmoZz2ZwFzm9	Native Account Abstraction	Fri, 17 Jul 2026 15:00:01 GMT
 xvsITGcca4Z5ahYxlm1Z	Postmortem:  June 25th Block Production Outage	Sat, 27 Jun 2026 15:44:11 GMT
 n1IisUDstG6YSmyLvo4f	Introducing Base Beryl	Thu, 18 Jun 2026 19:38:55 GMT
@@ -156,7 +158,6 @@ p2ZgCnu73WmVSIncOdCG	OnchainTestKit: A Framework for End-to-End Testing of Oncha
 Unm7vkJ9Mn9HUiAmMzA1	Flashblocks Deep Dive: How we made Base 10x faster	Tue, 09 Sep 2025 20:33:19 GMT
 gHUvTluLQFAHmP76hmDZ	Benchmarking ZKP Systems for Passkey ECDSA Verification	Tue, 02 Sep 2025 15:25:08 GMT
 Y2oHEGG2eVfbX4IDSSCf	L2 Primary Names are coming to Basenames:  ENSIP-19	Fri, 15 Aug 2025 15:55:02 GMT
-rcyL3EUXctJtW3hl710J	Introducing free security reviews for Base builders	Tue, 29 Jul 2025 18:31:49 GMT
 
 ### base-l2.statuspage.io RSS
 

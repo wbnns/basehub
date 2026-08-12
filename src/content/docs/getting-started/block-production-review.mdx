@@ -1,0 +1,157 @@
+---
+title: Block Production Review
+description: The halt and stall scenarios reviewers must check when a base/base pull request touches builder, execution, precompile, payload, or flashblocks publishing paths.
+sources:
+- base/base:docs/guides/BLOCK_PRODUCTION_REVIEW.md
+---
+
+`base/base` keeps a dedicated review guide for changes that can stop the chain. It drives automated reviews of block-production-sensitive pull requests, and it is worth reading before you open one. A change counts as block-production-sensitive when it touches the builder, execution, precompiles, payload assembly, state root, transaction selection, metering, payload or data transport, or flashblocks publishing.
+
+The scenarios below are the patterns already known to be dangerous — not a closed list. Analogous changes deserve the same scrutiny even when no rule names the exact code path. What reviewers are looking for is any change that can halt block production, stall payload finalization, block validator re-execution, or shut valid transactions out indefinitely.
+
+An unmitigated change of that kind earns an inline **Critical** finding. A useful finding names five things: the triggering input, state, or config; the affected code path; the error or panic that propagates; the resulting halt or stall mode; and the mitigation or test that is missing.
+
+## The payload and data boundary gate
+
+Where a pull request adds, replaces, or alters any path that pushes block-production data over an I/O boundary, it has to answer the size questions below before it can be called safe. That holds even when the change is presented as a latency optimization, an encoding swap, a fallback path, or a way around an earlier size cap.
+
+Read "data" broadly here: commit messages, responses and requests, state updates, receipts and transactions, frames, batches, flashblocks, payloads, and whole blocks all qualify. So does the full range of boundaries they travel over — external services and conductor payload commits, batcher/blob/calldata frames, database writes, HTTP handlers, gossip and RPC messages, websocket publishers, and channels that never leave the process.
+
+Five questions have to be answered per boundary the change touches:
+
+1. What is the ceiling at every hop downstream? Implicit ones count — whatever the queue, database, raft/consensus layer, HTTP server, RPC server, proxy, framework, or service body silently imposes.
+2. What does that ceiling measure? Raw, JSON-expanded, framed, uncompressed, compressed, encoded, and serialized bytes are all different numbers.
+3. At what point does the producer apply it? The check has to land early enough that no payload gets built, committed, published, or endlessly retried after passing local validation.
+4. How does the code behave right at the ceiling, and one byte over? That covers retry, finalization, fallback, and whatever the operator ends up seeing.
+5. What proves it? At-limit and over-limit payloads need tests or documented evidence on the real production boundary. Skipped, manual, and e2e-only tests fall short on their own — pair them with an explanation of the production limit and of why narrower coverage cannot be written.
+
+A **Critical** finding is warranted whenever such a change leaves the downstream ceiling unidentified, applies no bound at or ahead of the production boundary, drops the sole boundary test, or arrives with neither at-limit nor over-limit coverage. Be strictest where a transport or encoding was swapped in precisely to sidestep an older cap — the replacement has a ceiling of its own, and treating it as unbounded is how a cap gets quietly traded for a stall.
+
+## Critical scenarios
+
+### Precompile fatal execution semantics
+
+**Triggers.** Changes to BLS, BN254, P256, MODEXP, or Base precompiles that turn malformed, oversized, or otherwise user-controlled input from ordinary EVM halt/revert behavior into fatal `Err`, panic, or process exit behavior. Blurring `Error` against `Halt` semantics after an upstream SDK change counts too.
+
+**Surfaces.** `crates/common/precompiles`, `crates/common/evm/src/precompiles`, precompile provider and adapter code, Reth SDK integration.
+
+**Symptoms.** `PrecompileError::Fatal`, a non-invalid EVM error, a panic, or validator re-execution failure.
+
+**Halt mode.** The sequencer can fail to build any block containing the transaction, and validators can wedge re-executing a block that already contains it.
+
+**Rule.** Any semantic change to a precompile failure mode is critical unless it comes with explicit builder and validator impact analysis.
+
+**Mitigation.** Boundary tests at max and max+1 input sizes; tests asserting exactly which behavior is fatal and which halts or reverts; block-building or re-execution coverage for user-triggerable failure inputs.
+
+### Fatal EVM transaction execution in the builder
+
+**Triggers.** `evm.transact` returning a non-invalid-tx error for transaction input sourced from attributes, the txpool, bundles, precompiles, or database-backed execution.
+
+**Surfaces.** `execute_sequencer_transactions`, `execute_best_transactions`, EVM config, transaction environment conversion.
+
+**Symptoms.** `PayloadBuilderError::EvmExecutionError`, `PayloadBuilderError::evm`, or a panic ahead of the receipt and state update.
+
+**Halt mode.** The builder abandons the payload or flashblock attempt instead of producing a valid payload or fallback.
+
+**Rule.** It is critical when user-controlled transaction input can produce fatal EVM errors in production builder paths.
+
+**Mitigation.** Tests showing invalid user input gets skipped, halted, reverted, or rejected as that path requires; fatal error propagation tested only where consensus actually demands it.
+
+### Strict derived attributes and the `no_tx_pool=true` path
+
+**Triggers.** Derived payload attributes carrying invalid transactions, blob transactions, unrecoverable transactions, deposit account load failures, or pre-execution failures.
+
+**Surfaces.** `execute_pre_steps`, `execute_sequencer_transactions`, payload attributes, deposit nonce loading, blob transaction checks.
+
+**Symptoms.** `BlobTransactionRejected`, `TransactionEcRecoverFailed`, `AccountLoadFailed`, `EvmExecutionError`.
+
+**Halt mode.** The EL rejects the derived payload. A wrong change here either halts sync and building or drifts away from proof-executor behavior.
+
+**Rule.** Never silently skip consensus-derived invalid input unless proof-executor parity is explicitly preserved. Divergence is critical.
+
+**Mitigation.** Tests covering `no_tx_pool=true` and `no_tx_pool=false` against the same invalid input, plus a proof-executor parity explanation for any change in strictness.
+
+### State, provider, and finalization failures
+
+**Triggers.** A missing parent block, a failed `state_by_block_hash`, a failed state root or trie update, a failed Isthmus withdrawals root, a missing parent beacon block root, invalid fork extra-data derivation, or inconsistent block number context.
+
+**Surfaces.** Payload job creation, `build_payload`, `build_block`, `finalize_payload`, state provider and trie APIs.
+
+**Symptoms.** `MissingParentBlock`, a provider error, a state-root error, `PayloadBuilderError::Other`, or invalid fields on a finalized payload.
+
+**Halt mode.** No valid payload finalizes, and repeated failures stop block production until the underlying state, config, or fork problem is resolved.
+
+**Rule.** Changes that widen these failures, drop context, retry incorrectly, or let an invalid payload finalize are critical.
+
+**Mitigation.** Tests for parent, state-root, and fork-boundary errors wherever practical; error context identifying the block number, hash, and failing component; no silent fallback to an invalid state root.
+
+### Flashblock loop, deadline, and publish failures
+
+**Triggers.** Flashblock build errors, websocket serialization failures, a closed payload handler channel, cancellation and deadline races, or a late FCU or clock skew that yields zero flashblocks. Reordering publish against finalize belongs here as well.
+
+**Surfaces.** `build_next_flashblock`, `finalize_payload`, `payload_tx`, the websocket publisher, the publish guard, and job deadline and cancellation code.
+
+**Symptoms.** A flashblock build returning `Err`, `failed to publish flashblock`, a closed channel, a missing finalized payload, or a missed cancellation.
+
+**Halt mode.** Flashblocks stop, payload finalization gets skipped or delayed, or external consumers are left with stale or missing updates.
+
+**Rule.** It is critical when a change can stop building or publishing without finalizing a valid payload or falling back cleanly.
+
+**Mitigation.** Cancellation race tests or explicit reasoning; tests for closed-channel and serialization behavior when that behavior changes; evidence that the final payload survives a failure on the publish path.
+
+### Payload and data size limits across I/O boundaries
+
+**Triggers.** Block, payload, flashblock, batch, frame, transaction, request, response, or commit data crossing an internal or external boundary that carries an explicit or implicit maximum. Serialized, compressed, uncompressed, encoded, JSON/RPC, websocket, channel, database, gossip, batcher/blob/calldata, conductor payload-commit, and external-service payloads can all outgrow the downstream limit when the code lacks preflight bounds, backpressure, chunking, or deterministic rejection before production.
+
+**Surfaces.** Payload and flashblock serialization and publishing, `payload_tx`, conductor and payload commit APIs, gossip and RPC request bodies, batch/channel/frame encoding, `max_uncompressed_block_size`, DA limits, txpool forwarding, storage and DB writes.
+
+**Symptoms.** Oversized message rejection, a closed connection or channel, a serialization or send failure, a downstream commit failure, retries that never progress, `BlockUncompressedSizeExceeded`.
+
+**Halt mode.** The builder produces a payload that is locally valid but rejected downstream, fails to commit or publish it, or keeps building payloads too large to move through the production path at all.
+
+**Rule.** Introducing a new I/O boundary, changing payload shape, swapping one transport or encoding for another, or increasing the possible serialized, encoded, or uncompressed size all have to satisfy the boundary gate above. Missing downstream max-size analysis, missing enforcement, removed boundary tests, or absent at-limit and over-limit tests are each critical.
+
+**Mitigation.** At-limit and over-limit tests for serialized, encoded, and uncompressed sizes; commit and publish boundary tests; tests proving oversized data is rejected before it can stall production; regression coverage for fallback and finalization behavior.
+
+### Resource starvation and transaction pool exclusion
+
+**Triggers.** Metering data pending for every fresh transaction, DA/gas/uncompressed/state-root-gas/execution-time limits rejecting most candidates, a permanent rejection cache poisoning valid transactions, or `mark_invalid` and `mark_rejected` changes that exclude valid nonce chains.
+
+**Surfaces.** `TxnExecutionError`, `ResourceLimits::is_tx_over_limits`, metering wait logic, `NextBestFlashblocksTxs`, the rejection cache, txpool pruning.
+
+**Symptoms.** `MeteringDataPending`, `TransactionDASizeExceeded`, `BlockDASizeExceeded`, `DAFootprintLimitExceeded`, `TransactionGasLimitExceeded`, `BlockUncompressedSizeExceeded`, `ExecutionMeteringLimitExceeded`, or empty flashblocks despite valid transactions waiting.
+
+**Halt mode.** The builder turns out empty or underfilled flashblocks and blocks repeatedly, or valid transactions never get included.
+
+**Rule.** Changes that starve inclusion, permanently reject valid transactions, or convert a transient resource limit into a block-production stall are critical.
+
+**Mitigation.** Tests separating transient from permanent rejection; metering-disabled behavior; nonce-chain behavior after a transaction is skipped; cache TTL and capacity behavior whenever either changes.
+
+### Production panics and unchecked assumptions
+
+**Triggers.** A new `unwrap`, `expect`, index, division, overflow, or `panic!` reachable from user input, chain data, database state, fork config, payload attributes, or runtime config.
+
+**Surfaces.** Precompiles, transaction execution, payload assembly, state-root and fork activation, flashblocks publishing, job timing.
+
+**Symptoms.** A panic, a crashed task, process exit, or a finalized payload that never appears.
+
+**Halt mode.** The sequencer stops producing blocks, or validators stop progressing.
+
+**Rule.** Any panic in a block-production-sensitive path that user or chain data can trigger is critical.
+
+**Mitigation.** Replace it with a typed error, or demonstrate the invariant is enforced at construction. Add a regression test for the edge case that triggers it.
+
+## Review checklist
+
+When a pull request touches a block-production-sensitive path:
+
+1. Establish whether the code can execute during building, finalization, publishing, or re-execution of a block.
+2. Follow each error conversion, cancellation, timeout, channel send, `panic!`, `expect`, `unwrap`, `map_err`, and `?` the branch adds or alters.
+3. Ask what sits upstream of each one: client and network behavior, runtime config, fork config, provider or DB state, chain data, payload attributes, or a transaction a user submitted.
+4. Where a new or altered boundary carries this data, run the gate above and require both the downstream ceiling analysis and coverage on either side of it.
+5. Satisfy yourself that one of three things holds — a valid payload comes out, it is rejected on purpose without breaking consensus or proof parity, or the failure degrades something other than finalization.
+6. Request tests aimed at the boundary inputs, and separate ones per mode when txpool-driven building and derived attributes diverge.
+
+Absent enough context to demonstrate that a path cannot halt or stall production, ask for the analysis or the tests in a **Critical** finding rather than assuming the best.
+
+For the test tiers and CI stages these requirements plug into, see [Testing](/getting-started/testing/). The [June 2026 block production outage](/architecture/june-2026-block-production-outage/) is a worked example of what this guide exists to prevent.

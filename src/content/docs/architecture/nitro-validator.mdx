@@ -1,0 +1,132 @@
+---
+title: Onchain Nitro Attestation Validation
+description: How the redesigned base/nitro-validator library uses checked P-384 inverse hints to bring AWS Nitro Enclave attestation verification back under the post-Fusaka gas cap.
+sources:
+- blog.base.dev:making-aws-nitro-validation-feasible-onchain
+---
+
+Ethereum's **Fusaka** upgrade priced the original `base/nitro-validator` library out of existence: **EIP-7883** raised the cost of large `MODEXP` calls and **EIP-7825** put a hard 16.7M gas ceiling on every transaction, which together pushed a single P-384 signature check past what one transaction can spend. The rebuilt library gets the work back under the cap by moving the expensive part — modular inversion — offchain, and passing the results in as calldata **hints** that the contract verifies before it uses them. The result is cheaper than the pre-Fusaka library was, and it adds no trust in whoever generated the hints.
+
+## Why attestations belong onchain
+
+A Trusted Execution Environment such as AWS Nitro isolates the code it runs and signs a statement covering what ran and where, tied to whatever the application cares about — an enclave public key, a nonce, or the output itself. That statement only becomes a guarantee once a contract checks it. The alternative is trusting an operator's claim about which code they ran; verification replaces the claim with a cryptographic link between the output and one particular enclave image.
+
+Several patterns follow from that:
+
+- **External verification** — admit state commitments, proofs, or claims from a verifier you have approved offchain.
+- **Custom execution engines** — put specialized logic outside the EVM, then establish onchain that approved enclave code produced the answer.
+- **Private compute** — keep scoring, matching, auctions, or policy checks sealed inside the enclave, surfacing nothing but a signed result.
+- **Oracle and risk pipelines** — take updates from a data-processing environment whose measurements you can check.
+- **Enclave-backed signers** — release authority to a key only once the Nitro attestation behind it verifies.
+- **Bridges, settlement, and keepers** — require a signature from approved enclave code before a privileged action proceeds.
+
+The obstacle is the curve. Nitro attestations are signed on **P-384**, which neither Base nor Ethereum L1 exposes as a precompile, so every verification pays for the elliptic-curve arithmetic in EVM bytecode.
+
+## What Fusaka changed
+
+Onchain Nitro verification was expensive but workable beforehand. One P-384 signature check ran about **7.9M gas**, and a full cold attestation — five signature checks plus CBOR/COSE parsing, X.509 handling, and certificate caching — landed near **53M gas** spread over several transactions.
+
+Two Fusaka changes broke that budget:
+
+- **EIP-7883** raised the price of large `MODEXP` calls.
+- **EIP-7825** imposed a 16.7M gas ceiling per transaction.
+
+Afterward a single unhinted P-384 verification cost roughly **50.6M gas**, which overruns the per-transaction cap on its own before anything else runs. Five of them for a full attestation comes to about **267M gas**. The library could no longer execute at all, so the fix was to change the unit of work rather than shave percentages off it.
+
+## Where the gas goes: ~570 huge exponentiations
+
+ECDSA verification without a precompile means doing elliptic-curve arithmetic in the contract. The verifier rebuilds a point on the curve and checks its x-coordinate against the signature. This implementation works in affine coordinates, so point addition and doubling compute slopes by finite-field division — and division needs a modular inverse:
+
+```
+a / b mod m  =  a · b⁻¹ mod m
+```
+
+The inverse itself comes from Fermat's Little Theorem, which means exponentiating to a 384-bit exponent:
+
+```
+b⁻¹ = b^(m − 2) mod m
+```
+
+For P-384 the modulus `m` is either the field prime `p` or the group order `n`. Both are roughly 384-bit primes on the order of 10¹¹⁵, and one signature check performs that exponentiation about **570 times**. That is the entire cost.
+
+Inversion is asymmetric in a way the design exploits. Computing an inverse is expensive; checking a claimed one is not. Given a candidate `inv`, a single multiplication settles it:
+
+```
+b · inv == 1 mod m
+```
+
+## Checked hints
+
+Each inverse is computed offchain and supplied in calldata. At every division the verifier pulls the next 48-byte hint and validates it before it touches the arithmetic:
+
+```
+need  a / b mod m
+  →  read next hint inv
+  →  require b · inv == 1 mod m
+  →  use a · inv mod m
+```
+
+Nothing about a hint is taken on faith. A wrong hint reverts, a truncated stream reverts, and a stream carrying extra unused hints reverts as well. A caller can burn their own gas on a bad submission, but cannot push the verifier into accepting a signature it would otherwise turn down.
+
+Primality is what makes the substitution exact. The two P-384 moduli in play — group order `n` and field prime `p` — are both prime, which means no nonzero element of the field has more than one inverse. A hint that clears `b · inv == 1 mod m` is thus necessarily identical to what `b^(m − 2)` would have yielded. The route to the inverse changes; the set of signatures that verify does not.
+
+Three contracts split the work:
+
+- **`P384Verifier`** owns the hint checks and the ECDSA-P-384 arithmetic. An external call separates it from the rest, which keeps both other contracts under the **EIP-170** size limit.
+- **`CertManager`** measures X.509 certificates against a pinned AWS Nitro root, sends every non-root signature to `P384Verifier`, retains metadata for certificates it has already cleared, and honors revocation.
+- **`NitroValidator`** reads the COSE/CBOR attestation document, runs its certificate bundle through `CertManager`, and settles the attestation signature against whichever leaf key is cached.
+
+Reverting is the deliberate behavior of the unhinted entrypoints. Everything in production goes through `verifyCACertWithHints`, `verifyClientCertWithHints`, and `validateAttestationWithHints`, so the gas profile stays explicit and nothing can drift back onto the path nobody can afford.
+
+## Cold and warm paths
+
+Every attestation carries a leaf certificate plus the bundle behind it. Because `CertManager` pins the root CA, the root alone needs no onchain work. The cold path handles the remainder, verifying and caching one signature at a time:
+
+- Regional CA
+- Zonal CA
+- Issuer / instance CA
+- Leaf certificate
+- COSE attestation document signature
+
+Five P-384 checks, one per transaction. After the leaf and its chain are cached, any later attestation under that same leaf follows the warm path instead: one transaction verifies the document signature and reconfirms that the cached chain is intact — nothing missing, expired, misordered, or revoked.
+
+## Measured gas
+
+Five transactions cover the whole cold sequence on Base, and none of them comes close to the 16,777,216 gas cap:
+
+| tx | Action | Hint bytes | Gas used |
+| --- | --- | --- | --- |
+| 1 | cache regional CA | 27,456 | 6,825,140 |
+| 2 | cache zonal CA | 27,408 | 7,053,669 |
+| 3 | cache issuer / instance CA | 27,408 | 6,813,103 |
+| 4 | cache leaf cert | 27,504 | 6,825,004 |
+| 5 | validate attestation document | 27,312 | 13,775,541 |
+
+Each inverse takes 48 bytes. How many a verification needs varies with the signature data — somewhere between 569 and 573 — which lands every hint stream near 27 KB. Calldata is already priced into the receipt figures above.
+
+## Security model
+
+Hints are public proposals, not trusted witnesses — that is the property the whole design rests on. Because the contract validates each inverse before use, a wrong one cannot bend the elliptic-curve arithmetic in any direction; it can only revert. Exact hint consumption is enforced too, so a caller can neither drop a required inverse nor smuggle unused data through the stream.
+
+The hint mechanism itself is trustless. Whether the attestation means anything still depends on trusting AWS Nitro hardware, which this design does not attempt to remove.
+
+Policy stays with the application. What `NitroValidator` settles is narrow — the attestation traces back to a valid Nitro certificate chain — and it returns the parsed fields for the caller to judge. Which public keys, timestamps, nonces, module IDs, and PCRs are acceptable is a decision the consuming contract keeps.
+
+## Using it
+
+The implementation is open source in [`base/nitro-validator`](https://github.com/base/nitro-validator), and ships with:
+
+- the hinted `P384Verifier`, `CertManager`, and `NitroValidator`;
+- a reference hint generator in Node.js, with no dependencies;
+- Foundry coverage for revocation, expired certificates, malformed hints, parser edge cases, valid attestations, and equivalence between offchain and onchain hint streams; and
+- a Base Sepolia demo exercising the warm path as well as the cold one.
+
+Cantina audited the library independently. The bundled JavaScript is there as a reference, not as something to depend on in your backend — calldata is the whole interface, so porting the generator to your existing stack is straightforward.
+
+## Where this goes
+
+Base verifies Nitro attestations in production today through zero-knowledge proofs, which was the only practical route once Fusaka landed. The hinted P-384 approach removes that dependency: no new precompile, no ZK proving service. Base plans to adopt it for the canonical bridge's proof system in place of ZK proofs for onchain Nitro verification.
+
+Nothing here is specific to Base. The same sequence works for any EVM application on a post-Fusaka chain that needs to place trust in a Nitro enclave: walk the AWS certificate chain, check the attestation signature, read off the measurements that come back, and hold them against whatever policy you have defined.
+
+For how Base uses Nitro Enclaves inside the proof system itself, see the [TEE prover](/specifications/tee-prover/) specification and the [multiproof](/architecture/multiproofs/) design.
