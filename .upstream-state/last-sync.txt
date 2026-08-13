@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-08-12T03:08:00Z
+Generated 2026-08-13T03:08:52Z
 
-### base/base @ 032be68
+### base/base @ 9158a55
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 276df3398de1fd1a84aec641140cfc031aed409a  docs/guides/P2P.md
@@ -13,7 +13,7 @@ b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
 3792e8c42c87bccfd86a406e5b292a60aa285d69  docs/transaction-events/pr-description-note.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 665cb02
+### base/docs @ 6894986
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -67,7 +67,7 @@ b012a4657ff89b6d9bd6731e226e6e16f41ca68a  docs/base-chain/network-information/tr
 3640fed2dcdce799ee62b4b1f389212c76dd3c89  docs/base-chain/node-operators/node-providers.mdx
 d3143f2ee26663d6ffb9771509072e87054195b8  docs/base-chain/node-operators/performance-tuning.mdx
 3894978a0f18c563e2f9a71f28e7f3d61a2feb65  docs/base-chain/node-operators/run-a-base-node.mdx
-6a1b1219d8054e7ceea350440a375333e00af375  docs/base-chain/node-operators/snapshots.mdx
+56b890c89458fe8ee2f2f3415f0fbd40e1be08a7  docs/base-chain/node-operators/snapshots.mdx
 4508dd7afaa3f3509697f3dc3f8e3d928f42233f  docs/base-chain/node-operators/troubleshooting.mdx
 635a3379a4da9c184f6b73d8d130f2d2ed75ece9  docs/base-chain/overview.mdx
 596ba3ba07e2b51c0f80cbd23d4e774744977ce1  docs/base-chain/quickstart/connecting-to-base.mdx
@@ -105,6 +105,117 @@ cb43419f87628601f9cd8d6d3c982a9c0acd54fd  docs/base-chain/specs/upgrades/azul/ov
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
 88d70ca4d5ddab38ba5fe90c66c51e42ca1ab632  docs/base-chain/specs/upgrades/beryl/b20-playground.mdx
 2daaf3aa5301a52a4dd67b86a529f700775fab07  docs/base-chain/specs/upgrades/beryl/b20.mdx
+82ea7674473568303d28b936d91914331a219875  docs/base-chain/specs/upgrades/beryl/b20/specification/index.mdx
+65c57caedf78e6562c1c1dcc4c363619a00f0cd1  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/constants-and-addresses.mdx
+d4888150c9ebdcd4e178af229f3d20b7b3916a4c  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/errors-and-events-index.mdx
+3b9d07084797274388eb6d28fbf2231bfaf9a692  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry.mdx
+cdf739353b444528906d0fdec23cd0eb9256c115  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry/activate.mdx
+30bd3957c143b603641d4789c106f3041afb28cc  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry/admin.mdx
+22f2d1e62a219c4915d0547a7b9d2d9d8a96efde  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry/checkActivated.mdx
+acfe20f09134315545b43fe4837389314ac6b1d4  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry/deactivate.mdx
+744d1bdf9e66594d5677155474d61ce6384a85de  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry/isActivated.mdx
+a8ab7ec791a8b2e01b751517b39418b98b4a7790  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20.mdx
+393a90b27a17c87e38928cec51950fd0bea9ac53  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/BURN_BLOCKED_ROLE.mdx
+d1c844a386b613b92d769421d4e68e33df7b9bf7  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/BURN_ROLE.mdx
+ee6ea7ca22059267d8a69547cbfa21a67fb101ed  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/DEFAULT_ADMIN_ROLE.mdx
+79c2aac33de2e6e1e0138228c506b000365064b8  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/DOMAIN_SEPARATOR.mdx
+08343ae6181db410c1b8298cf7e2e7cdf431c508  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/METADATA_ROLE.mdx
+a15e2e8ec14557920f43132c362813c725f234d6  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/MINT_RECEIVER_POLICY.mdx
+6943c02714469c1e31953b8748e8cc707a19781f  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/MINT_ROLE.mdx
+20f5990d2d24a2fdbe956e3a2a6ad5d7870884a4  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/PAUSE_ROLE.mdx
+907ee86fabdd4c924e9b47da59c36f056a3055e6  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/SEIZE_HOLDER_POLICY.mdx
+9a28657d97beb42904c87bb09505dcb41eeba6c2  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/SEIZE_RECEIVER_POLICY.mdx
+66174524cb4ee7424724a23eafcfcdd939fb731e  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/SEIZE_ROLE.mdx
+07e16384ecdbb26fb87eed03646035deec0c6ed4  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/TRANSFER_EXECUTOR_POLICY.mdx
+f1d559430abbc02f6b2e4dac05f184266b56857f  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/TRANSFER_RECEIVER_POLICY.mdx
+c9d8c2df45bc657b4cbfb320191007829f6a0d92  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/TRANSFER_SENDER_POLICY.mdx
+2bbd4fabb58f39d9766e608eb2f7ad69b2f61c89  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/UNPAUSE_ROLE.mdx
+1626fb545dabea0a057cee49f65bd1ab36d1caff  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/allowance.mdx
+9af3a02e3f146779205def8a06661c0d786b98eb  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/approve.mdx
+0f831066f8c65a36f6755b6e91829cc4368b4fba  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/balanceOf.mdx
+8a2e124c12b200028ffe73706c6947de2f0238c7  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/burn.mdx
+98fe2c95519d3b1679a7d568ff0adce4d1e07ad7  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/burnBlocked.mdx
+adfeecfafeed9bfd40d331737c15601e81ca69c3  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/burnWithMemo.mdx
+a8de4ce0c2c5b52af7d8a5c8a9d5b90f4d931b86  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/contractURI.mdx
+498b048f56b00ce43ddbb0a9e7dc50c35fdc6816  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/decimals.mdx
+f303be13d637c9de6db718dc92c990ed61c76f6a  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/eip712Domain.mdx
+d92413b4ead3b1f273ae25b3a2752c5671f6c9e5  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/getRoleAdmin.mdx
+9a850c82b82de7b62ae2fe7ff269fa0ef5967991  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/grantRole.mdx
+33b0adc02e44edf690616b366094cea5aeb42331  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/hasRole.mdx
+4935b8ef72fa0540651c3db68ad23478e77a1b91  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/isPaused.mdx
+a4c59195b3b5b38fe1783ac2d14d871d60e31a7d  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/mint.mdx
+84bd234e6f709b8d038109734963dfa9b79d0ed9  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/mintWithMemo.mdx
+7e86c70adf16ded1d3989e9c5a9faddf62bec99f  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/name.mdx
+760cfd94a5e6daf3e7cdf74f3a99ec770967cb9e  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/nonces.mdx
+5f8a4584cfadd31d1ef50cf3aebe20973c79faae  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/pause.mdx
+bd704dc0b7e9063fa33a12c8aa07ea07b0f6a8fc  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/pausedFeatures.mdx
+de0d4702a30bb567ea5d28ef9a5b4e08897fcb0b  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/permit.mdx
+1767844d4d20d6c1f8dc1fcb503e0f32e51cdf71  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/policyId.mdx
+df5a79848ce76ff57edbd96268b06577e4529132  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/renounceLastAdmin.mdx
+ac287ddff09154f9dc601be8cc2d107724cea52c  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/renounceRole.mdx
+b2d6e512b09394ffe8401fdaba0c3ffc39621ad2  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/revokeRole.mdx
+7dd09ef22a4369a79271b6da9950ae879ba27d18  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/seizeWithMemo.mdx
+fdbf840c2625c92c819ad61ce7ff1287b08eb9b0  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/setRoleAdmin.mdx
+028edc360c4235c1085739b6768252e1c9f96be4  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/supplyCap.mdx
+e1eb7a5ea01a045b82cd371a079f324f9695d00e  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/symbol.mdx
+916299ef2a3fb766a5a52ba1411b939996387d5c  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/totalSupply.mdx
+f86ec477c181877366fe5444e59b176279c0262b  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/transfer.mdx
+8f2eec1786bc341a23fed65e254051ccab5605fa  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/transferFrom.mdx
+d583f18195e436486ee000c0898d7efea9f420e3  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/transferFromWithMemo.mdx
+20b43bdd217365509d0b732770c8dd8d48c116f3  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/transferWithMemo.mdx
+0461e829096b960012cfd90f3d20c270de63f11d  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/unpause.mdx
+3be88f537219afe93560cc9a97a81f5aebd99597  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/updateContractURI.mdx
+b366061d18fc6331c197aa5fe9ece69f58f7b57f  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/updateName.mdx
+78a6aa7db208e998c522f56cf5723e5617e59cfd  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/updatePolicy.mdx
+c17ad80e43baf2fc83244fda72797a2041b38ef5  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/updateSupplyCap.mdx
+e1e97c013623935633d9c39becf2e5be321f0d8a  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20/updateSymbol.mdx
+8f2a9a05cc244931d9ad70425efb2f0d424a0776  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset.mdx
+aaa4c5224f4b3322042da697cca19cf472aa6b83  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/MAX_UI_MULTIPLIER.mdx
+78f14471edf3fd849bbc686d9d1756ad65b38448  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/OPERATOR_ROLE.mdx
+fc705448713b48444a4ac53d37473dc737552c90  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/WAD_PRECISION.mdx
+b79d2f3ba09252829e5d24e85b94e1f3f92cae47  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/announce.mdx
+5fdf0b1d349f27d64d50195757fb3e52218f1b00  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/balanceOfUI.mdx
+f1094d3706084a5f24aa748f0cc3bac34224c423  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/batchMint.mdx
+99a53c1de3c11c0a1eccc24715c7a377dd20e4ae  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/cancelUIMultiplierUpdate.mdx
+756fc7bd70dab245f8c5cef52c8d0c61a53d084d  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/effectiveAt.mdx
+d9f53be6a583f0c227dcf737d24cacd708066b26  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/extraMetadata.mdx
+f117a5940392bf3db2cdecbc77a246011789b75c  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/fromUIAmount.mdx
+d1098def33d604e589830d5c472d83724460541f  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/isAnnouncementIdUsed.mdx
+c0687404574ceb02e7941deda87a4dab2256186b  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/multiplier.mdx
+8561ae23982a42e667766aab2334a47471e743be  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/newUIMultiplier.mdx
+cef9d68b499d39dbd1fcaf50c590601d536494a4  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/scaledBalanceOf.mdx
+9ec22ab5fcefea45282f6c6954f534ca5a449a5a  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/toRawBalance.mdx
+ce16e97dbdf6b1e78e1f7127a0ee29c5ead51812  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/toScaledBalance.mdx
+9f17eca96d4e9a29ab9e95a8cc4442a3e02eb445  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/toUIAmount.mdx
+91b7183079030c181ef64b30eb7fdbc1c73f28d2  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/totalSupplyUI.mdx
+deb9c85ce9f6bbc2c201e8edcf676694602d9a6b  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/uiMultiplier.mdx
+f0d094de439cd60e2a951a750f965f670f933425  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/updateExtraMetadata.mdx
+d1a06ad0355236848f041187efc82d933c6ca904  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/updateMultiplier.mdx
+1e671e12ad72760f064afcfc56acdb8b03d40306  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset/updateUIMultiplier.mdx
+108a8c83b758dfd1cbe14949eedb30876a7e01de  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Factory.mdx
+3b399e32f0a6caf382100f37aa163fe2dbd09c66  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Factory/createB20.mdx
+a71efe90a2c98d8f5972e6998cc5032449c251a3  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Factory/getB20Address.mdx
+a5ae4db18b225a6bd94fa7eef31b14ea7333aad4  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Factory/isB20.mdx
+c6933533a6d9c2944d9a95a88f5c8313ff71ca00  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Factory/isB20Initialized.mdx
+e9d66398db47eb4c062ca37b0787a58792b1b756  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Stablecoin.mdx
+d4b43cbad966cc1897b890eda2904da3e1b7172c  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Stablecoin/currency.mdx
+f93ca6245283fc29951e206f10dc23f2e5a14126  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry.mdx
+36977430a2f394851588691fdcfed68707d668f6  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/MAX_COMPOSITE_CHILD_POLICIES.mdx
+d9b29a1de3b0d7f34fb4a5b43a7070532f067d73  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/MIN_COMPOSITE_CHILD_POLICIES.mdx
+8b3707a6a3029ebe6d430450c6fac32dff99da55  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/compositePolicyChildIds.mdx
+c2dd09be3235bd95730b3e40fc9f3042ce8a03ac  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/createCompositePolicy.mdx
+041ceca2c03c856646a2638a20c6326f0842a6b5  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/createPolicy.mdx
+e40ace962337f43a5a9b5330b7423621b7689765  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/createPolicyWithAccounts.mdx
+0a0cdd4967b054cdf0ef4a35ce35bb1466e6bdd4  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/finalizeUpdateAdmin.mdx
+e2f58cc3e98276cc473373baef048adeabb257c2  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/isAuthorized.mdx
+3d2d31c3810e93c45e06f69c98bd3c8a87f9cb21  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/pendingPolicyAdmin.mdx
+4f1e13e418991188b700d86eb31d4c6c485a1fb5  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/policyAdmin.mdx
+aa9df727cc37520c6eb9e9852ee7a99666970106  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/policyExists.mdx
+f6d453d0d643ff47a01bda734e2a52b63cb501ff  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/renounceAdmin.mdx
+c2a257fb0b7fad28ef111030c89e575c9c6b0957  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/stageUpdateAdmin.mdx
+7a3ac068d82e4ee492ca645aba6e96cbae967c0c  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/updateAllowlist.mdx
+af43081d438d477fae737eb8070f241ff457b98e  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/updateBlocklist.mdx
+4baf68346d5780fa198e9ee81c34e208bc462703  docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry/updateComposite.mdx
 3ff77e87367ad1aefd929a983281f4b9d2e12c23  docs/base-chain/specs/upgrades/beryl/overview.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 329e138d468b876425b84e3d63337188ecdd2298  docs/base-chain/specs/upgrades/cobalt/eip-8130.mdx

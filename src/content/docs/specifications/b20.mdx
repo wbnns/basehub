@@ -30,6 +30,10 @@ B20 is a strict superset of ERC-20. The standard calls — `transfer`, `transfer
 
 Beyond that base surface, B20 layers on methods ERC-20 lacks: memos, mint/burn, policy gating, granular pause, and ERC-2612 `permit`. The containment runs one way only — anything ERC-20 defines is present on B20, but the additions don't flow back. Full ABIs are published as [interface definitions](https://github.com/base/base-std/tree/main/src/interfaces) in the Base Standard Library.
 
+<Aside type="tip">
+For the call-level detail — every function selector, event `topic0`, and revert selector across all five B20 precompile interfaces — see the [B20 Precompile Reference](/api-reference/b20-precompiles/).
+</Aside>
+
 ## Roles model
 
 B20's access control builds on OpenZeppelin `AccessControl`, adding a fixed role set plus one behavioral tweak to how the admin role is renounced.
@@ -39,12 +43,13 @@ B20's access control builds on OpenZeppelin `AccessControl`, adding a fixed role
 | `DEFAULT_ADMIN_ROLE` | All admin operations: role grants, policy updates, supply-cap changes |
 | `MINT_ROLE` | `mint`, `mintWithMemo` |
 | `BURN_ROLE` | Caller-side burns: `burn`, `burnWithMemo` |
-| `BURN_BLOCKED_ROLE` | Third-party burns against policy-blocked accounts: `burnBlocked` |
+| `BURN_BLOCKED_ROLE` | The deprecated third-party burn path: `burnBlocked` |
+| `SEIZE_ROLE` | `seizeWithMemo` |
 | `PAUSE_ROLE` | `pause` |
 | `UNPAUSE_ROLE` | `unpause` |
 | `METADATA_ROLE` | `updateName`, `updateSymbol`, `updateContractURI` |
 
-You can define your own roles through `setRoleAdmin` and `grantRole`, but they carry no behavior on their own — only the seven base-surface roles listed above are actually gated. One more, `OPERATOR_ROLE`, is introduced by the Asset variant (see [Variants](#variants)).
+You can define your own roles through `setRoleAdmin` and `grantRole`, but they carry no behavior on their own — only the eight base-surface roles listed above are actually gated. One more, `OPERATOR_ROLE`, is introduced by the Asset variant (see [Variants](#variants)).
 
 ### Admin renunciation
 
@@ -127,8 +132,10 @@ B20 exposes a fixed set of policy scopes, each holding a `uint64` policy ID into
 | `TRANSFER_RECEIVER_POLICY` | The `to` of `transfer` / `transferFrom` |
 | `TRANSFER_EXECUTOR_POLICY` | The `msg.sender` of `transferFrom`, when distinct from `from` (not checked on `transfer`) |
 | `MINT_RECEIVER_POLICY` | The `to` of `mint` |
+| `SEIZE_HOLDER_POLICY` | The `from` of `seizeWithMemo`. Note the inversion — a holder is only seizable while this scope *denies* them |
+| `SEIZE_RECEIVER_POLICY` | The `to` of `seizeWithMemo`, which must be authorized |
 
-Note that `approve` is never policy-gated — only real balance movement through `transfer` / `transferFrom` is checked.
+Note that neither `approve` nor `permit` is policy-gated — only real balance movement through `transfer` / `transferFrom` is checked.
 
 <Aside type="caution">
 At creation, every scope defaults to `ALWAYS_ALLOW` unless the bootstrap `initCalls` override it. That means an unconfigured B20 deployment is wide open; constraints have to be applied deliberately.
@@ -145,7 +152,22 @@ Fresh supply comes from `mint` / `mintWithMemo`, both gated by `MINT_ROLE`. The 
 There are two ways to burn:
 
 - **`burn` / `burnWithMemo`** — a holder destroys supply from their own balance, gated by `BURN_ROLE`.
-- **`burnBlocked`** — destroys supply held by a third party, gated by `BURN_BLOCKED_ROLE`. That account first has to be denied under `TRANSFER_SENDER_POLICY`, giving regulated issuers their freeze-and-seize mechanism.
+- **`burnBlocked`** — destroys supply held by a third party, gated by `BURN_BLOCKED_ROLE`. That account first has to be denied under `TRANSFER_SENDER_POLICY`.
+
+<Aside type="caution">
+`burnBlocked` is deprecated. It stays on the interface so older integrations keep working, but new seizure flows belong on [`seizeWithMemo`](#seize).
+</Aside>
+
+## Seize
+
+`seizeWithMemo(from, to, amount, memo)` is the current path for regulated issuers who need to move balance out of an account under compulsion. Rather than destroying the supply the way `burnBlocked` did, it reassigns it: the balance leaves `from` and lands on `to` in a single privileged step, emitting `Transfer`, `Memo`, and `Seized`.
+
+The call answers to `SEIZE_ROLE`, and it deliberately bypasses both allowance and the ordinary transfer policies. In their place it applies two checks of its own, and the first one runs backwards from what you'd expect:
+
+- `from` must be **denied** by `SEIZE_HOLDER_POLICY`. Authorization here marks an account as protected, so only accounts the policy turns away can be seized from.
+- `to` must be **authorized** by `SEIZE_RECEIVER_POLICY`, which keeps seized balance flowing only to destinations the issuer has sanctioned.
+
+Missing either check reverts — `AccountNotSeizable` for the holder, `PolicyForbids` for the destination.
 
 ## Supply cap
 
@@ -155,11 +177,11 @@ Capping supply is opt-in. The sentinel `type(uint128).max` signals no cap, which
 
 A memo is an optional `bytes32` tag carried alongside an operation for off-chain reference. Any operation carrying one emits `Memo(address indexed caller, bytes32 indexed memo)` immediately after its primary event, and indexers join the two on `(transactionHash, logIndex − 1)`.
 
-The memo-capable entrypoints are `transferWithMemo`, `transferFromWithMemo`, `mintWithMemo`, and `burnWithMemo`.
+The memo-capable entrypoints are `transferWithMemo`, `transferFromWithMemo`, `mintWithMemo`, `burnWithMemo`, and `seizeWithMemo`.
 
 ## Pause
 
-Pausing is fine-grained: the `PausableFeature` enum splits the token surface into operations that pause independently — `TRANSFER`, `MINT`, and `BURN`. That enum only ever grows. By design, `pause(features)` and `unpause(features)` answer to different roles (`PAUSE_ROLE` and `UNPAUSE_ROLE`).
+Pausing is fine-grained: the `PausableFeature` enum splits the token surface into operations that pause independently — `TRANSFER`, `MINT`, `BURN`, and `SEIZE`. That enum only ever grows. By design, `pause(features)` and `unpause(features)` answer to different roles (`PAUSE_ROLE` and `UNPAUSE_ROLE`).
 
 ## ERC-2612 permit / EIP-712
 

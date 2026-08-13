@@ -1,0 +1,435 @@
+---
+title: B20 Precompile Reference
+description: Selector-level reference for the B20 token, Asset and Stablecoin variants, factory, policy registry, and activation registry precompiles.
+sources:
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20.mdx
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset.mdx
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Stablecoin.mdx
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Factory.mdx
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry.mdx
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry.mdx
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/constants-and-addresses.mdx
+- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/errors-and-events-index.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This page is the call-level companion to the [B20 Native Token Standard](/specifications/b20/) writeup. That page explains how the standard behaves; this one gives you the wire details — every function with its four-byte selector, every event with its `topic0`, and every revert with the selector you'll see come back.
+
+<Aside type="note">
+The canonical Solidity source is `base-std`. Pull the interfaces from [base/base-std](https://github.com/base/base-std/tree/main/src/interfaces), and the shared values from `StdPrecompiles.sol` and `B20Constants.sol`:
+
+```solidity
+import {StdPrecompiles} from "base-std/StdPrecompiles.sol";
+import {B20Constants} from "base-std/lib/B20Constants.sol";
+```
+</Aside>
+
+## Precompile addresses
+
+The same three addresses apply on every network that has B20 turned on.
+
+| Surface | Address |
+|---|---|
+| B20Factory | `0xB20f000000000000000000000000000000000000` |
+| ActivationRegistry | `0x8453000000000000000000000000000000000001` |
+| PolicyRegistry | `0x8453000000000000000000000000000000000002` |
+
+## IB20
+
+The base token surface. Every B20 token exposes it, whichever variant it was created as.
+
+### Role identifiers
+
+| Function | Selector | What it returns |
+|---|---|---|
+| `DEFAULT_ADMIN_ROLE` | `0xa217fddf` | The top-level admin role, which is `bytes32(0)`. Holders can manage the role graph, policy slots, and the supply cap. |
+| `MINT_ROLE` | `0xe9a9c850` | The role a caller needs for `mint` and `mintWithMemo`. |
+| `BURN_ROLE` | `0xb930908f` | The role a caller needs for `burn` and `burnWithMemo`. |
+| `BURN_BLOCKED_ROLE` | `0x32ad9be8` | The role behind the deprecated `burnBlocked` path, kept for older integrations. |
+| `SEIZE_ROLE` | `0x3c7e9ba5` | The role a caller needs for `seizeWithMemo`. |
+| `PAUSE_ROLE` | `0x389ed267` | The role a caller needs for `pause`. |
+| `UNPAUSE_ROLE` | `0x309756fb` | The role a caller needs for `unpause`. |
+| `METADATA_ROLE` | `0x38841782` | The role behind `updateName`, `updateSymbol`, and `updateContractURI`. |
+
+### Policy scope identifiers
+
+Each of these names one slot on the token. The slot holds a `uint64` policy ID, and the token consults it against the account listed below.
+
+| Function | Selector | Account checked |
+|---|---|---|
+| `TRANSFER_SENDER_POLICY` | `0xd116fc21` | `from`, on every transfer — `transferFrom` included. |
+| `TRANSFER_RECEIVER_POLICY` | `0x210f521b` | `to`, on every transfer. |
+| `TRANSFER_EXECUTOR_POLICY` | `0x724e9c53` | `msg.sender` on `transferFrom`, but only where it differs from `from`. |
+| `MINT_RECEIVER_POLICY` | `0x6e5b013d` | `to`, on every mint. |
+| `SEIZE_HOLDER_POLICY` | `0xb279d311` | `from`, when `seizeWithMemo` runs. |
+| `SEIZE_RECEIVER_POLICY` | `0xb31da27f` | `to`, when `seizeWithMemo` runs. |
+
+### ERC-20 surface
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `name` | `0x06fdde03` | The token name. Fixed at creation, but `updateName` can change it later. |
+| `symbol` | `0x95d89b41` | The token symbol. Fixed at creation, but `updateSymbol` can change it later. |
+| `decimals` | `0x313ce567` | The decimal count. Each variant fixes this and it never moves. |
+| `totalSupply` | `0x18160ddd` | How much of the token is in circulation right now. |
+| `balanceOf` | `0x70a08231` | The balance held by `account`. |
+| `allowance` | `0xdd62ed3e` | How much `spender` is still cleared to move on behalf of `owner`. |
+| `transfer` | `0xa9059cbb` | Moves `amount` from the caller to `to`, emitting `Transfer`. |
+| `transferFrom` | `0x23b872dd` | Moves `amount` from `from` to `to`, drawing on the caller's allowance. Emits `Transfer`. |
+| `approve` | `0x095ea7b3` | Rewrites `spender`'s allowance to `amount`. Neither policies nor the pause state apply. Emits `Approval`. |
+
+### Memo variants
+
+Each of these does exactly what its plain counterpart does, then emits `Memo` in the log slot directly after the primary event.
+
+| Function | Selector | Wraps |
+|---|---|---|
+| `transferWithMemo` | `0x95777d59` | `transfer` |
+| `transferFromWithMemo` | `0x929c2539` | `transferFrom` |
+| `mintWithMemo` | `0xe44f0b12` | `mint` |
+| `burnWithMemo` | `0x38f23b0b` | `burn` |
+
+### Supply operations
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `mint` | `0x40c10f19` | Issues `amount` to `to` and emits `Transfer(address(0), to, amount)`. |
+| `burn` | `0x42966c68` | Destroys `amount` out of the caller's own balance. No policy applies. |
+| `burnBlocked` | `0xec0cf3dc` | Deprecated. Destroys `amount` belonging to a `from` that `TRANSFER_SENDER_POLICY` currently denies. |
+| `seizeWithMemo` | `0xf916d81b` | Takes `amount` from `from` and reassigns it to `to` in one privileged step. |
+| `supplyCap` | `0x8f770ad0` | The ceiling `mint` enforces. It tops out at `type(uint128).max`, which doubles as the no-cap sentinel. |
+| `updateSupplyCap` | `0xe5a97f07` | Moves the cap up or down. It can never sit below the supply already outstanding. |
+
+### Access control
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `hasRole` | `0x91d14854` | Whether `account` belongs to `role`. The graph accepts user-defined roles, though the token itself enforces none of them. |
+| `getRoleAdmin` | `0x248a9ca3` | Which role can hand out or take away `role`. Falls back to `DEFAULT_ADMIN_ROLE` where nothing was set. |
+| `grantRole` | `0x2f2ff15d` | Adds `account` to `role` and emits `RoleGranted`. |
+| `revokeRole` | `0xd547741f` | Drops `account` from `role` and emits `RoleRevoked`. |
+| `setRoleAdmin` | `0x1e4e0091` | Reassigns which role administers `role`. Emits `RoleAdminChanged`. |
+| `renounceRole` | `0x36568abe` | Lets the caller give up a role they hold. Emits `RoleRevoked`. |
+| `renounceLastAdmin` | `0x6f79e3d7` | The one route to a permanently admin-less token. It strips `DEFAULT_ADMIN_ROLE` from the last holder for good. |
+
+<Aside type="caution">
+The final admin cannot leave through `renounceRole` or `revokeRole` — both revert with `LastAdminCannotRenounce`. Once `renounceLastAdmin` goes through, every admin-gated function is dead for the life of the token, and no one can restore the role.
+</Aside>
+
+### Pause
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `pausedFeatures` | `0xde9997e3` | The set of `PausableFeature` values paused on this token. Don't rely on the ordering. |
+| `isPaused` | `0x165c44bc` | Whether one specific `feature` is paused. Constant time. |
+| `pause` | `0x9f98bd2d` | Pauses everything in `features`. It adds to the existing set, so repeats are harmless. |
+| `unpause` | `0xb61b2ebc` | Clears the pause on everything in `features`, leaving anything unlisted alone. Repeats are harmless. |
+
+### Policy slots
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `policyId` | `0xdb3de624` | The policy currently wired into `policyScope`. An unset slot reads back as `0`, the always-allow built-in. |
+| `updatePolicy` | `0xadf9c4ea` | Points `policyScope` at a different policy ID. The next gated call already sees it. |
+
+### ERC-2612 permit and metadata
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `nonces` | `0x7ecebe00` | The permit nonce for `owner`, which climbs by one after each `permit` that lands. |
+| `permit` | `0xd505accf` | The EIP-2612 signed approval. It recovers `owner` from `(v, r, s)` by ECDSA, so only EOA signatures work. |
+| `DOMAIN_SEPARATOR` | `0x3644e515` | The token's live EIP-712 domain separator, recomputed per call. |
+| `eip712Domain` | `0x84b0196e` | ERC-5267 introspection over that domain. |
+| `contractURI` | `0xe8a3d485` | Where the token's contract-level metadata lives offchain, per ERC-7572. |
+| `updateContractURI` | `0x7e5b1e24` | Repoints `contractURI`. Per ERC-7572 the resulting event carries no arguments. |
+| `updateName` | `0x84da92a7` | Rewrites `name`. Emits `NameUpdated`, then `EIP712DomainChanged`, because the separator rotates with it. |
+| `updateSymbol` | `0x537f5312` | Rewrites `symbol` and emits `SymbolUpdated`. |
+
+## IB20Asset
+
+Extra surface carried only by tokens created as the `ASSET` variant.
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `OPERATOR_ROLE` | `0xf5b541a6` | The role behind `announce` and the multiplier operations. |
+| `WAD_PRECISION` | `0x664808a8` | The fixed-point scale the multiplier uses, equal to `1e18`. |
+| `MAX_UI_MULTIPLIER` | `0x785c0cf0` | The largest multiplier the setters will take. |
+| `multiplier` | `0x1b3ed722` | The multiplier in force, at `WAD_PRECISION`. Stored balances stay raw underneath it. |
+| `uiMultiplier` | `0xa60bf13d` | The ERC-8056 UI multiplier as it stands now. |
+| `newUIMultiplier` | `0xdc767007` | The UI multiplier waiting to take over, if one is scheduled. |
+| `effectiveAt` | `0x97a4064f` | When that pending multiplier is due to apply. |
+| `updateUIMultiplier` | `0x628e600f` | Queues a UI-multiplier change for the `effectiveAt` timestamp. |
+| `cancelUIMultiplierUpdate` | `0x2c97a0f0` | Drops the one pending change and returns the token to having none queued. |
+| `updateMultiplier` | `0x5ffe6146` | The emergency override. It sets the multiplier on the spot rather than scheduling it. |
+| `toScaledBalance` | `0x04f04c99` | Scales a raw balance up: `rawBalance * multiplier / WAD_PRECISION`. |
+| `toRawBalance` | `0x0ca06c44` | Scales a scaled balance back down to its raw form. |
+| `scaledBalanceOf` | `0x1da24f3e` | Shorthand for `toUIAmount(balanceOf(account))`. |
+| `balanceOfUI` | `0x437a9958` | An account's balance with the UI adjustment already applied. |
+| `totalSupplyUI` | `0x9bea6429` | Total supply with the UI adjustment already applied. |
+| `toUIAmount` | `0x3248d4ff` | Converts a raw amount into its UI form. |
+| `fromUIAmount` | `0x65cd9b3c` | Converts a UI amount back into its raw form. |
+| `announce` | `0x595135dd` | Publishes an announcement that affects holders and fires off each bundled call atomically. |
+| `isAnnouncementIdUsed` | `0xc0da474e` | Whether `announce` has already spent `id`. IDs never come back around. |
+| `batchMint` | `0x68573107` | Issues `amounts[i]` to `recipients[i]` across the arrays. It's all or nothing — one bad element reverts the lot. |
+| `extraMetadata` | `0x4ddf9da0` | Reads a named metadata entry, giving back an empty string where none is set. |
+| `updateExtraMetadata` | `0xb2851ef5` | Writes a metadata entry, or clears it when you pass an empty `value`. |
+
+## IB20Stablecoin
+
+Tokens created as the `STABLECOIN` variant add one call.
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `currency` | `0xe5a6b10f` | The currency code the stablecoin says it tracks, such as `"USD"`, `"EUR"`, or `"JPY"`. |
+
+<Aside type="note">
+B20 only checks that the code is well formed — uppercase `A`-`Z` and nothing else. It makes no judgment about the issuer's claim, reserves, legal standing, or registration anywhere.
+</Aside>
+
+## IB20Factory
+
+Every B20 token comes into existence through this one precompile.
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `createB20` | `0x62975e6a` | Deploys a token of the requested `variant` at the address derived deterministically for it. |
+| `getB20Address` | `0x8c30260f` | Tells you which address `createB20` would pick for `(variant, sender, salt)`. It never reverts. |
+| `isB20` | `0xfa19b927` | Whether this factory made `token`, read straight off the address prefix. It never reverts. |
+| `isB20Initialized` | `0x6a45ba98` | Whether `createB20` finished at `token`. It flips once and stays there. |
+
+## IPolicyRegistry
+
+The singleton registry holding every policy, keyed by `uint64 policyId`.
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `createPolicy` | `0xca5d55f6` | Opens an empty simple policy. Anyone can call it. |
+| `createPolicyWithAccounts` | `0xa2d3044f` | Opens a simple policy with `accounts` already in it. Anyone can call it. |
+| `createCompositePolicy` | `0x6fdd1491` | Opens a composite that joins existing simple policies under a logic rule. |
+| `updateAllowlist` | `0x3388fb5b` | Sets each of `accounts` to `allowed` on an ALLOWLIST policy, in one batch. |
+| `updateBlocklist` | `0x5c4e51b8` | Sets each of `accounts` to `blocked` on a BLOCKLIST policy, in one batch. |
+| `updateComposite` | `0xbfe142c0` | Swaps a composite's children out wholesale for `childPolicyIds`. |
+| `stageUpdateAdmin` | `0x1d7ae695` | Nominates a replacement admin for `policyId`. The sitting admin keeps control until the handover completes. |
+| `finalizeUpdateAdmin` | `0x33031a9c` | Closes out the two-step handover. The caller becomes admin and the pending slot empties. |
+| `renounceAdmin` | `0xefdb7fa3` | Gives up the policy permanently, which freezes its membership and children from then on. |
+| `isAuthorized` | `0x55a1179e` | Whether `account` clears `policyId`. It never reverts, and an unknown ID behaves as an empty set. |
+| `policyExists` | `0x330f5637` | Whether `policyId` is a built-in sentinel or an ID that was actually handed out. It never reverts. |
+| `policyAdmin` | `0x09dd0a47` | The sitting admin for `policyId`, or the zero address for built-ins. |
+| `pendingPolicyAdmin` | `0x017548b7` | The nominated admin for `policyId`, or the zero address when nothing is staged. |
+| `compositePolicyChildIds` | `0x7c40df74` | The children a composite `policyId` is built from. |
+| `MIN_COMPOSITE_CHILD_POLICIES` | `0xb3ae29f7` | The fewest children a composite can reference, inclusive. It never reverts. |
+| `MAX_COMPOSITE_CHILD_POLICIES` | `0x54309870` | The most children a composite can reference, inclusive. It never reverts. |
+
+<Aside type="caution">
+`isAuthorized` treats an ID that was never created as an empty set instead of reverting. So before you write a policy ID into a token slot, check `policyExists` yourself — unless the ID is a built-in.
+</Aside>
+
+## IActivationRegistry
+
+The gate that decides which features are live on the chain.
+
+| Function | Selector | Behavior |
+|---|---|---|
+| `isActivated` | `0xba87af80` | Whether `feature` is on right now. It never reverts. |
+| `checkActivated` | `0xde5bfd9b` | The asserting form — it reverts with `FeatureNotActivated(feature)` when the feature is off. |
+| `admin` | `0xf851a440` | The only address cleared to call `activate` and `deactivate`. |
+| `activate` | `0x59db6e85` | Switches `feature` on and emits `FeatureActivated`. |
+| `deactivate` | `0x22eee84c` | Switches `feature` off and emits `FeatureDeactivated`. |
+
+## Events
+
+Look these up by `topic0` when you're decoding logs.
+
+| Event | Interface | Topic0 |
+|---|---|---|
+| `Transfer` | `IB20` | `0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef` |
+| `Approval` | `IB20` | `0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925` |
+| `Memo` | `IB20` | `0x6989f5818dcfd11f8cd53b27c94cec33dae1589735f03e639cba54553a1825e8` |
+| `Seized` | `IB20` | `0xa9aec5d8b86e2fa2fd6ac3af62f2622e3dfdab1967d4cbbb56a5df7d74cb887c` |
+| `BurnedBlocked` | `IB20` | `0x0b552e96653fd6842da37c477005d3b5c08a8c7d3631b1f43787b2dc9a1006a3` |
+| `RoleGranted` | `IB20` | `0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d` |
+| `RoleRevoked` | `IB20` | `0xf6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b` |
+| `RoleAdminChanged` | `IB20` | `0xbd79b86ffe0ab8e8776151514217cd7cacd52c909f66475c3af44e129f0b00ff` |
+| `LastAdminRenounced` | `IB20` | `0xe8d3a9872e7ca325571ff1e4c51ddd69090a0345240cc605ccde365ec867cc67` |
+| `Paused` | `IB20` | `0x43e072977b8112813d7c2aa0b63d3c121c1fe3e714e6d2eacb5735fe4027e976` |
+| `Unpaused` | `IB20` | `0xdc6281474ea3dea2a856e225c7ba3edf427de9164495817c4d49a595e683fed4` |
+| `PolicyUpdated` | `IB20` | `0x8b4790f7ff717fc8f60f07ae099e47ef318dc04b37ae98056b50a22b79056626` |
+| `SupplyCapUpdated` | `IB20` | `0x6d14f44808ce024f263432bc38d019a9951fbe674e9898b54844dbc8dc09c23a` |
+| `ContractURIUpdated` | `IB20` | `0xa5d4097edda6d87cb9329af83fb3712ef77eeb13738ffe43cc35a4ce305ad962` |
+| `NameUpdated` | `IB20` | `0x74321da206c1b9fa34367f7ece59ca49371dcd13820b9a5c3767ae1ecceed51a` |
+| `SymbolUpdated` | `IB20` | `0x64e8b5c6dcea43dd79766bb3b8af7c45968d12b68c960cf2da23856f34d598d4` |
+| `EIP712DomainChanged` | `IB20` | `0x0a6387c9ea3628b88a633bb4f3b151770f70085117a15f9bf3787cda53f13d31` |
+| `UIMultiplierUpdated` | `IB20Asset` | `0x2205df4534432b2f60654a3fdb48737ffdaf3e9edb1a498bd985bc026b15b055` |
+| `MultiplierUpdated` | `IB20Asset` | `0x4dbe4840d7465bd162f67814cea0b519567a2e0e578bcde61e7f4ced361e5a3d` |
+| `UIMultiplierUpdateCancelled` | `IB20Asset` | `0x883856335ba5f60c18b9817c4505d3c7d3f6223dcf39516b30c508c46a5e1cad` |
+| `ExtraMetadataUpdated` | `IB20Asset` | `0xd7bb345be29e78d635203d40fe0567e7ef19d5cd5cc5fcd25f768b8063e82aa1` |
+| `Announcement` | `IB20Asset` | `0xccebf8218a62875909564adef86a6f4df81503cb617221e793357d62f8e813f7` |
+| `EndAnnouncement` | `IB20Asset` | `0x96d64dafe2c790596430196b982ad1da3221cb3b0f4e6e2df77f2e4f71a90037` |
+| `B20Created` | `IB20Factory` | `0xfd9bf2730513a1709722ff379a0844dfd8f997d600693c2bcc659e188bbdba0d` |
+| `PolicyCreated` | `IPolicyRegistry` | `0xdc870ce85be577234b8548f42b93f84bbff6d0c1f38ee725c809c49932a13885` |
+| `PolicyAdminStaged` | `IPolicyRegistry` | `0xdbf3b34a4c956c56ca05cd4b8f9293a4347ad61994445a4b89817d4a19561136` |
+| `PolicyAdminUpdated` | `IPolicyRegistry` | `0x98925cfb1bc09c5b43dd0dd56d3d95aa04fb3300927580cc588c3f5dd58c15e1` |
+| `AllowlistUpdated` | `IPolicyRegistry` | `0x18c46532f90187ba11e436e21da087b684801d7f0787f2043f26f079c91e9ef0` |
+| `BlocklistUpdated` | `IPolicyRegistry` | `0x2ff63c102b1b9fd7f5d39f83039c5d6aaf50a414a4f2def2704e41be2628f1e3` |
+| `CompositePolicyUpdated` | `IPolicyRegistry` | `0x4ff6adaab31b0df87aa7b8b7320c52b8b3b5eede3bf28a6baaaa8b8b7e1d6363` |
+| `FeatureActivated` | `IActivationRegistry` | `0x8c7a0ecdbb8d96e867e43ec1aef80027976ee493c18bef399fa799ed19752451` |
+| `FeatureDeactivated` | `IActivationRegistry` | `0x15bf65a782c3258c63268ba9d7aed710cf9f9315d3687d9a4632ccdad7926c84` |
+
+<Aside type="note">
+`Memo` always lands in the log slot immediately after the event it belongs to. Indexers pair the two by matching on `(transactionHash, logIndex - 1)`.
+</Aside>
+
+## Errors
+
+Reverse lookup for revert selectors. A few names appear more than once — `NonPayable` and `Unauthorized` are shared across surfaces, and `Unauthorized` does not even carry the same selector everywhere, so read the interface column.
+
+### IB20
+
+| Error | Selector | Cause |
+|---|---|---|
+| `NonPayable` | `0x6fb1b0e9` | ETH rode along with a call to a nonpayable token selector. |
+| `AccessControlUnauthorizedAccount` | `0xe2517d3f` | `account` is missing `neededRole`. |
+| `AccessControlBadConfirmation` | `0x6697b232` | `renounceRole` got a `callerConfirmation` that wasn't `msg.sender`. |
+| `Unauthorized` | `0x82b42900` | A positional authorization check failed — one that doesn't reduce to a missing role. |
+| `ContractPaused` | `0xf9df5ac9` | The `PausableFeature` this operation falls under is paused. |
+| `InsufficientAllowance` | `0x192b9e4e` | The `transferFrom` asked for more than `spender` is allowed to move. |
+| `InsufficientBalance` | `0xdb42144d` | The transfer or burn asked for more than `sender` holds. |
+| `InvalidSender` | `0x4c14f64c` | The source address on the transfer is not valid, typically `address(0)`. |
+| `InvalidReceiver` | `0x9cfea583` | The destination address on the transfer is not valid, typically `address(0)`. |
+| `InvalidApprover` | `0x8bc146c4` | The `owner` on the approval is not valid, typically `address(0)`. |
+| `InvalidSpender` | `0x4e15efda` | The `spender` on the approval is not valid, typically `address(0)`. |
+| `InvalidAmount` | `0x2c5211c6` | An amount came through as zero where a nonzero one is required. ERC-20 amount arguments are exempt. |
+| `EmptyFeatureSet` | `0x4861ff45` | An empty array reached a function that needs at least one entry. |
+| `InvalidSupplyCap` | `0x0a3780ce` | The proposed cap sits outside the permitted band — under current supply, or over the maximum. |
+| `SupplyCapExceeded` | `0x4b344b11` | The mint would carry `totalSupply` past the cap. |
+| `PolicyForbids` | `0xa43fec12` | One of the policy slots turned the operation down. |
+| `PolicyNotFound` | `0xcccad523` | The policy ID given isn't in the registry. |
+| `UnsupportedPolicyType` | `0xcdd98a4a` | This token, or this variant of it, has no such `policyScope`. |
+| `AccountNotSeizable` | `0x91dbbc8d` | `seizeWithMemo` targeted a `from` that `SEIZE_HOLDER_POLICY` still authorizes. |
+| `AccountNotBlocked` | `0x64a5cb46` | The deprecated `burnBlocked` targeted a `from` that is still authorized. |
+| `ExpiredSignature` | `0xbd2a913c` | The `permit` arrived with a `deadline` already behind `block.timestamp`. |
+| `InvalidSigner` | `0x7ba5ffb5` | ECDSA recovery on the `permit` produced a `signer` that isn't the `owner` claimed. |
+| `LastAdminCannotRenounce` | `0x361513e7` | The sole remaining admin tried to leave via `renounceRole(DEFAULT_ADMIN_ROLE, ...)`. |
+| `NotSoleAdmin` | `0x2a98e73b` | `renounceLastAdmin()` was called while other accounts still hold `DEFAULT_ADMIN_ROLE`. |
+
+### IB20Asset
+
+| Error | Selector | Cause |
+|---|---|---|
+| `AnnouncementIdAlreadyUsed` | `0xd10b3c9e` | The `id` handed to `announce` was already spent. |
+| `AnnouncementInProgress` | `0x5c5f0829` | A call dispatched from inside `announce` tried to call `announce` again. |
+| `InternalCallMalformed` | `0x4e2f143e` | A call dispatched by `announce` came in under four bytes. |
+| `InternalCallFailed` | `0xb288a127` | A call dispatched by `announce` reverted normally, and its reason is wrapped here. |
+| `InvalidMetadataKey` | `0x86ea3abb` | `updateExtraMetadata` got an empty `key`. |
+| `InvalidMultiplier` | `0x6f12f3dc` | A multiplier setter was handed a value it won't accept. |
+| `EffectiveAtInPast` | `0x14119cf6` | The `effectiveAt` on `updateUIMultiplier` isn't in the future. |
+| `EffectiveAtTooFar` | `0x1ce214fa` | The `effectiveAt` on `updateUIMultiplier` overran `type(uint64).max`. |
+| `UIMultiplierUpdateExists` | `0x4481a68e` | `updateUIMultiplier` was called while another update is still pending. |
+| `UIMultiplierUpdateDoesNotExist` | `0xa7d6a5ca` | `cancelUIMultiplierUpdate` found nothing pending to cancel. |
+| `LengthMismatch` | `0xab8b67c6` | A batched call got parallel arrays of unequal length. |
+| `EmptyBatch` | `0xc2e5347d` | A batched call got empty arrays. |
+
+### IB20Factory
+
+| Error | Selector | Cause |
+|---|---|---|
+| `NonPayable` | `0x6fb1b0e9` | ETH rode along with a call to a nonpayable factory selector. |
+| `TokenAlreadyExists` | `0x15ef3a57` | Something already occupies the deterministic address this creation derives. |
+| `InvalidVariant` | `0xf10e8e43` | The `variant` given isn't a recognized `B20Variant`. |
+| `UnsupportedVersion` | `0xc0d8b4e0` | The leading `version` byte in `params` matches no known encoding for that variant. |
+| `MissingRequiredField` | `0x4a43ae87` | A required string argument came through empty. |
+| `InvalidCurrency` | `0x997c1de8` | The stablecoin `currency` had content, but carried a byte outside `A`-`Z`. |
+| `InvalidDecimals` | `0xca950391` | The asset `decimals` fell outside the permitted inclusive range. |
+| `InitCallFailed` | `0x4eae0860` | One of the `initCalls` reverted, and the factory passes the underlying reason back up. |
+
+### IPolicyRegistry
+
+| Error | Selector | Cause |
+|---|---|---|
+| `NonPayable` | `0x6fb1b0e9` | ETH rode along with a call to a nonpayable registry selector. |
+| `Unauthorized` | `0x82b42900` | The caller isn't the admin the operation demands. |
+| `PolicyNotFound` | `0x720caa4f` | The policy ID referenced doesn't exist. |
+| `IncompatiblePolicyType` | `0xf1011ef5` | The operation doesn't fit this policy's type. |
+| `ZeroAddress` | `0xd92e233d` | An address argument that has to be set came through as the zero address. |
+| `BatchSizeTooLarge` | `0x083e2f67` | A membership batch ran past the registry's limit. |
+| `NoPendingAdmin` | `0xb4539afa` | `finalizeUpdateAdmin` ran with nobody staged. |
+| `ChildPoliciesOutsideOfRange` | `0x697ec868` | A composite's child count fell outside the permitted range. |
+| `InvalidChildPolicy` | `0x46508ef6` | A composite's children must be existing simple policies. Composites can't nest. |
+
+### IActivationRegistry
+
+| Error | Selector | Cause |
+|---|---|---|
+| `Unauthorized` | `0x8e4a23d6` | The caller isn't the activation admin. |
+| `AlreadyActivated` | `0x866b0041` | The feature is already on. |
+| `FeatureNotActivated` | `0xb9b2a425` | The feature is off. |
+| `DelegateCallNotAllowed` | `0x0d89438e` | The precompile was reached through `DELEGATECALL` or `CALLCODE`. |
+| `StaticCallNotAllowed` | `0xbeaba5b7` | A state-changing entry point was reached from inside a `STATICCALL` frame. |
+
+## Constants
+
+### Roles
+
+| Role | Solidity constant |
+|---|---|
+| Default admin | `bytes32(0)` |
+| Mint | `keccak256("MINT_ROLE")` |
+| Burn | `keccak256("BURN_ROLE")` |
+| Deprecated blocked burn | `keccak256("BURN_BLOCKED_ROLE")` |
+| Seize | `keccak256("SEIZE_ROLE")` |
+| Pause | `keccak256("PAUSE_ROLE")` |
+| Unpause | `keccak256("UNPAUSE_ROLE")` |
+| Metadata | `keccak256("METADATA_ROLE")` |
+| Asset operator | `keccak256("OPERATOR_ROLE")` |
+
+### Policy scopes
+
+| Scope | Solidity constant |
+|---|---|
+| Transfer sender | `keccak256("TRANSFER_SENDER_POLICY")` |
+| Transfer receiver | `keccak256("TRANSFER_RECEIVER_POLICY")` |
+| Transfer executor | `keccak256("TRANSFER_EXECUTOR_POLICY")` |
+| Mint receiver | `keccak256("MINT_RECEIVER_POLICY")` |
+| Seize holder | `keccak256("SEIZE_HOLDER_POLICY")` |
+| Seize receiver | `keccak256("SEIZE_RECEIVER_POLICY")` |
+
+### Policy IDs
+
+Two counters are reserved for the built-ins; anything you create starts at `2`.
+
+| Name | Value |
+|---|---|
+| `ALWAYS_ALLOW` | `0` |
+| `ALWAYS_BLOCK` | `(uint64(uint8(IPolicyRegistry.PolicyType.ALLOWLIST)) << 56) \| 1` |
+
+Custom IDs pack a type byte over a counter:
+
+```text
+[8-bit PolicyType][56-bit counter]
+```
+
+| PolicyType | Byte |
+|---|---|
+| `BLOCKLIST` | `0x00` |
+| `ALLOWLIST` | `0x01` |
+| `UNION` | `0x02` |
+| `INTERSECT` | `0x03` |
+
+### Variant bytes
+
+The variant is encoded into the address, so you can read it off the prefix.
+
+| Variant | Byte | Address shape |
+|---|---|---|
+| `ASSET` | `0x00` | `0xB200...` |
+| `STABLECOIN` | `0x01` | `0xB201...` |
+
+### Supply and decimals
+
+| Constant | Value |
+|---|---|
+| Minimum Asset decimals | `6` |
+| Maximum Asset decimals | `18` |
+| Maximum supply cap, and the no-cap sentinel | `type(uint128).max` |
+| Bitmask with every feature paused | `15` — `TRANSFER`, `MINT`, `BURN`, `SEIZE` together |

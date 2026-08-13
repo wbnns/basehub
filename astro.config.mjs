@@ -134,6 +134,7 @@ export default defineConfig({
 					items: [
 						{ label: 'RPC Overview', slug: 'api-reference/rpc-overview' },
 						{ label: 'Rollup Node RPC', slug: 'api-reference/rollup-node-rpc' },
+						{ label: 'B20 Precompiles', slug: 'api-reference/b20-precompiles' },
 						{
 							label: 'Ethereum JSON-RPC',
 							collapsed: true,
