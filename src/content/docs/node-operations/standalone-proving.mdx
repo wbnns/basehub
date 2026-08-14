@@ -1,0 +1,173 @@
+---
+title: Standalone Proving
+description: Run the Base prover stack outside the devnet and buy ZK proofs for a live network using your own RPC endpoints and a funded Succinct requester key.
+sources:
+- base/base:docs/guides/STANDALONE_PROVING.md
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A devnet is not a prerequisite for proving. The standalone stack aims the prover trio at whichever live network you care about — Base Sepolia, Base Mainnet — drawing on RPC endpoints you supply and a [Succinct Prover Network](https://docs.succinct.xyz/docs/protocol/spn/architecture) requester key you have funded yourself. Real proof requests against live dispute games follow from there. For what the service does underneath this workflow, see [ZK Prover](/specifications/zk-prover/).
+
+## The stack
+
+Three containers make up the stack, and `just prover up|down|logs <network>` manages them. Every network label gets a local control plane of its own, along with its own stored jobs, so two labels never share state.
+
+| Container | Role |
+|-----------|------|
+| `prover-service-postgres` | Keeps sessions on disk, under `.zk-prover/<network>/` |
+| `base-prover-service` | The coordinator exposing JSON-RPC; this is what [`basectl`](/node-operations/basectl/) connects to |
+| `base-prover-zk-host` | Worker process — it derives witnesses, then files the proof requests |
+
+## ZK backends
+
+Every backend is reachable from `basectl proofs propose` through `--zk-backend`. Finalization is narrower: `basectl proofs finalize` will take `network` or `cluster` and nothing else. A dry run returns nothing that could go on chain, which rules it out there.
+
+| Backend | What it does | Cost | Needs |
+|---------|--------------|------|-------|
+| `dry-run` | Replays the range locally in the SP1 executor, then prints cycle statistics. Nothing provable comes out of it. | Free | Four RPC endpoints |
+| `cluster` | Hands the work to an SP1 GPU cluster that you stand up yourself. | Whatever your own hardware costs | A cluster endpoint, and an S3 bucket for artifacts |
+| `network` (default) | Purchases the finished proof through the Succinct Prover Network marketplace. | Billed in PROVE | Four RPC endpoints, and a requester key holding a balance |
+
+Of the three, this stack handles `network` and `dry-run`. Give it all four RPC endpoints and `dry-run` becomes available on its own; add the requester key and `network` unlocks too. Measure first, buy second — that is what `dry-run` is for.
+
+## Game ranges
+
+Two forms of argument work with `basectl proofs finalize <GAME_OR_TX>`: the proxy address of a dispute game, or the L1 transaction that spawned that game through `DisputeGameFactory.createWithInitData`. Either way, the game itself supplies the parameters. Basectl reads the output roots, the L1 head, the checkpoint interval, and the committed block range straight out of it, and it will not let an operator name a range by hand.
+
+## Requester key
+
+Give proving a key of its own. Do not point it at anything already in personal or operational use. Only `network`, the paid path, genuinely requires one — dry runs never touch it. The format is a bare hex private key, which the worker reads from `NETWORK_PRIVATE_KEY`. Requesters backed by a KMS fall outside this guide.
+
+The [Succinct Prover Network quickstart](https://docs.succinct.xyz/docs/sp1/prover-network/quickstart) covers the setup:
+
+1. Create the key — `cast wallet new` does it.
+2. Obtain PROVE on Ethereum mainnet.
+3. Move that PROVE onto the Succinct Network account belonging to the key, from the account page of the [Succinct explorer](https://explorer.succinct.xyz/).
+
+That balance is what each request bills against.
+
+## RPC requirements
+
+Building a witness means replaying old state, which rules out any provider holding nothing but the current tip. All four endpoints have to fully serve every range you intend to prove — the claimed block, the pre-state block ahead of it, and the stretch of L1 those derive from. Prune history in front of your target range and witness generation simply fails.
+
+- **L1 execution** (`L1_NODE_ADDRESS`) — the `finalized` block tag, access to old blocks, `debug_getRawHeader`, and `debug_getRawReceipts`.
+- **L1 beacon** (`L1_BEACON_ADDRESS`) — spec and genesis endpoints, together with archived blob sidecars covering whichever L1 range holds the batch data.
+- **L2 execution** (`L2_NODE_ADDRESS`) — `eth_getProof`, `debug_getRawBlock`, `debug_getRawHeader`, `debug_executePayload`, complete historical blocks, and `debug_dbGet` when preimages need a fallback.
+- **Base consensus** (`BASE_CONSENSUS_ADDRESS`) — `optimism_outputAtBlock` and `optimism_rollupConfig`.
+
+<Aside type="caution">
+Running an endpoint on your own machine? Address it as `http://host.docker.internal:<port>`. A container told `localhost` looks at itself, never at your host.
+</Aside>
+
+## Operator flow
+
+1. **Put the endpoints in the environment.** Add the requester key as well, if proofs will be purchased:
+
+   ```bash
+   export L1_NODE_ADDRESS=https://your-l1-node.example
+   export L1_BEACON_ADDRESS=https://your-l1-beacon.example
+   export L2_NODE_ADDRESS=https://your-base-node.example
+   export BASE_CONSENSUS_ADDRESS=https://your-base-consensus.example
+   export NETWORK_PRIVATE_KEY=0x...
+   ```
+
+   Leave `NETWORK_PRIVATE_KEY` out and the stack still runs, limited to dry runs. It earns its place on the paid `network` path alone.
+
+2. **Produce the reproducible SP1 ELFs**, unless they already exist. A worker sitting on stubs gets rejected outright by paid network proving:
+
+   ```bash
+   just succinct build-elfs
+   ```
+
+3. **Bring the stack up against a network label.** Startup validates that label, confirms the four endpoints answer, inspects the ELFs, compiles both images, and launches all three containers:
+
+   ```bash
+   just prover up sepolia
+   ```
+
+   Reuse the same label on the basectl side, via `-c sepolia`. Keeping the two aligned is what makes the per-network local database and the session IDs refer to a single chain.
+
+4. **Locate a live dispute game that still lacks a ZK proof:**
+
+   ```bash
+   basectl -c sepolia proofs games --missing-zk
+   ```
+
+   To look one over, run `basectl -c sepolia proofs games <GAME_ADDRESS>`. Either command wants `proofs.dispute_game_factory` set in config, or `--factory` supplied on the spot.
+
+5. **Try a dry run against that game first.** It is optional, but it demonstrates that your RPC coverage reaches far enough, and it yields cycle statistics — without spending anything. Name the same L1 wallet you plan to submit with, so the rehearsal matches the real thing:
+
+   ```bash
+   basectl -c sepolia proofs propose <GAME_ADDRESS> \
+     --prover-address <YOUR_L1_WALLET> \
+     --prover-rpc http://localhost:9000 \
+     --zk-backend dry-run
+   ```
+
+   A session ID comes back; feed it to `basectl proofs status <SESSION_ID>` to watch progress. What a dry run leaves behind is execution data alone. No proof bytes sit in it, so none of it reaches the chain.
+
+6. **Set the submitting wallet, then fire the single paid finalization command.** Settlement-layer ETH has to be sitting in that wallet to cover the closing L1 transaction. Do not confuse it with the requester key — SP1 gets paid from the PROVE deposited against that other key:
+
+   ```bash
+   export BASECTL_SUBMITTER_PRIVATE_KEY=0x...
+
+   basectl -c sepolia proofs finalize <GAME_ADDRESS_OR_CREATION_TX> \
+     --prover-rpc http://localhost:9000 \
+     --zk-backend network
+   ```
+
+   Before committing, a prompt lists exactly what is about to happen: which L1 endpoint, which submitting wallet, which payment backend, which block range, which game. Finalize then orders the proof, holds for as long as 24 hours, and submits `verifyProposalProof` once the proof exists. Issue the identical command a second time and nothing gets bought twice — it picks the deterministic prover-service session back up. A session that failed earlier is treated more cautiously still: rather than quietly re-purchasing, finalize aborts. Add `--retry-failed` to say explicitly that a new paid request is wanted.
+
+`just prover down sepolia` stops everything. What lives in `.zk-prover/sepolia/` is untouched by that, which is why proof results and sessions come back after a restart. For live logs, `just prover logs sepolia`.
+
+Port `9000` is the RPC default. Override it through `PROVER_SERVICE_RPC_PORT`.
+
+## Splitting propose and submit
+
+Three phases hide inside `proofs finalize` — it proposes, it polls, and it submits to L1. Split them apart when each has to live in its own process. The commands below work against the same game you turned up in step 4:
+
+```bash
+basectl -c sepolia proofs propose <GAME_ADDRESS> \
+  --prover-address <YOUR_L1_WALLET> \
+  --prover-rpc http://localhost:9000
+```
+
+Values such as the intermediate root interval, the L1 head, and the block range get taken from the game on L1 rather than passed in. Two stages then run through your stack: first a compressed proof of the range, after that an aggregation step shrinking it to a PLONK proof of roughly 870 bytes. Choose `network` and you pay Succinct for both. Because `--prover-address` is committed into the proof journal, verification succeeds for one wallet only — the one named there. Progress shows up through `basectl proofs status <SESSION_ID>`, and the PLONK proof bytes end up stored on the finished session. Failed sessions behave as they do under `finalize`: left alone, until `--retry-failed` authorizes buying another proof.
+
+Submission comes next, signed by whichever wallet you named in `--prover-address`:
+
+```bash
+export BASECTL_SUBMITTER_PRIVATE_KEY=0x...   # key for <YOUR_L1_WALLET>
+
+basectl -c sepolia proofs submit <GAME_ADDRESS> \
+  --prover-rpc http://localhost:9000
+```
+
+The proof gets collected from your prover service, `AggregateVerifier.verifyProposalProof(proof)` goes out to the game, and basectl blocks until that transaction is mined. Hold the wallet and the defaults steady from `propose` onward and no session ID is needed, since basectl computes the identical deterministic one each time. Anything overridden at propose time has to be repeated here — `--session-id`, `--zk-backend`, `--intermediate-root-interval`. Where the proof might not be finished yet, `--wait` polls until it is. One last safeguard fires immediately before the send: basectl re-reads the game, and if that game has closed or picked up a ZK proof in the meantime, it stops without burning gas.
+
+<Aside type="note">
+Do not sit on a ZK proof. Once a game carries both proof types — a TEE proof filed by Base's proposer, and a ZK proof — fast-path resolution applies. That window is computed at the instant the second of the two lands, as `now + 1 day`. Proving a game late in its life gains you little.
+</Aside>
+
+## Sizing a range
+
+Measure before money changes hands. `proofs propose <GAME_ADDRESS> --zk-backend dry-run` reports what a candidate game actually commits to, and the cycle count that comes back answers whether the SP1 range program can hold it. No Base-specific ceiling exists; what bounds a range is how much gas its blocks consumed. When the goal is just a paid smoke test, reach for the smallest eligible game on offer instead of inventing a range that nothing on chain commits to.
+
+## Restarts and duplicate submissions
+
+Acceptance by the network is the point at which the worker records that request's Succinct Network ID in Postgres. Restart the zk-host afterwards and any ID already on record goes back to polling — nothing gets filed a second time. That is what keeps duplicate payment rare.
+
+<Aside type="caution">
+One gap survives: the moment between the network accepting a request and its ID landing in Postgres. Crash and restart inside that gap, and a second request can go out — and get paid for. Start small with your ranges. No absolute promise against double payment is on offer here.
+</Aside>
+
+## Relationship to the devnet
+
+There is no prover inside the devnet. What `just devnet up` gives you is the chain stack and nothing else. Running the prover trio at all — pointed at a live network, or at a devnet on your machine — means using this standalone stack. For the devnet case, export the RPC endpoints the devnet publishes to the host, again written as `http://host.docker.internal:<port>` rather than `localhost`, then run `just prover up devnet`.
+
+Only chains whose activation registry admin address ships compiled into the binary can be proved. Three qualify: Base Mainnet, Sepolia, and Zeronet. Since the stock docker devnet carries another chain ID, witnesses cannot be generated against it — the exception being a devnet running with Beryl and Cobalt switched off.
+
+## Troubleshooting
+
+**`failed to run Succinct host`.** Go to the worker log on the zk-host, where the generation failure itself is recorded. What `basectl proofs status` surfaces afterwards can be a generic claim-expiry message from prover-service, which hides the real cause. Trust the worker log.

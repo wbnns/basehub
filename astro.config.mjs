@@ -362,6 +362,7 @@ export default defineConfig({
 						{ label: 'Releases', slug: 'node-operations/releases' },
 						{ label: 'Release Process', slug: 'node-operations/release-process' },
 						{ label: 'basectl', slug: 'node-operations/basectl' },
+						{ label: 'Standalone Proving', slug: 'node-operations/standalone-proving' },
 					],
 				},
 				{

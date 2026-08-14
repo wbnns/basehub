@@ -1,19 +1,20 @@
 ## Upstream snapshot
 
-Generated 2026-08-13T03:08:52Z
+Generated 2026-08-14T03:14:07Z
 
-### base/base @ 9158a55
+### base/base @ ec6e915
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 276df3398de1fd1a84aec641140cfc031aed409a  docs/guides/P2P.md
 b20f4464dbaeb86c14105cab20fb5dc1b76c41b7  docs/guides/RELEASE.md
+d4ac11cb08117dd69e461aecaa1b89a503cb3da5  docs/guides/STANDALONE_PROVING.md
 2e7b1514fecddad4cb3cca96d9ee277806f92a5a  docs/guides/TESTING.md
 3d6d02e0e6527643ae01ee135419c2542c53c362  docs/guides/UPGRADES.md
 74d64ac09e0a3cc72c21057a8b8f273cbbd99d70  docs/transaction-events/README.md
 3792e8c42c87bccfd86a406e5b292a60aa285d69  docs/transaction-events/pr-description-note.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 6894986
+### base/docs @ f3aa589
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
