@@ -1,10 +1,14 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import rehypeNowrapInlineCode from './src/plugins/rehype-nowrap-inline-code.mjs';
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://basehub.org',
+	markdown: {
+		rehypePlugins: [rehypeNowrapInlineCode],
+	},
 	integrations: [
 		starlight({
 			title: 'BaseHub',

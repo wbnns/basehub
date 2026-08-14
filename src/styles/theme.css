@@ -355,6 +355,15 @@ h1, h2, h3, h4, h5, h6,
   font-size: 0.95em;
 }
 
+/* Short, space-free tokens (`--minimal`, `op-node/v1`) must stay on one
+   line. A hyphen or slash is a legal break opportunity, so a narrow column
+   otherwise splits them mid-token. The `bh-nowrap` class is added at build
+   time by rehype-nowrap-inline-code.mjs, which only tags tokens short
+   enough that no column has to scroll to hold them. */
+.sl-markdown-content code.bh-nowrap {
+  white-space: nowrap;
+}
+
 /* -------------------- Horizontal rule -------------------- */
 .sl-markdown-content hr {
   border: none;
