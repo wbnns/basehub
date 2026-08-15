@@ -11,6 +11,18 @@ A Vector agent follows those JSONL files and forwards each record to `audit-arch
 The canonical source is [`docs/transaction-events/README.md`](https://github.com/base/base/blob/main/docs/transaction-events/README.md) in the base/base repository.
 :::
 
+## Postgres Retention
+
+`audit-archiver` keeps the events it receives in Postgres so operators can query them. That copy is working storage, not the durable archive. A background worker prunes rows on a schedule, and the window it applies depends on what kind of event the row holds:
+
+| Default window | Event types |
+| --- | --- |
+| 3 days | Proxy and builder-decision events, which dominate the journal by volume |
+| 7 days | Ingress and forwarding events |
+| 30 days | Failures, drops, inclusion, and flashblock events |
+
+Deleting at that rate leaves the tables carrying dead tuples, so autovacuum follows the worker and reclaims the space.
+
 ## Configuration Fields
 
 Rust producers are expected to surface the following settings, either at the top level or behind a producer-specific prefix:
