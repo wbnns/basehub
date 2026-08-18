@@ -46,7 +46,7 @@ Unit tests sit in the same file as the code under test, in a `#[cfg(test)] mod t
 just test
 ```
 
-Behind that recipe is `cargo nextest run --workspace --all-features --exclude base-system-tests --no-fail-fast`, preceded by a build of the test contracts and SP1 ELFs. The system-test crate is excluded here because it is covered by its own tier below.
+Behind that recipe is `cargo nextest run --workspace --all-features --exclude base-system-tests --no-fail-fast`, preceded by a build of the test contracts and SP1 ELFs. Excluding `base-system-tests` leaves no gap. That crate carries two kinds of test — the Docker-backed integration cases and plain unit tests sitting alongside them — and [System Tests](#system-tests) below picks up both.
 
 To limit the run to crates your branch touches:
 
@@ -80,7 +80,7 @@ just devnet tests
 
 That recipe builds the test contracts, then runs `cargo nextest run -p base-system-tests`. Docker is required.
 
-Because they are expensive, system tests are skipped on pull requests and run on the merge queue instead. Every commit passes through the queue before it lands, so `main` still never accrues an untested integration path — the cost just moves off the PR feedback loop.
+Their cost keeps them off pull requests altogether. The merge queue runs them instead, as the required `ci / System Tests` check — and that requirement is what does the real work. A failing run blocks the merge outright, so nothing lands on `main` without clearing it.
 
 ### Fuzz Tests
 
@@ -123,9 +123,9 @@ Which checks run depends on where a change sits in its lifecycle:
 | Nightly | `schedule` (13:00 UTC) | `udeps-report.yml` | Unused-dependency report; opens a GitHub issue on findings |
 | Release | manual / push to `releases/v*` | See [Release Process](/node-operations/release-process/) | Release builds, RC tags, Docker images |
 
-Pull requests scope to affected crates through `etc/scripts/local/affected-crates.py`, which is exactly why the two local recipes differ: `just pr` mirrors what PR CI will do, while `just ci` mirrors the broader bar the merge queue eventually enforces.
+Pull requests scope to affected crates through `etc/scripts/local/affected-crates.py`, which is exactly why the two local recipes differ: `just pr` mirrors what PR CI will do, while `just ci` mirrors the broader bar the merge queue eventually enforces. Holding system tests back to the queue is what keeps that PR stage quick, and making them a required check is what keeps the trade-off safe — the queue refuses to merge when they fail.
 
-One naming trap worth knowing: `action-tests.yml` is not a workflow that tests GitHub Actions, despite how it reads. It drives the [action-test](#action-tests) tier covered earlier on this page, via `just actions::lint-ci` and `just actions::test-ci`, and does so for both pull requests and merge-queue runs.
+One naming trap worth knowing: `action-tests.yml` is not a workflow that tests GitHub Actions, despite how it reads. It drives the [action-test](#action-tests) tier covered earlier on this page, via `just actions::lint-ci` and `just actions::test-ci`, and does so for both pull requests and merge-queue runs. Its verdict is binding as well: action tests are a required status check too.
 
 ## Conventions
 
