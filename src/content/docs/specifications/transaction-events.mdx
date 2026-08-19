@@ -161,6 +161,10 @@ Mempool/node:
 - `TXPOOL_DROPPED`
 - `TXPOOL_REPLACED`
 - `TXPOOL_TRACKING_OVERFLOWED`
+- `TXPOOL_SEND_RAW_TRANSACTION`
+- `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY`
+
+Admission caveat: `TXPOOL_SEND_RAW_TRANSACTION` and `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY` mark entry at the RPC boundary. Each distinct submit path emits its own event exactly once, written after the transaction is decoded but ahead of pool insertion or sequencer forwarding. That places both earlier in the lifecycle than `TXPOOL_PENDING` and `TXPOOL_QUEUED`, which instead report which subpool the transaction landed in. Only `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY` carries `data.validity_predicates` — the serialized list of `balance`, `storage`, `block_number`, and `flashblock_index` entries. Nothing further down the chain repeats that list, so recover it by joining on `tx_hash`. Treat a replacement as an admission in its own right: it arrives with a separate `tx_hash`, a separate predicate list, or both, and `TXPOOL_REPLACED.replacement_hash` is what ties the departing transaction to the one taking its place. Submissions made through `base_insertValidatedTransaction` are journaled as `TXPOOL_VALIDATED_INSERT_ACCEPTED` / `TXPOOL_VALIDATED_INSERT_REJECTED` instead.
 
 Forwarding:
 

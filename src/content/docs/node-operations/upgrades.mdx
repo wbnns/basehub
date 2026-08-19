@@ -182,9 +182,11 @@ For a **cascading** upgrade, swap the prior arm's `unwrap_or(ForkCondition::Neve
 ```rust
 /// Returns `true` if [`Azul`](BaseUpgrade::Azul) is active at given block timestamp.
 fn is_azul_active_at_timestamp(&self, timestamp: u64) -> bool {
-    self.upgrade_activation(BaseUpgrade::Azul).active_at_timestamp(timestamp)
+    self.fork_condition(BaseUpgrade::Azul).active_at_timestamp(timestamp)
 }
 ```
+
+Note the accessor: the trait declares its own `fork_condition`, so the trait method calls that rather than `RollupConfig`'s inherent `upgrade_activation`. Step 4 above still uses `upgrade_activation`, which remains in place on `RollupConfig`.
 
 ### 6. Update timestamp constants and test fixtures
 

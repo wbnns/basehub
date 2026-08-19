@@ -33,8 +33,8 @@ Every commit pushed to the release branch triggers the **Create RC** workflow, w
 
 - Skips silently if `Cargo.toml` is still `0.0.0` (the version sync PR has not been merged yet).
 - Otherwise creates the next RC tag (for example, `v0.6.0-rc.1`, `v0.6.0-rc.2`, …).
-- Builds multi-arch Docker images and native binaries.
-- Pushes the Docker image tagged with the RC tag only (not `latest`).
+- Produces multi-arch Docker images alongside native binaries.
+- Publishes those images under the RC tag alone, leaving `latest` untouched.
 
 To produce additional RCs, push more commits — bug fixes or backports — to the release branch.
 
@@ -45,8 +45,8 @@ Once you are satisfied with an RC, run the **Publish Release** workflow (`Action
 - Enter the version number (for example, `0.6.0` — no `v` prefix, no `releases/` prefix).
 - The workflow validates that the release branch exists and `Cargo.toml` is not `0.0.0`.
 - Creates the final tag `vX.Y.Z` on the release branch.
-- Builds Docker images tagged as `vX.Y.Z`, `X.Y`, `X`, and `latest`.
-- Creates a draft GitHub release with auto-generated changelog and uploads binaries.
+- Runs a single `base` image build under `PROFILE=maxperf`, then tags that one image as `vX.Y.Z`, `X.Y`, `X`, and `latest` on `ghcr.io/base/node`.
+- Opens a draft GitHub release, generates the changelog for it, and attaches the binaries.
 - Review and publish the draft release on GitHub.
 
 ## Auto-RC behavior
@@ -61,7 +61,7 @@ RC tags follow the pattern `vX.Y.Z-rc.N`, where `N` increments automatically bas
 |--------|----------|---------|--------|
 | Create release branch | **Start Release** | Manual (bump type) | `releases/vX.Y.Z` branch |
 | Sync `Cargo.toml` version | **Release Version Sync** | Automatic on branch creation | PR targeting release branch |
-| Build RC | **Create RC** | Automatic on push to `releases/v*` | RC tag + Docker image + binaries |
+| Build RC | **Create RC** | Automatic on push to `releases/v*` | RC tag + Docker images + binaries |
 | Publish final release | **Publish Release** | Manual (version number) | Final tag + Docker images + draft GitHub release |
 
 ## Workflows
