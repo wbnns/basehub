@@ -2,14 +2,15 @@
 title: B20 Precompile Reference
 description: Selector-level reference for the B20 token, Asset and Stablecoin variants, factory, policy registry, and activation registry precompiles.
 sources:
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20.mdx
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Asset.mdx
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Stablecoin.mdx
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IB20Factory.mdx
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IPolicyRegistry.mdx
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/interfaces/IActivationRegistry.mdx
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/constants-and-addresses.mdx
-- base/docs:docs/base-chain/specs/upgrades/beryl/b20/specification/reference/errors-and-events-index.mdx
+- base/docs:docs/base-chain/specs/reference/b20/interfaces/IB20.mdx
+- base/docs:docs/base-chain/specs/reference/b20/interfaces/IB20Asset.mdx
+- base/docs:docs/base-chain/specs/reference/b20/interfaces/IB20Stablecoin.mdx
+- base/docs:docs/base-chain/specs/reference/b20/interfaces/IB20Factory.mdx
+- base/docs:docs/base-chain/specs/reference/b20/interfaces/IPolicyRegistry.mdx
+- base/docs:docs/base-chain/specs/reference/b20/interfaces/IActivationRegistry.mdx
+- base/docs:docs/base-chain/specs/reference/b20/constants-and-addresses.mdx
+- base/docs:docs/base-chain/specs/reference/b20/errors-and-events.mdx
+- base/docs:docs/base-chain/specs/reference/b20/changelog.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -433,3 +434,19 @@ The variant is encoded into the address, so you can read it off the prefix.
 | Maximum Asset decimals | `18` |
 | Maximum supply cap, and the no-cap sentinel | `type(uint128).max` |
 | Bitmask with every feature paused | `15` — `TRANSFER`, `MINT`, `BURN`, `SEIZE` together |
+## Selector stability
+
+Everything on this page is fixed. B20 method and event signatures sit on the chain's consensus surface, so a selector that ships never changes meaning and never gets withdrawn. The standard only grows by addition: a later release can introduce new calls, but it will not rewrite the behaviour behind one you already integrated against.
+
+That gives you one practical guarantee. Code compiled against the selectors here keeps working across upgrades, and you only revisit it when you want something new.
+
+Two names are the exception, and they are already marked throughout this page. `burnBlocked` and `BURN_BLOCKED_ROLE` are deprecated. They still resolve, because nothing is removed, but seizure flows written today are expected to use [`seizeWithMemo`](#ib20) instead.
+
+### Release history
+
+The standard's first release rode in with the [Beryl upgrade](/specifications/beryl-overview/), and it carried the whole surface documented here — the roles model, the policy registry and its six per-token scopes, memos, granular pausing, supply caps, `permit`, the factory, and both the Asset and Stablecoin variants.
+
+| Network | B20 live since |
+|---|---|
+| Base Mainnet | 2026-06-25 |
+| Base Sepolia | 2026-06-18 |
