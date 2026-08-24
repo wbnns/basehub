@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-08-23T03:01:37Z
+Generated 2026-08-24T03:05:43Z
 
-### base/base @ 8bb1e13
+### base/base @ 4c3883a
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 276df3398de1fd1a84aec641140cfc031aed409a  docs/guides/P2P.md
@@ -13,7 +13,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 8adf7a611ce00e7d54dd29c44178ad4b9a6226c0  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 97f64f6
+### base/docs @ 36b2bd4
 
 97af3a44a3afd1b87b5294449488a1ea966efdb8  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 ee02cf982117e2512f956b4b9a2972d5e5ac0962  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -52,6 +52,7 @@ a0ed81281aa0d24ac7d525760ae2c132aa7828b9  docs/base-chain/api-reference/ethereum
 1eea35ba8ed10af945b243a4c85e84620f5b2a85  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 b17e9c4a3757479e381a3fcfc375470b0a5b3e22  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 d03cfe1e78c901288bccbc2b696402c41791c27a  docs/base-chain/api-reference/rpc-overview.mdx
+e1b7ade9d1faa7d227ccbd35431e0130c923dcd7  docs/base-chain/asset-issuance/tokenized-stocks-on-base.mdx
 bbff11673c87d2433e251c36ef4bdc4a0d765df6  docs/base-chain/flashblocks/faq.mdx
 e3daf558d9fa4a07750e27d782103d7fc456130d  docs/base-chain/network-information/b20-token-standard.mdx
 154ab30c175fe807125789d33556933a274583a3  docs/base-chain/network-information/base-contracts.mdx

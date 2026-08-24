@@ -347,6 +347,7 @@ export default defineConfig({
 						{ label: 'Flashblocks RPC', slug: 'integration-guides/flashblocks-rpc' },
 						{ label: 'Metering RPC', slug: 'integration-guides/metering-rpc' },
 						{ label: 'Transaction Pool', slug: 'integration-guides/txpool' },
+						{ label: 'Tokenized Stocks', slug: 'integration-guides/tokenized-stocks' },
 					],
 				},
 				{

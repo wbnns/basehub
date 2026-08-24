@@ -254,7 +254,13 @@ A WAD-precision rebase multiplier applied across all balance reads. Stored balan
 | `scaledBalanceOf(account)` | Raw balance × multiplier |
 | `toScaledBalance(raw)` | Convert raw amount to scaled |
 | `toRawBalance(scaled)` | Convert scaled amount to raw |
-| `updateMultiplier(newMultiplier)` | Update the multiplier. Gated by `OPERATOR_ROLE`. |
+| `updateUIMultiplier(newMultiplier, effectiveAt)` | Queue a change to take effect at a future timestamp ([ERC-8056](https://eips.ethereum.org/EIPS/eip-8056)). The preferred path. Gated by `OPERATOR_ROLE`. |
+| `cancelUIMultiplierUpdate()` | Drop the pending scheduled change. Gated by `OPERATOR_ROLE`. |
+| `updateMultiplier(newMultiplier)` | Set the multiplier immediately, discarding any pending scheduled change. Deprecated. Gated by `OPERATOR_ROLE`. |
+
+Scheduling is what issuers should reach for day to day: it puts the change onchain ahead of time, so holders and integrators see a corporate action coming rather than discovering it after the fact. The instant call survives as an emergency failsafe and nothing more. Neither path carries a timelock of its own — the announcement events are notice, not enforced delay — so any waiting period is something the issuer imposes above the standard.
+
+For a worked example of multipliers under real corporate actions, see [Tokenized Stocks](/integration-guides/tokenized-stocks/).
 
 #### Announcements
 
