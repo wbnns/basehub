@@ -75,17 +75,16 @@ export default defineConfig({
 						publisher: { '@type': 'Organization', name: 'BaseHub', url: 'https://basehub.org' },
 					}),
 				},
+				// Google Analytics 4. The consent defaults run before gtag.js loads so
+				// Consent Mode never withholds hits — the terms cover consent instead
+				// of a banner. See /terms/.
 				{
 					tag: 'script',
-					attrs: {
-						async: true,
-						defer: true,
-						src: 'https://scripts.simpleanalyticscdn.com/latest.js',
-					},
-				},
-				{
-					tag: 'noscript',
-					content: '<img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" />',
+					content:
+						"window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}" +
+						"gtag('consent','default',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted',analytics_storage:'granted',functionality_storage:'granted',personalization_storage:'granted',security_storage:'granted'});" +
+						"gtag('js',new Date());" +
+						"gtag('config','G-WJLM7HDSFM',{send_page_view:true});",
 				},
 				{
 					tag: 'script',
@@ -93,11 +92,6 @@ export default defineConfig({
 						async: true,
 						src: 'https://www.googletagmanager.com/gtag/js?id=G-WJLM7HDSFM',
 					},
-				},
-				{
-					tag: 'script',
-					content:
-						"window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-WJLM7HDSFM');",
 				},
 			],
 			editLink: {
