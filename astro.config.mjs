@@ -87,6 +87,18 @@ export default defineConfig({
 					tag: 'noscript',
 					content: '<img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" />',
 				},
+				{
+					tag: 'script',
+					attrs: {
+						async: true,
+						src: 'https://www.googletagmanager.com/gtag/js?id=G-WJLM7HDSFM',
+					},
+				},
+				{
+					tag: 'script',
+					content:
+						"window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-WJLM7HDSFM');",
+				},
 			],
 			editLink: {
 				baseUrl: 'https://github.com/wbnns/basehub/edit/main/',
