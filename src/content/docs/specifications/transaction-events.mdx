@@ -21,6 +21,8 @@ The canonical source is [`docs/transaction-events/README.md`](https://github.com
 | 7 days | Ingress and forwarding events |
 | 30 days | Failures, drops, inclusion, and flashblock events |
 
+Two placements are worth spelling out. `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY` ages out on the same schedule as `TXPOOL_SEND_RAW_TRANSACTION`, so both halves of the admission path leave Postgres together rather than one outliving the other. `BUILDER_DEFERRED` and `BUILDER_EXPIRED` sit with the rest of the per-attempt builder decisions on the shortest window. That grouping matters more than it looks: a parked validity transaction can draw one deferral per flashblock, so those rows pile up far faster than the transaction count would suggest.
+
 Deleting at that rate leaves the tables carrying dead tuples, so autovacuum follows the worker and reclaims the space.
 
 ## Configuration Fields
@@ -164,7 +166,7 @@ Mempool/node:
 - `TXPOOL_SEND_RAW_TRANSACTION`
 - `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY`
 
-Admission caveat: `TXPOOL_SEND_RAW_TRANSACTION` and `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY` mark entry at the RPC boundary. Each distinct submit path emits its own event exactly once, written after the transaction is decoded but ahead of pool insertion or sequencer forwarding. That places both earlier in the lifecycle than `TXPOOL_PENDING` and `TXPOOL_QUEUED`, which instead report which subpool the transaction landed in. Only `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY` carries `data.validity_predicates` — the serialized list of `balance`, `storage`, `block_number`, and `flashblock_index` entries. Nothing further down the chain repeats that list, so recover it by joining on `tx_hash`. Treat a replacement as an admission in its own right: it arrives with a separate `tx_hash`, a separate predicate list, or both, and `TXPOOL_REPLACED.replacement_hash` is what ties the departing transaction to the one taking its place. Submissions made through `base_insertValidatedTransaction` are journaled as `TXPOOL_VALIDATED_INSERT_ACCEPTED` / `TXPOOL_VALIDATED_INSERT_REJECTED` instead.
+Admission caveat: `TXPOOL_SEND_RAW_TRANSACTION` and `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY` mark entry at the RPC boundary. Each distinct submit path emits its own event exactly once, written after the transaction is decoded but ahead of pool insertion or sequencer forwarding. That places both earlier in the lifecycle than `TXPOOL_PENDING` and `TXPOOL_QUEUED`, which instead report which subpool the transaction landed in. Only `TXPOOL_SEND_RAW_TRANSACTION_VALIDITY` carries `data.validity_predicates` — the serialized list of `balance`, `storage`, `block_number`, and `flashblock_index` entries. Producers further down the chain are required not to echo it, and that rule binds `BUILDER_DEFERRED`, `BUILDER_EXPIRED`, `BUILDER_ACCEPTED`, and `BUILDER_INCLUDED` alike, so recover the predicates by joining on `tx_hash`. Treat a replacement as an admission in its own right: it arrives with a separate `tx_hash`, a separate predicate list, or both, and `TXPOOL_REPLACED.replacement_hash` is what ties the departing transaction to the one taking its place. Submissions made through `base_insertValidatedTransaction` are journaled as `TXPOOL_VALIDATED_INSERT_ACCEPTED` / `TXPOOL_VALIDATED_INSERT_REJECTED` instead.
 
 Forwarding:
 
@@ -272,6 +274,93 @@ Routed to node:
   "data": {
     "backend": "reth-mainnet-0",
     "attempt_index": 0
+  }
+}
+```
+
+## Mempool and Builder Examples
+
+These three events trace one validity transaction from admission through to a builder-side discard.
+
+The admission event is the one place the predicate list appears in full. Every park, expiry, accept, and inclusion that follows must be tied back to it through `tx_hash`:
+
+```json
+{
+  "schema_version": "transaction-event/v1",
+  "event_id": "0x4c6d...",
+  "event_time": "2026-06-02T00:00:00.000000000Z",
+  "producer": "base-reth-node",
+  "event_type": "TXPOOL_SEND_RAW_TRANSACTION_VALIDITY",
+  "network": "base-mainnet",
+  "tx_hash": "0x3333333333333333333333333333333333333333333333333333333333333333",
+  "block_hash": null,
+  "block_number": null,
+  "payload_id": null,
+  "request_id": null,
+  "data": {
+    "rpc_method": "base_sendRawTransactionValidity",
+    "validity_predicates": [
+      {
+        "type": "storage",
+        "params": {
+          "address": "0xabababababababababababababababababababab",
+          "slot": "0x1",
+          "mask": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "op": "=",
+          "value": "0x1"
+        }
+      }
+    ]
+  }
+}
+```
+
+A recoverable predicate parks the transaction rather than dropping it, holding it for a later ordering position or a later flashblock. Note what is absent — the predicate list is not restated here:
+
+```json
+{
+  "schema_version": "transaction-event/v1",
+  "event_id": "0x5d7e...",
+  "event_time": "2026-06-02T00:00:00.200000000Z",
+  "producer": "base-builder",
+  "event_type": "BUILDER_DEFERRED",
+  "network": "base-mainnet",
+  "tx_hash": "0x3333333333333333333333333333333333333333333333333333333333333333",
+  "block_hash": null,
+  "block_number": 123,
+  "payload_id": "0x0102030405060708",
+  "request_id": null,
+  "data": {
+    "builder_mode": "flashblocks",
+    "flashblock_index": 2,
+    "ordering_position": 4,
+    "defer_reason": "validity_predicate_not_satisfied",
+    "defer_detail": "a validity predicate is not satisfied by the current build state"
+  }
+}
+```
+
+Expiry is the builder's terminal discard, written once no later attempt can satisfy the predicate. Exhausting parking capacity is a different outcome and still surfaces as `BUILDER_REJECTED` with `validity_predicate_not_satisfied`:
+
+```json
+{
+  "schema_version": "transaction-event/v1",
+  "event_id": "0x6e8f...",
+  "event_time": "2026-06-02T00:00:00.400000000Z",
+  "producer": "base-builder",
+  "event_type": "BUILDER_EXPIRED",
+  "network": "base-mainnet",
+  "tx_hash": "0x4444444444444444444444444444444444444444444444444444444444444444",
+  "block_hash": null,
+  "block_number": 123,
+  "payload_id": "0x0102030405060708",
+  "request_id": null,
+  "data": {
+    "builder_mode": "flashblocks",
+    "flashblock_index": 0,
+    "ordering_position": 1,
+    "expire_reason": "validity_predicate_expired",
+    "expire_detail": "a validity predicate can no longer be satisfied at or after the current build position"
   }
 }
 ```
