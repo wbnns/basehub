@@ -1,6 +1,6 @@
 ## Upstream snapshot
 
-Generated 2026-08-26T03:04:15Z
+Generated 2026-08-27T03:01:32Z
 
 ### base/base @ b4d85bb
 
