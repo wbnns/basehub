@@ -1,40 +1,53 @@
 ---
 title: Cobalt Upgrade Overview
-description: Summary of the Cobalt hardfork — the upgrade that brings native account abstraction (EIP-8130) into the Base protocol.
+description: Summary of the Cobalt hardfork — native account abstraction (EIP-8130), a set of B20 additions, and upgrade timestamps read from an onchain contract.
 sources:
 - base/docs:docs/base-chain/specs/upgrades/cobalt/overview.mdx
-- base/docs:docs/base-chain/network-information/native-account-abstraction.mdx
+- base/docs:docs/base-chain/specs/upgrades/cobalt/dynamic-upgrades.mdx
+- base/docs:docs/base-chain/specs/upgrades/cobalt/eip-8130.mdx
+- base/docs:docs/base-chain/specs/native-account-abstraction.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/), and it carries a single headline change: account abstraction stops being something applications assemble around the chain and becomes part of the chain. Under [EIP-8130](https://eip.tools/eip/8130) an account writes down, onchain, which identities are allowed to act for it and how their signatures get checked. Base then validates every transaction against that record, which is what lets a smart account send an ordinary transaction.
+Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its headline change is account abstraction: under [EIP-8130](https://eip.tools/eip/8130) an account writes down, onchain, which identities are allowed to act for it and how their signatures get checked, and Base validates every transaction against that record. Alongside it the fork carries a batch of B20 additions and a first step toward taking fork timestamps out of the node binary.
+
+## Status
+
+| Network | Status | Target |
+|---|---|---|
+| Base Sepolia | Planning | September 2026 |
+| Base Mainnet | Planning | September 2026 |
+| vibenet | Active | Available to preview today |
+
+<Aside type="caution">
+September is a target under a planning status, not a booked activation. Cobalt still has no activation timestamp on Mainnet or Sepolia, and EIP-8130 remains experimental — the only network running it today is the [vibenet devnet](https://chain.base.org/vibenet). Treat any date here as subject to change until timestamps are published.
+</Aside>
 
 ## What Cobalt ships
 
-- **[Native account abstraction](/architecture/native-account-abstraction/) (EIP-8130)** — accounts hold their authorized actors and their signature-validation rules in an onchain system contract.
-- **No supporting infrastructure** — accounts that travel between chains, keys scoped to a single session, batches that commit as one, and sponsored gas all land without a bundler, a relay, or a second mempool behind them.
-
-## Activation timestamps
-
-| Network | Timestamp | Date |
-|---------|-----------|------|
-| `mainnet` | TBD | TBD |
-| `sepolia` | TBD | TBD |
-| `vibenet` | Active | Available to preview today |
-
-<Aside type="caution">
-Cobalt has no date on Mainnet or Sepolia yet. EIP-8130 is still experimental, and the only network running it is the [vibenet devnet](https://chain.base.org/vibenet).
-</Aside>
+- **[Native account abstraction](/architecture/native-account-abstraction/) (EIP-8130)** — accounts hold their authorized actors and their signature-validation rules in an onchain system contract. Transaction overhead drops sharply against the previous generation of smart accounts.
+- **B20 additions** — fees payable in B20, scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
+- **Dynamic upgrades** — an L1 contract holds the fork schedule, so activation no longer depends on shipping a binary with the timestamps compiled in.
 
 ## Required software
 
-Node requirements get published once Cobalt has a schedule, so there is nothing for operators to install ahead of time. To follow the work as it lands, point a client at [vibenet](/introduction/connecting-to-base/) instead.
+Node requirements get published once Cobalt has real activation timestamps, so there is nothing for operators to install ahead of time. To follow the work as it lands, point a client at [vibenet](/introduction/connecting-to-base/) instead.
 
 ## Native account abstraction (EIP-8130)
 
 An account registers its actors and its validation rules once, and from then on the protocol enforces them on every transaction. Nothing sits in between — no bundler, no relay, no separate transaction pool.
 
-What that buys an application is a set of behaviours that previously each needed their own machinery: accounts that a user carries between chains, session keys that expire and revoke as real permissions rather than blanket approvals, batches that succeed or fail as one unit, and gas that someone else can pay without a paymaster contract in the path.
+What that buys an application is a set of behaviours that previously each needed their own machinery: accounts that a user carries between chains, session keys that expire and revoke as real permissions rather than blanket approvals, batches that succeed or fail as one unit, and gas that someone else can pay without a paymaster contract in the path. Because the transaction type was designed together with the chain rather than layered above it, the per-transaction cost falls well below what ERC-4337 charges for the same work.
 
 The full model — accounts, signers and actors, scopes and policies, authenticators, and payers — plus a working vibenet example is in [Native Account Abstraction](/architecture/native-account-abstraction/).
+
+## Dynamic upgrades
+
+Every fork so far has needed a fresh node release carrying the activation timestamps in its source. That couples two things that do not have to be coupled: agreeing on when a fork happens, and shipping the code that implements it. An operator who misses the release risks dropping out of consensus for no reason other than a version number.
+
+Cobalt separates them. An Ethereum contract stores the upgrade schedule, and both the execution and consensus clients run a poller that reads it over an L1 RPC endpoint, writes the result into the client's activation overrides, and applies it everywhere the schedule is consulted. A fork can then activate at its scheduled moment with no restart.
+
+<Aside type="note">
+At Cobalt this runs in metrics-only mode while Base gathers evidence that the mechanism behaves. It arrives inside the Cobalt node release, so operators have nothing to configure.
+</Aside>

@@ -289,16 +289,16 @@ For peer discovery, Reth supports both discv4 (the older UDP-based Kademlia prot
 
 ### The BaseNetworkBuilder
 
-The [`BaseNetworkBuilder`](https://github.com/base/base/blob/main/crates/execution/node/src/node.rs) configures Reth's network for Base. It exposes two flags:
+The [`BaseNetworkBuilder`](https://github.com/base/base/blob/main/crates/execution/node/src/node.rs) configures Reth's network for Base. Since transaction gossip became unconditional it carries a single knob:
 
 ```rust
 pub struct BaseNetworkBuilder {
-    pub disable_txpool_gossip: bool,
+    /// Disable discovery v4
     pub disable_discovery_v4: bool,
 }
 ```
 
-The `disable_txpool_gossip` flag is particularly important for rollup nodes. When a node is configured with a sequencer endpoint (so it should forward transactions to the sequencer rather than including them itself), transaction pool gossip is disabled. This stops the node from broadcasting pending transactions to the rest of the network, because in a rollup the sequencer is the only entity that orders transactions.
+Transaction pool gossip is no longer something a node decides for itself. Base sets `tx_gossip_disabled` unconditionally, so a node never broadcasts its pending transactions to DevP2P peers. The reasoning is structural rather than situational: in a rollup only the sequencer orders transactions, so relaying pending ones around the mesh achieves nothing that forwarding to the sequencer does not already do.
 
 The `network_config` method assembles Reth's `NetworkConfig` by applying the discovery settings. The code below builds the configuration step by step: it sets the RLPx socket address, conditionally disables discv4, enables discv5 with boot nodes, and finally sets the transaction gossip flag:
 
@@ -326,7 +326,7 @@ let network_builder = ctx
     });
 
 let mut network_config = ctx.build_network_config(network_builder);
-network_config.tx_gossip_disabled = disable_txpool_gossip;
+network_config.tx_gossip_disabled = true;
 ```
 
 Discv4 is disabled by default for Base (`--rollup.discovery.v4` defaults to false) while discv5 is enabled. Boot nodes resolve from CLI arguments first and fall back to the chain specification. Once the config is built, `build_network` creates a `NetworkManager`, starts it, and logs the local enode record (the DevP2P equivalent of an ENR — a URL-formatted node identifier such as `enode://<pubkey>@<ip>:<port>`).
@@ -358,7 +358,7 @@ The [`DestinationReader`](https://github.com/base/base/blob/main/crates/executio
 
 The execution layer P2P is configured through Reth's standard network flags plus Base-specific rollup flags defined in [`args.rs`](https://github.com/base/base/blob/main/crates/execution/node/src/args.rs). Key flags:
 
-`--rollup.sequencer` sets the sequencer endpoint for transaction forwarding. `--rollup.disable-tx-pool-gossip` disables transaction gossip on the DevP2P network (this is a separate flag — setting the sequencer endpoint does not automatically disable gossip, so operators typically set both). `--rollup.discovery.v4` enables the legacy discv4 discovery protocol (disabled by default since Base uses discv5). `--rollup.txpool-ordering` selects between `coinbase-tip` and `timestamp` ordering strategies.
+Three rollup flags remain. `--rollup.sequencer` names the endpoint that forwarded transactions are sent to. `--rollup.discovery.v4` brings back discv4, which stays off unless you ask for it because discv5 is what Base runs. `--rollup.txpool-ordering` picks the pool's ordering strategy, either `coinbase-tip` or `timestamp`. Nothing here governs gossip any more — the `--rollup.disable-tx-pool-gossip` flag that used to pair with `--rollup.sequencer` has been withdrawn, along with the builder field behind it.
 
 Standard Reth network flags still apply: `--network.addr` and `--network.port` control the RLPx bind address (default port 30303), `--network.discovery.disable-discovery` turns off all peer discovery, and `--network.discovery.bootnodes` provides custom boot node addresses.
 
@@ -368,7 +368,7 @@ When a Base node is running, the consensus and execution processes work in tande
 
 The sequencer produces a new L2 block and signs it. The signed block is published as a `NetworkPayloadEnvelope` to the CL gossip network on the appropriate versioned topic (for example, `/optimism/8453/3/blocks` for Isthmus). Every consensus node's `BlockHandler` receives the message, validates it (timestamp, hash, signature, deduplication), and if valid marks it `Accept` and passes it to the consensus engine. The engine sends the execution payload to the local execution client via `engine_newPayloadV*`. The execution client validates the block against the EVM, computes the new state root, and reports the result back.
 
-Transaction submission flows in the opposite direction. A user submits a transaction to an EL node's RPC endpoint. If transaction pool gossip is enabled, the transaction is broadcast to other EL peers via the DevP2P `eth/68` protocol. If a sequencer endpoint is configured, the transaction forwarder sends it directly to the sequencer via JSON-RPC. The sequencer includes it in the next block, which then propagates through the CL gossip network as described above.
+Submission runs the other way. A transaction arrives at some EL node's RPC endpoint and stops there as far as the mesh is concerned, because pool gossip is off everywhere. Where the node knows a sequencer endpoint, the forwarder hands the transaction straight over by JSON-RPC. From that point it rejoins the path already described: the sequencer seals it into a block, and the block travels back out over CL gossip.
 
 Discovery on each layer is independent. The CL uses discv5 on a UDP port (default 9223) to find other CL peers, validating ENRs by chain ID so it only connects to Base nodes. The EL uses discv5 (and optionally discv4) on its own UDP port to find other EL peers. The two discovery networks are entirely separate and serve different purposes.
 

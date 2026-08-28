@@ -9,6 +9,10 @@ A running index of paraphrased entries from the [Base engineering blog](https://
 
 ## 2026
 
+### B20: The Standard Behind Tokenized Stocks on Base — 27 August 2026
+
+Base sets out the reasoning behind B20, the native token standard built so real-world assets such as tokenized equities can live onchain without a bespoke contract for each one. A dynamic multiplier lets one token track corporate actions — splits, dividends — by rescaling every holder's balance rather than reissuing anything, and compliance controls sit inside the standard as modular policy slots instead of being written into each issuer's own code. See the local [B20 native token standard](/specifications/b20/) writeup and the [tokenized stocks integration guide](/integration-guides/tokenized-stocks/), or read the original at [blog.base.dev/b20-tokenized-stocks-on-base](https://blog.base.dev/b20-tokenized-stocks-on-base).
+
 ### Making AWS Nitro Validation Feasible Onchain — 11 August 2026
 
 Two Fusaka changes — a higher price on large `MODEXP` calls (EIP-7883) and a 16.7M gas ceiling per transaction (EIP-7825) — drove one P-384 signature check to roughly 50.6M gas and left the original `base/nitro-validator` library unable to run at all. Base rebuilt it around checked hints: each costly modular inverse now arrives in calldata from offchain, and the contract confirms it with a single multiplication before use, so a bad hint reverts instead of skewing the result. A full cold attestation now fits in five transactions well under the cap, and Base plans to use the approach for the canonical bridge's proof system in place of ZK proofs for onchain Nitro verification. See the local [onchain Nitro attestation validation](/architecture/nitro-validator/) deep-dive, or read the original at [blog.base.dev/making-aws-nitro-validation-feasible-onchain](https://blog.base.dev/making-aws-nitro-validation-feasible-onchain).

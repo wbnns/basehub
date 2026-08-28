@@ -11,6 +11,9 @@ sources:
 - base/docs:docs/base-chain/specs/reference/b20/constants-and-addresses.mdx
 - base/docs:docs/base-chain/specs/reference/b20/errors-and-events.mdx
 - base/docs:docs/base-chain/specs/reference/b20/changelog.mdx
+- base/docs:docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize.mdx
+- base/docs:docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20asset-multiplier.mdx
+- base/docs:docs/base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -434,19 +437,80 @@ The variant is encoded into the address, so you can read it off the prefix.
 | Maximum Asset decimals | `18` |
 | Maximum supply cap, and the no-cap sentinel | `type(uint128).max` |
 | Bitmask with every feature paused | `15` — `TRANSFER`, `MINT`, `BURN`, `SEIZE` together |
+## Availability by hardfork
+
+Every selector on this page is final, but not all of them are dialable today. [Beryl](/specifications/beryl-overview/) shipped the standard and is live on Mainnet and Sepolia. A second group arrives with [Cobalt](/specifications/cobalt-overview/), which has no activation timestamp yet — call any of it before then and there is nothing at the address to answer.
+
+Cobalt adds no breaking change. Every Beryl function, event topic, and error keeps the exact four-byte selector or `topic0` it has now, and keeps its behaviour.
+
+### Live since Beryl
+
+| Network | B20 live since |
+|---|---|
+| Base Mainnet | 2026-06-25 |
+| Base Sepolia | 2026-06-18 |
+
+Beryl carried the roles model, the policy registry with its six per-token scopes, memos, granular pausing, supply caps, `permit`, the factory, and both the Asset and Stablecoin variants.
+
+### Arriving with Cobalt
+
+Three groups are specified and documented above, but undialable until Cobalt activates.
+
+**The seize surface on `IB20`.** `seizeWithMemo` (`0xf916d81b`), the `SEIZE_ROLE`, `SEIZE_HOLDER_POLICY` and `SEIZE_RECEIVER_POLICY` getters, the `Seized` event, the `AccountNotSeizable` error, and the `SEIZE` pause ordinal (`3`, bit `8`) all land together. It is defined on the shared `IB20` surface, so Asset and Stablecoin expose it identically.
+
+**The ERC-8056 multiplier surface on `IB20Asset`.** `uiMultiplier`, `toUIAmount`, `fromUIAmount`, `balanceOfUI` and `totalSupplyUI` become the canonical names, and the scheduled setter `updateUIMultiplier` joins `newUIMultiplier`, `effectiveAt`, `cancelUIMultiplierUpdate`, `MAX_UI_MULTIPLIER` and `supportsInterface`. The older `multiplier`, `toScaledBalance`, `toRawBalance` and `scaledBalanceOf` are kept as aliases returning the same values.
+
+**Composite policies on `IPolicyRegistry`.** `createCompositePolicy`, `updateComposite`, `compositePolicyChildIds`, the two bound getters, the `CompositePolicyUpdated` event, and the `ChildPoliciesOutsideOfRange` and `InvalidChildPolicy` errors. The `PolicyType` enum gains `UNION = 2` and `INTERSECT = 3` by appending, so the existing values and the packed-ID top-byte encoding do not move.
+
+## What changes for integrators at Cobalt
+
+Nothing you call today stops working, so none of this is urgent. Each item is a path worth moving to before Cobalt is live.
+
+### Seizure replaces `burnBlocked`
+
+`burnBlocked` and `BURN_BLOCKED_ROLE` are deprecated but untouched — same selector, same events, same behaviour, still callable. `seizeWithMemo(from, to, amount, memo)` becomes the canonical route for administrative balance removal.
+
+The two are not interchangeable, and swapping the selector alone will not reproduce the old outcome:
+
+- **Seize is a transfer, not a burn.** It moves `amount` from `from` to `to` and leaves `totalSupply` alone. To get the old result, seize into a treasury or self address and then call `burn`.
+- **They read different policies.** `seizeWithMemo` consults `SEIZE_HOLDER_POLICY`; `burnBlocked` consults `TRANSFER_SENDER_POLICY`. A token can define a seizable set that has nothing to do with its transfer-blocked set. Under both, "eligible" means *not* authorized by the relevant policy.
+- **They sit in different role and pause domains.** `SEIZE_ROLE` and `BURN_BLOCKED_ROLE` are separate grants, and `SEIZE` (ordinal 3) and `BURN` (ordinal 2) are separate pause bits. Pausing one leaves the other running.
+
+<Aside type="caution">
+Seize is off until an issuer switches it on. An unset policy slot reads as always-allow, so with `SEIZE_HOLDER_POLICY` unset no account qualifies as seizable and every `seizeWithMemo` call reverts `AccountNotSeizable`. A token whose issuer never configures that slot has no seize capability at all. Leaving `SEIZE_RECEIVER_POLICY` unset has the opposite effect — any destination is permitted.
+</Aside>
+
+When more than one guard would fail, the holder gate reports first, then the destination gate, then the balance: `AccountNotSeizable` before `PolicyForbids(SEIZE_RECEIVER_POLICY, ...)` before `InsufficientBalance`.
+
+### Multiplier changes get scheduled
+
+`updateUIMultiplier(newMultiplier, effectiveAt)` is the path meant for corporate actions such as splits and reinvested dividends. Only one pending update exists at a time.
+
+1. **Schedule** with `updateUIMultiplier`. It needs `OPERATOR_ROLE`, and `effectiveAt` must be strictly in the future.
+2. **Observe** while it waits: `newUIMultiplier()` gives the target, `effectiveAt()` gives the flip time, and `uiMultiplier()` / `multiplier()` still report the value in force.
+3. **Let it mature.** Once `block.timestamp >= effectiveAt` the reads flip on their own. No event marks the moment.
+4. **Or drop it** with `cancelUIMultiplierUpdate()`, which emits `UIMultiplierUpdateCancelled`.
+
+To reorder overlapping actions, cancel and reschedule in a single announcement rather than as two calls: `announce([cancelUIMultiplierUpdate(), updateUIMultiplier(...)], ...)`.
+
+The instant `updateMultiplier(uint256)` stays, downgraded to an emergency failsafe. It applies immediately, clears any live pending update, and is meant for reversing a scheduling mistake — usually paired with a pause — rather than for routine use.
+
+<Aside type="note">
+Indexers only need to follow `UIMultiplierUpdated`. The instant setter emits it too, alongside the deprecated `MultiplierUpdated`, and emits `UIMultiplierUpdateCancelled` first if it displaced a pending update. Every multiplier change reaches that one stream, so nothing is missed. The legacy topic stays available for consumers that have not moved.
+</Aside>
+
+### Composite policies join existing ones
+
+A composite authorizes by combining 2 to 4 existing simple policies under `UNION` (OR) or `INTERSECT` (AND). Build one with `createCompositePolicy(admin, policyType, childPolicyIds)`; change it with `updateComposite(policyId, childPolicyIds)`, which replaces the child set **in full** — there is no partial update and no way to clear the list.
+
+Evaluation is live and shallow. `isAuthorized` calls each child's own `isAuthorized` at read time rather than working from a set captured at creation, `UNION` short-circuits on the first child that authorizes, and `INTERSECT` short-circuits on the first that does not. Recursion never passes depth 1, because write-time validation rejects any child that is itself a composite or a built-in sentinel with `InvalidChildPolicy`. Nesting is impossible by construction.
+
+One existing behaviour shifts. `createPolicy` and `createPolicyWithAccounts` gain a revert path that was previously unreachable: passing `UNION` or `INTERSECT` to a simple constructor now reverts `IncompatiblePolicyType`, checked right after `ZeroAddress`.
+
 ## Selector stability
 
 Everything on this page is fixed. B20 method and event signatures sit on the chain's consensus surface, so a selector that ships never changes meaning and never gets withdrawn. The standard only grows by addition: a later release can introduce new calls, but it will not rewrite the behaviour behind one you already integrated against.
 
 That gives you one practical guarantee. Code compiled against the selectors here keeps working across upgrades, and you only revisit it when you want something new.
 
-Two names are the exception, and they are already marked throughout this page. `burnBlocked` and `BURN_BLOCKED_ROLE` are deprecated. They still resolve, because nothing is removed, but seizure flows written today are expected to use [`seizeWithMemo`](#ib20) instead.
-
-### Release history
-
-The standard's first release rode in with the [Beryl upgrade](/specifications/beryl-overview/), and it carried the whole surface documented here — the roles model, the policy registry and its six per-token scopes, memos, granular pausing, supply caps, `permit`, the factory, and both the Asset and Stablecoin variants.
-
-| Network | B20 live since |
-|---|---|
-| Base Mainnet | 2026-06-25 |
-| Base Sepolia | 2026-06-18 |
+Two names are the exception, and they are already marked throughout this page. `burnBlocked` and `BURN_BLOCKED_ROLE` are deprecated. They still resolve, because nothing is removed, but seizure flows are expected to use [`seizeWithMemo`](#ib20) once Cobalt is live.
