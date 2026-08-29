@@ -1,19 +1,26 @@
 ---
 title: Deploy on Base
-description: Set up Foundry, configure RPC and key management, and deploy a smart contract to Base Sepolia in a single workflow.
+description: Set up Base's Foundry build, configure RPC and key management, and deploy a smart contract to Base Sepolia in a single workflow.
 sources:
 - base/docs:docs/base-chain/quickstart/deploy-on-base.mdx
+- base/docs:docs/base-chain/network-information/smart-contracts.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 Set up a Foundry project, point it at Base, and deploy a contract to Base Sepolia in a single end-to-end workflow.
 
+Base is EVM-equivalent, so Solidity and Vyper contracts carry over from Ethereum unchanged — same bytecode, same ABIs, same tooling. The one place that equivalence stops is the precompiles.
+
+<Aside type="caution">
+**Use Base's Foundry build, not stock Foundry.** Base exposes native precompiles at fixed addresses — the [B20 token standard](/specifications/b20/), the PolicyRegistry, and the B20 Factory among them. Those addresses carry no bytecode, so `forge`, `cast`, and `anvil` cannot simulate a call into them and give up with `call to non-contract address`. Any contract that touches one of them — minting a B20 token, say, or reading its supply — breaks under stock Foundry. [base-anvil](https://github.com/base/base-anvil) is Base's fork, and it teaches the EVM about those addresses.
+</Aside>
+
 ## What you build
 
 By the end of this guide you will have:
 
-- A Foundry-based development environment configured for Base
+- A development environment running Base's Foundry build
 - A smart contract deployed to Base Sepolia
 - A connection pattern your frontend can reuse against your contracts
 
@@ -29,28 +36,28 @@ Base is a fast, low-cost, builder-friendly Ethereum L2 designed to bring the nex
 mkdir my-base-project && cd my-base-project
 ```
 
-2. Install Foundry, the framework used throughout this guide.
+2. Install Base's Foundry build, used throughout this guide.
 
 ```bash
-curl -L https://foundry.paradigm.xyz | bash
-foundryup
+curl -L https://raw.githubusercontent.com/base/base-anvil/HEAD/foundryup/install | bash
+base-foundryup
 ```
 
-The installer pulls Foundry and updates it to the latest release.
+This lands `base-forge`, `base-cast`, and `base-anvil` next to whatever Foundry you already have. Nothing is overwritten, and the two toolchains coexist.
 
 3. Initialize a Solidity project.
 
 ```bash
-forge init
+base-forge init
 ```
 
-The Foundry project is ready. The starter contract sits at `src/Counter.sol` — this guide uses that contract as the deployment target.
+The project is ready. The starter contract sits at `src/Counter.sol` — this guide uses that contract as the deployment target.
 
 <Aside type="tip">
-Foundry packages tools for Ethereum development including Forge (testing), Cast (chain interactions), and Anvil (local node). The full reference is in [the Foundry Book](https://book.getfoundry.sh/).
+The Base build mirrors stock Foundry one for one, with the precompiles registered: `base-forge` builds and tests, `base-cast` talks to the chain, and `base-anvil` runs a local Base node. See [base-anvil](https://github.com/base/base-anvil) for the fork itself and [the Foundry Book](https://book.getfoundry.sh/) for the underlying tooling.
 </Aside>
 
-## Configure Foundry for Base
+## Configure the toolchain for Base
 
 Deploying to Base requires two pieces:
 
@@ -74,15 +81,15 @@ source .env
 ```
 
 <Aside type="tip">
-Base Sepolia is the test network for Base and is used for the rest of this guide. Free Base Sepolia ETH is available from the [faucets list](/network/network-faucets/).
+Base Sepolia serves as the Base test network, and the rest of this guide runs against it. Free Base Sepolia ETH is available from the [faucets list](/network/network-faucets/).
 </Aside>
 
 ### 2. Secure your private key
 
-1. Import your private key into Foundry's encrypted keystore.
+1. Import your private key into the encrypted keystore.
 
 ```bash
-cast wallet import deployer --interactive
+base-cast wallet import deployer --interactive
 ```
 
 2. Paste the key when prompted and set a password.
@@ -100,7 +107,7 @@ With the environment configured, deploy to Base Sepolia.
 1. (Optional) Run a dry run first to confirm the deployment is well-formed.
 
 ```bash
-forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer
+base-forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer
 ```
 
 This simulates the deploy without broadcasting. You will see the transaction details and ABI; nothing is written onchain.
@@ -108,11 +115,11 @@ This simulates the deploy without broadcasting. You will see the transaction det
 2. Add `--broadcast` to actually deploy.
 
 ```bash
-forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer --broadcast
+base-forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer --broadcast
 ```
 
 <Aside type="tip">
-The `--broadcast` flag is required to send the transaction. Without it, Foundry only simulates.
+The `--broadcast` flag is required to send the transaction. Without it, the run stops at simulation.
 </Aside>
 
 The contract argument follows the format `<contract-path>:<contract-name>`.
@@ -148,10 +155,10 @@ Re-run `source .env` after every change to load new variables into the current s
 To confirm the contract is live:
 
 1. Look up the transaction hash on [Sepolia Basescan](https://sepolia.basescan.org/).
-2. Read the contract directly with `cast`:
+2. Read the contract directly with `base-cast`:
 
 ```bash
-cast call $COUNTER_CONTRACT_ADDRESS "number()(uint256)" --rpc-url $BASE_SEPOLIA_RPC_URL
+base-cast call $COUNTER_CONTRACT_ADDRESS "number()(uint256)" --rpc-url $BASE_SEPOLIA_RPC_URL
 ```
 
 <Aside type="tip">
@@ -164,5 +171,6 @@ The contract is now live on Base Sepolia.
 
 ## Next steps
 
+- Launch a token on Base's native standard, built in at the precompile level — see [B20](/specifications/b20/) and the [B20 precompile reference](/api-reference/b20-precompiles/).
 - Wire a frontend to your contracts using [wagmi](https://wagmi.sh) or [viem](https://viem.sh).
-- Dive deeper into Foundry workflows in the [Foundry deployment tutorial](https://docs.base.org/learn/foundry/deploy-with-foundry).
+- Drive deployments from scripts with the [Foundry scripting guide](https://www.getfoundry.sh/forge/scripting).
