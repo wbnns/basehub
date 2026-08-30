@@ -145,6 +145,7 @@ export default defineConfig({
 						{ label: 'RPC Overview', slug: 'api-reference/rpc-overview' },
 						{ label: 'Rollup Node RPC', slug: 'api-reference/rollup-node-rpc' },
 						{ label: 'B20 Precompiles', slug: 'api-reference/b20-precompiles' },
+						{ label: 'B20 Invariants & Tests', slug: 'api-reference/b20-invariants' },
 						{
 							label: 'Ethereum JSON-RPC',
 							collapsed: true,
@@ -353,6 +354,7 @@ export default defineConfig({
 						{ label: 'Flashblocks RPC', slug: 'integration-guides/flashblocks-rpc' },
 						{ label: 'Metering RPC', slug: 'integration-guides/metering-rpc' },
 						{ label: 'Transaction Pool', slug: 'integration-guides/txpool' },
+						{ label: 'Builder Codes', slug: 'integration-guides/builder-codes' },
 						{ label: 'Tokenized Stocks', slug: 'integration-guides/tokenized-stocks' },
 					],
 				},

@@ -1,0 +1,294 @@
+---
+title: Builder Codes
+description: Attribute onchain activity to an app, wallet, or agent with ERC-8021 calldata suffixes — client setup for Wagmi and Viem, the wallet-side capability, and the agent registration API.
+sources:
+- base/docs:docs/base-chain/specs/reference/builder-codes/overview.mdx
+- base/docs:docs/base-chain/specs/reference/builder-codes/app-developers.mdx
+- base/docs:docs/base-chain/specs/reference/builder-codes/wallet-developers.mdx
+- base/docs:docs/base-chain/specs/reference/builder-codes/agent-developers.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A Builder Code ties onchain activity back to whoever built the thing that caused it. Codes live as an ERC-721 collection, one NFT per code, each holding a short identifier such as `abc123`. The onchain metadata carries a payout address — where rewards would go if the program pays out. Name, site, and similar details sit offchain.
+
+Register at [base.dev](https://base.dev/) to get a code. It appears under **Settings** → **Builder Code**.
+
+## The mechanism, in one paragraph
+
+Attribution rides on the tail of the calldata. Your code is encoded as an [ERC-8021](https://eip.tools/eip/8021) suffix and appended after the real arguments; indexers strip it back off later, offchain. Nothing onchain reads it, so contracts run exactly as before. Three consequences follow, and they are the reason this design was picked:
+
+- Any deployed contract already works with ERC-8021. There is nothing to upgrade and nothing to redeploy.
+- Execution is unaffected, because the trailing bytes are never decoded by the callee.
+- The cost is 16 gas per non-zero byte, which is negligible against any real transaction.
+
+EOAs and smart contract wallets both work. Attribution links a transaction to an application — it does not surface wallet information that was not already public onchain.
+
+<Aside type="note">
+The suffix is appended, not inserted. A contract that reads its calldata by ABI decoding ignores trailing bytes, which is what makes this safe across contracts nobody controls. A contract that reads raw calldata length is the theoretical exception, but that pattern is rare enough that upstream treats universal compatibility as the rule.
+</Aside>
+
+## For app developers
+
+An app registered on [base.dev](https://base.dev/) gets attribution inside the Base App for free — the Base App appends your code to transactions its users make through your app or its browser. That feeds your analytics and counts toward any future rewards.
+
+Everything outside the Base App is on you. If users reach your app on the web or through another client, wire up `dataSuffix` yourself to capture that traffic.
+
+Registration hands you a Builder Code — a random string along the lines of `bc_b7k3p9da`. Configure it once at the client level and every transaction that client sends carries it.
+
+### Wagmi
+
+Both examples need viem `2.45.0` or newer.
+
+```bash
+npm i ox wagmi viem
+```
+
+Set `dataSuffix` on the config and leave your hooks alone:
+
+```typescript
+// config.ts
+import { createConfig, http } from "wagmi";
+import { base } from "wagmi/chains";
+import { Attribution } from "ox/erc8021";
+
+// Get your Builder Code from base.dev > Settings > Builder Codes
+const DATA_SUFFIX = Attribution.toDataSuffix({
+  codes: ["YOUR-BUILDER-CODE"],
+});
+
+export const config = createConfig({
+  chains: [base],
+  transports: {
+    [base.id]: http(),
+  },
+  dataSuffix: DATA_SUFFIX,
+});
+```
+
+With that in place, `useSendTransaction` and `useSendCalls` both pick the suffix up. No component changes:
+
+```tsx
+// App.tsx
+import { useSendTransaction } from "wagmi";
+import { parseEther } from "viem";
+
+function SendButton() {
+  const { sendTransaction } = useSendTransaction();
+
+  return (
+    <button
+      onClick={() =>
+        sendTransaction({
+          to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+          value: parseEther("0.01"),
+        })
+      }
+    >
+      Send ETH
+    </button>
+  );
+}
+```
+
+### Viem
+
+```bash
+npm i ox viem
+```
+
+The wallet client takes the same option:
+
+```typescript
+// client.ts
+import { createWalletClient, http } from "viem";
+import { base } from "viem/chains";
+import { Attribution } from "ox/erc8021";
+
+// Get your Builder Code from base.dev > Settings > Builder Codes
+const DATA_SUFFIX = Attribution.toDataSuffix({
+  codes: ["YOUR-BUILDER-CODE"],
+});
+
+export const walletClient = createWalletClient({
+  chain: base,
+  transport: http(),
+  dataSuffix: DATA_SUFFIX,
+});
+```
+
+Send as usual and the suffix goes along:
+
+```typescript
+// send-transaction.ts
+import { parseEther } from "viem";
+import { walletClient } from "./client";
+
+const hash = await walletClient.sendTransaction({
+  to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+  value: parseEther("0.01"),
+});
+```
+
+### Per-transaction, if you must
+
+Client-level configuration is the recommended path. Where you genuinely need per-call control, `dataSuffix` can be passed straight to `useSendTransaction`. With `useSendCalls` it goes through `capabilities` instead, which requires the connected wallet to advertise the `dataSuffix` capability:
+
+```tsx
+sendCalls({
+  calls: [
+    {
+      to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+      value: parseEther("1"),
+    },
+  ],
+  capabilities: {
+    dataSuffix: {
+      value: DATA_SUFFIX,
+      optional: true,
+    },
+  },
+});
+```
+
+### Managed wallet providers
+
+- **CDP Wallets** — [Coinbase Developer Platform](https://docs.cdp.coinbase.com/wallets/non-custodial-wallets/overview) smart accounts accept `dataSuffix` on user operations, across the React hooks (`useSendUserOperation`), Node, and Python SDKs. Generate the suffix with `Attribution.toDataSuffix` from `ox/erc8021`; setup notes are under [Builder Codes](https://docs.cdp.coinbase.com/wallets/using-wallets/smart-accounts#builder-codes) in their docs.
+- **Privy** — ships a `dataSuffix` plugin that covers plain EOA transactions and ERC-4337 user operations alike. See the [Privy integration guide](https://docs.privy.io/recipes/evm/base-builder-codes).
+- **Turnkey** — infrastructure for programmatic wallets, also supported.
+
+## For wallet developers
+
+A wallet enables attribution by honoring the `dataSuffix` capability: accept it, then append the bytes before signing.
+
+Accept a `dataSuffix` object inside the `capabilities` object of `wallet_sendCalls`:
+
+```typescript
+type DataSuffixCapability = {
+  value: `0x${string}`;  // hex-encoded bytes provided by the app
+  optional?: boolean;    // whether the capability is optional
+}
+```
+
+Where the bytes land depends on the transaction type. For an EOA, extend `tx.data`:
+
+```typescript
+// Minimal example for EOA
+function applySuffixToEOA(tx, capabilities) {
+  const suffix = capabilities.dataSuffix?.value
+  if (!suffix) return tx
+
+  return {
+    ...tx,
+    // Append suffix bytes (remove 0x prefix from suffix if tx.data has it)
+    data: tx.data + suffix.slice(2)
+  }
+}
+```
+
+For ERC-4337 the target is `userOp.callData`, **not** the outer transaction calldata:
+
+```typescript
+// Minimal example for ERC-4337
+function applySuffixToUserOp(userOp, capabilities) {
+  const suffix = capabilities.dataSuffix?.value
+  if (!suffix) return userOp
+
+  return {
+    ...userOp,
+    // Append suffix bytes to the UserOp callData
+    callData: userOp.callData + suffix.slice(2)
+  }
+}
+```
+
+A wallet can claim attribution of its own at the same time. ERC-8021 carries multiple codes natively, so prepend your suffix ahead of the app's and both parties are credited:
+
+```typescript
+finalSuffix = walletSuffix + appSuffix
+```
+
+Apps need to do nothing for this — the wallet handles it alone.
+
+<Aside type="caution">
+Putting the suffix on the wrong field is the failure mode worth guarding against for ERC-4337. Appending to the outer transaction calldata rather than `userOp.callData` produces a transaction that still succeeds and still costs the extra gas, but attributes nothing. Nothing reverts to tell you, so verify a real user operation before shipping.
+</Aside>
+
+## For agent developers
+
+Agents transact on their own schedule, with no human pressing a button per transaction. Without a code that activity is anonymous; with one it rolls up under your identity in the Base registry, feeding analytics in [base.dev](https://base.dev) and making the agent eligible for discovery surfaces such as the App Leaderboard.
+
+The mechanics are the ones described above — an ERC-8021 suffix, ignored by contracts, recovered by indexers, 16 gas per non-zero byte.
+
+### Registration API
+
+```http
+POST /v1/agents/builder-codes
+```
+
+No authentication required.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `walletAddress` | string | Yes | Your agent's EVM wallet address (`0x...`) |
+
+```bash
+curl -X POST https://api.base.dev/v1/agents/builder-codes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "walletAddress": "<your-wallet-address>"
+  }'
+```
+
+```json
+{
+  "builderCode": "bc_a1b2c3d4",
+  "walletAddress": "0x..."
+}
+```
+
+The endpoint is idempotent on wallet address: one address always maps to the same code, and calling again returns the code you already have. That makes it safe to run on every deploy rather than gating it behind a first-run check.
+
+### Doing it from a coding agent
+
+Working in Claude Code, Cursor, or Codex? The Base skills package handles the whole path:
+
+```bash
+npx skills add base/base-skills
+```
+
+Then ask for a builder code registration. The skill validates the wallet, calls the API, writes the result to `src/constants/builderCode.ts`, installs `ox`, and threads the ERC-8021 `dataSuffix` into whichever client you use — viem, ethers.js, or a managed service.
+
+## Confirming attribution works
+
+Three independent checks, cheapest first:
+
+1. **base.dev** — select **Onchain** in the transaction type dropdown. Attribution counts under Total Transactions climb as transactions carrying your code are processed.
+2. **A block explorer** — pull up the transaction on Basescan or Etherscan, open the input data field, and confirm the last 16 bytes are the repeating `8021` pattern. Decode the suffix to see your code.
+3. **The validation tool** — paste a transaction or UserOperation hash into [Builder Code Validation](https://builder-code-checker.vercel.app/), pick the transaction type, and press **Check Attribution**.
+
+## Wallet support today
+
+Every EOA wallet supports `dataSuffix` as a matter of course. Smart wallets that implement ERC-5792 can carry it through the `DataSuffixCapability`:
+
+```javascript
+await wallet.sendCalls({
+  calls: [
+    // your transaction calls
+  ],
+  capabilities: {
+    dataSuffix: {
+      value: "0x07626173656170700080218021802180218021802180218021",
+      optional: true
+    }
+  }
+});
+```
+
+Privy and Turnkey both cover the embedded wallet case.
+
+## Related resources
+
+- [ERC-8021 proposal](https://eip.tools/eip/8021) — the specification itself.
+- [Builder Code Validation tool](https://builder-code-checker.vercel.app/) — check a hash for attribution.
+- [base.dev](https://base.dev/) — registration, analytics, and your code.

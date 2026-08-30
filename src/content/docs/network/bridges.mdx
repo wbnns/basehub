@@ -11,6 +11,21 @@ Base supports asset transfers from Ethereum, Solana, and Bitcoin through a netwo
 
 For frequently asked questions, jump to the [FAQ](#faq).
 
+## Picking a route
+
+Where your assets sit now decides which of the options below applies.
+
+| Coming from | Route | Typical assets |
+|---|---|---|
+| A Coinbase account | Withdraw straight to Base — no bridge | ETH, USDC, cbBTC |
+| Ethereum (L1) | [Superbridge](https://superbridge.app/?fromChainId=1&toChainId=8453) or [Brid.gg](https://www.brid.gg/?fromChainId=1&toChainId=8453) | ETH, ERC-20s |
+| Solana | [Base-Solana bridge](/introduction/base-solana-bridge/) | SOL, SPL tokens |
+| Bitcoin | [Garden](https://app.garden.finance/?output-chain=base&output-asset=cbBTC) | BTC to cbBTC |
+
+<Aside type="tip">
+Funds already in a Coinbase account skip bridging altogether. Pick **Base** as the network on the withdrawal screen and the assets arrive directly — usually the quickest route for ETH and USDC, and it avoids bridge fees entirely.
+</Aside>
+
 ## Ethereum and Base
 
 ### Superbridge

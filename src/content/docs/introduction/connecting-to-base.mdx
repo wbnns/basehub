@@ -53,6 +53,10 @@ Protocol and network smart contract deployments for L1 and L2 are catalogued on 
 Production workloads should connect through one of the [node providers](/node-operations/node-providers/) or [run a Base node](/node-operations/run-a-base-node/) directly.
 </Aside>
 
+<Aside type="caution">
+The public endpoints speak HTTP and nothing else. There is no WebSocket transport on them, so `eth_subscribe` and the `newHeads` and `logs` streams it feeds are simply unavailable — a subscription-based client cannot be pointed at `mainnet.base.org` or `sepolia.base.org` and made to work. Anything built on push notification needs a WebSocket-capable [node provider](/node-operations/node-providers/) from the outset. This is separate from the rate limits above: raising your request budget does not turn the feature on.
+</Aside>
+
 ## Using Base with your wallet
 
 ### Coinbase Wallet

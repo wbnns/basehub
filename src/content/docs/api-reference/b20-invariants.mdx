@@ -1,0 +1,196 @@
+---
+title: B20 Invariants and Conformance Tests
+description: The behavioral guarantees the B20 precompiles hold to, and the conformance scenarios that exercise each one.
+sources:
+- base/docs:docs/base-chain/specs/reference/b20/invariants-and-tests.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The [B20 precompile reference](/api-reference/b20-precompiles/) tells you what each call looks like on the wire. This page covers the other half: the properties the implementation promises to hold, whatever order you make those calls in, plus the scenarios used to check them.
+
+Treat the list below as normative. An implementation that breaks any line here is wrong, not merely surprising. Read it alongside the [B20 Native Token Standard](/specifications/b20/) writeup for the reasoning behind each rule.
+
+## Invariants
+
+### Policy registry
+
+1. No pairing of `policyId` and `account` can make `isAuthorized` revert.
+2. A `BLOCKLIST` policy that was never created clears every account. The same query against an uncreated `ALLOWLIST` denies every account.
+3. Once `renounceAdmin(policyId)` runs, every call that would alter that policy's membership reverts, permanently.
+4. `ALWAYS_ALLOW`, at ID `0`, passes every account, and `ALWAYS_BLOCK` rejects every account. Both are fixed points — neither can be created, edited, nor renounced.
+5. Policy IDs never repeat, and within a single `PolicyType` prefix they only climb.
+
+### Roles
+
+6. Neither `renounceRole` nor `revokeRole` will strip the final `DEFAULT_ADMIN_ROLE` holder. `renounceLastAdmin()` is the only exit.
+7. After `renounceLastAdmin()` lands, `DEFAULT_ADMIN_ROLE` is unreachable — no address can ever hold it again.
+8. Roles granted before the admin stepped down keep working after.
+9. A custom role means nothing on its own. No B20 operation consults one.
+
+### Transfer policies
+
+10. Policy gating never applies to `approve`.
+11. `TRANSFER_EXECUTOR_POLICY` is consulted on `transferFrom` only. A direct `transfer` never reaches it.
+12. `MINT_RECEIVER_POLICY` holds at all times, factory `initCalls` included.
+13. All three transfer-side scopes stand down while `initCalls` execute.
+14. Every scope points at `ALWAYS_ALLOW` the moment a token is created.
+
+### Supply
+
+15. `totalSupply` cannot climb past the supply cap.
+16. A cap cannot be lowered under the prevailing `totalSupply`.
+17. Burning pulls `totalSupply` down, which opens headroom beneath the cap.
+
+### Pause
+
+18. Each `PausableFeature` stands alone. Pausing one leaves the others running.
+19. Pause state never reaches `approve` or `permit`.
+20. A pause survives factory `initCalls` rather than being bypassed by them.
+
+### Memos
+
+21. The `Memo` event sits at exactly `logIndex + 1` relative to the `Transfer` it annotates.
+22. A memo method matches its plain counterpart in every respect but the extra event.
+
+### Permit
+
+23. `permit` accepts ECDSA signatures alone. An ERC-1271 contract signature always fails.
+24. A single nonce step follows every `permit` that verifies — the owner's counter moves up by one, never more.
+25. A permit signed ahead of `updateName` stops verifying once the name changes.
+
+### Variants
+
+26. An Asset fixes its decimals at creation and cannot revisit them. Anything outside 6 through 18 is rejected.
+27. Every Stablecoin reports `6` decimals; the value is not configurable.
+28. `OPERATOR_ROLE` exists on Asset tokens and nowhere else.
+29. An announcement ID is spent once across the token's entire life.
+30. A Stablecoin's currency code is immutable, and only `A`–`Z` characters are legal in it.
+31. A multiplier update reaches every holder at the same moment.
+32. `batchMint` runs `MINT_RECEIVER_POLICY` against each recipient on its own.
+
+### Factory
+
+33. Deployment is deterministic — identical inputs always land on an identical address.
+34. Read position 10 of any B20 address and the variant byte there will name the variant actually deployed.
+35. A `(deployer, variant, salt)` tuple has exactly one address it can ever produce.
+36. Array order governs `initCalls` execution, and a single revert anywhere in the sequence rolls back the deployment entire.
+
+<Aside type="caution">
+Invariants 12 and 13 pull in opposite directions on purpose, so read them together. The factory relaxes the sender, receiver, and executor checks during `initCalls` — that is what lets a token seed balances before its policies are wired up. `MINT_RECEIVER_POLICY` is deliberately excluded from that relaxation. If you are modelling setup behavior, mint-receiver gating is the one rule that still bites during initialization.
+</Aside>
+
+## Conformance test cases
+
+### Policy registry
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 1 | Create a `BLOCKLIST` policy, query an account that is not on it | `isAuthorized` returns `true` |
+| 2 | Add that account to the blocklist and query again | `isAuthorized` returns `false` |
+| 3 | Take it back off the blocklist and query again | `isAuthorized` returns `true` |
+| 4 | Create an `ALLOWLIST` policy, query an account that is not listed | `isAuthorized` returns `false` |
+| 5 | Query a blocklist-prefixed ID that was never created | Returns `true` |
+| 6 | Query an allowlist-prefixed ID that was never created | Returns `false` |
+| 7 | Call `renounceAdmin`, then attempt `updateBlocklist` | Reverts |
+| 8 | Call `finalizeUpdateAdmin` from an address that is not pending | Reverts |
+
+### Roles
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 9 | Grant `MINT_ROLE`, then call `mint` | Succeeds |
+| 10 | Call `mint` with no `MINT_ROLE` held | Reverts |
+| 11 | With a single admin left, call `revokeRole(DEFAULT_ADMIN_ROLE)` | Reverts with `LastAdminCannotRenounce` |
+| 12 | Call `renounceLastAdmin()` | Succeeds — the token is left admin-less |
+| 13 | A `MINT_ROLE` holder calls `mint` after `renounceLastAdmin` | Succeeds — non-admin roles survive |
+| 14 | Deploy with `initialAdmin == address(0)`, then call `grantRole` | Reverts |
+
+### Transfer policies
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 15 | A blocklisted sender calls `transfer` | Reverts with `PolicyForbids` |
+| 16 | That same blocklisted sender calls `approve` | Succeeds |
+| 17 | `transferFrom` where the executor sits on the executor blocklist | Reverts |
+| 18 | Direct `transfer` by a sender on the executor blocklist but not the sender blocklist | Succeeds |
+| 19 | Transfer from a blocklisted sender during `initCalls` | Succeeds — the scope is relaxed |
+| 20 | Mint to a receiver on the mint-receiver blocklist during `initCalls` | Reverts — this scope is never relaxed |
+
+### Mint and supply cap
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 21 | Mint an amount that would carry `totalSupply` over the cap | Reverts with `SupplyCapExceeded` |
+| 22 | Mint exactly up to the cap | Succeeds |
+| 23 | Call `updateSupplyCap` with a value under the current `totalSupply` | Reverts with `InvalidSupplyCap` |
+| 24 | Burn some supply, then mint back up to the cap | Succeeds |
+| 25 | Mint while `MINT` is paused | Reverts |
+
+### Burn and seize
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 26 | `burnBlocked` against a frozen account | Succeeds |
+| 27 | `burnBlocked` against an account that is not frozen | Reverts |
+| 28 | `burnBlocked` called by a `BURN_ROLE` holder lacking `BURN_BLOCKED_ROLE` | Reverts |
+| 29 | Freeze an account, seize the full balance, re-mint to a recovery address | Succeeds |
+| 30 | Burn while `BURN` is paused | Reverts |
+
+### Pause
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 31 | Pause `TRANSFER`, then call `transfer` | Reverts |
+| 32 | Pause `TRANSFER`, then call `mint` | Succeeds |
+| 33 | Pause `TRANSFER`, then call `approve` | Succeeds |
+| 34 | A pauser calls `unpause` without holding `UNPAUSE_ROLE` | Reverts |
+
+### Memos
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 35 | Call `transferWithMemo` | Emits `Transfer`, then `Memo` at consecutive log indices |
+| 36 | Call `transferFromWithMemo` | `Memo.caller` carries `msg.sender`, not `from` |
+| 37 | Call plain `transfer` | No `Memo` event appears |
+
+### Permit
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 38 | Submit a permit with a sound signature, nonce, and deadline | Succeeds |
+| 39 | Submit a permit whose deadline has passed | Reverts |
+| 40 | Replay a permit signature that was already spent | Reverts |
+| 41 | Sign a permit before `updateName`, submit it after | Reverts |
+| 42 | Submit a contract wallet signature (ERC-1271) | Reverts |
+| 43 | Submit a permit while `TRANSFER` is paused | Succeeds |
+
+### Factory
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 44 | Call `getB20Address`, then deploy with the same parameters | The two addresses match |
+| 45 | Read byte 10 of a deployed Asset address | Returns `0x00` |
+| 46 | Deploy the same `(deployer, variant, salt)` a second time | The second attempt reverts |
+| 47 | Deploy a variant whose feature is not yet activated | Reverts |
+| 48 | An `initCall` pauses `TRANSFER`, a later `initCall` transfers | The transfer reverts |
+
+### Variants
+
+| # | Scenario | Expected |
+|---|----------|----------|
+| 49 | Deploy an Asset with `decimals = 5` | Reverts |
+| 50 | Set the multiplier to `2e18`, read `balanceOf` for a raw balance of 100 | Returns 200 |
+| 51 | Reuse an announcement ID | Reverts with `DuplicateAnnouncementId` |
+| 52 | Call `batchMint` where one recipient is off the allowlist | Reverts |
+| 53 | Deploy a Stablecoin with `currency = "usd"` | Reverts — the code must be `A`–`Z` |
+
+<Aside type="note">
+Cases 26 to 28 describe `burnBlocked`, which is the pre-Cobalt shape of this operation. [Cobalt](/specifications/cobalt-overview/) promotes seizure to a first-class call that supersedes it. Case 29 already tests the freeze-seize-recover sequence, so it carries over unchanged; the burn-specific rows are the ones tied to the older surface.
+</Aside>
+
+## Related pages
+
+- [B20 Precompile Reference](/api-reference/b20-precompiles/) — selectors, `topic0` values, and revert codes.
+- [B20 Native Token Standard](/specifications/b20/) — the behavioral writeup these invariants formalize.
+- [Tokenized Stocks](/integration-guides/tokenized-stocks/) — one applied configuration of the standard.

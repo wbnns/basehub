@@ -75,6 +75,10 @@ An announcement is notice, not delay. Admin operations and `updateMultiplier` ex
 
 Issuers can attach arbitrary key/value pairs onchain through `extraMetadata(key)`. Securities identifiers such as ISIN and CUSIP are the obvious use.
 
+### Name and symbol
+
+Both are editable after deployment, through `updateName` and `updateSymbol`. When the underlying instrument gets renamed or reticker'd, the issuer follows it onchain rather than migrating holders to a fresh token. This is the mutability the caution above is about — index on the address.
+
 ### Memos
 
 `transferWithMemo` and `transferFromWithMemo` carry a `bytes32` reference alongside a single transfer, surfaced as a `Memo` event. It gives you somewhere to hang an offchain reference for reconciliation and reporting.

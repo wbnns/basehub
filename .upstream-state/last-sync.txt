@@ -1,6 +1,6 @@
 ## Upstream snapshot
 
-Generated 2026-08-29T03:07:08Z
+Generated 2026-08-30T03:08:30Z
 
 ### base/base @ b1b2497
 
@@ -57,6 +57,7 @@ c1da387e792ba25fdb44d8a1da1405d8d116f211  docs/base-chain/api-reference/ethereum
 7bc244a78a0862bb710c7d32ef79d9ccac6554bb  docs/base-chain/network-information/base-solana-bridge.mdx
 861475ae68e54d470e64c4dbafcd1055db857e57  docs/base-chain/network-information/bridging-and-withdrawals.mdx
 13528d5db6a3997e22b8dce82b11b44a4c9f4ac4  docs/base-chain/network-information/configuration-changelog.mdx
+fc2594a8864e2ac856d56b2094c849c23b3cd6e0  docs/base-chain/network-information/ecosystem-bridges.mdx
 bb103a69633f714f38db441bb6e0fb2ce4f021b6  docs/base-chain/network-information/network-faucets.mdx
 fea6214918b8f3c2ac78741a3943be146388dea8  docs/base-chain/network-information/network-fees.mdx
 1c27c81d89841d76191c7057ffbe939982bacc89  docs/base-chain/network-information/smart-contracts.mdx
@@ -69,9 +70,11 @@ d3143f2ee26663d6ffb9771509072e87054195b8  docs/base-chain/node-operators/perform
 8c4836f388b9c70a94fee21b732ed631f9048c79  docs/base-chain/node-operators/snapshots.mdx
 4508dd7afaa3f3509697f3dc3f8e3d928f42233f  docs/base-chain/node-operators/troubleshooting.mdx
 08408eb1c786772fd15d19abb449b698fe5ca2c5  docs/base-chain/overview.mdx
+41f98921ceba90d8639d911f7456927ae0e58fa0  docs/base-chain/quickstart/connecting-to-base.mdx
 99d68dd31af6f06b90ed250b47207f9ff74b64b9  docs/base-chain/security/avoid-malicious-flags.mdx
 8c458ab3c1caafc597e49a2bf2411329dffdd3b8  docs/base-chain/security/report-vulnerability.mdx
 74696e15a38f9ce0cb0774cd2a3738fc3fc5c8b3  docs/base-chain/security/security-council.mdx
+65cbb7c2685eb6cbbbd380a24a14079d6465894f  docs/base-chain/specs/native-account-abstraction.mdx
 6d4b55f615e59ae088a1911b2bdf16af68e0c4da  docs/base-chain/specs/overview.mdx
 f5e60bf06138f0932e5818033a33a4876d2ac78f  docs/base-chain/specs/protocol/batcher.mdx
 6d323760a760778a6a420e849ee273492f2a08ff  docs/base-chain/specs/protocol/bridging/bridges.mdx
@@ -209,13 +212,25 @@ a48f49899e89adba249e9beed30e526c5ef25154  docs/base-chain/specs/reference/b20/in
 4d09201e3b8e992ee37b57e4e9d803c8daa33717  docs/base-chain/specs/reference/b20/interfaces/IPolicyRegistry/updateAllowlist.mdx
 051d325bc5d1161e98a40310d8cbd94f29ecc6be  docs/base-chain/specs/reference/b20/interfaces/IPolicyRegistry/updateBlocklist.mdx
 03be61fd46310dd4315c2e00c3b9ff11714d7249  docs/base-chain/specs/reference/b20/interfaces/IPolicyRegistry/updateComposite.mdx
+ed03864ad131a26aa9dd48334b7a358f420b27d6  docs/base-chain/specs/reference/b20/invariants-and-tests.mdx
+e3cffc20ce5bbbe2543df6f62f401ef9e2d19b99  docs/base-chain/specs/reference/b20/tokenized-stocks-on-base.mdx
+18c2a1e7e3ad8d1a9dc0b85c465e0a249633cc06  docs/base-chain/specs/reference/builder-codes/agent-developers.mdx
+3ac3cabe8d44b3de57f50e2d79a03dc4b2955f92  docs/base-chain/specs/reference/builder-codes/app-developers.mdx
+99ebcfe1934ced90e0e8e7c5f4b8066220a18c19  docs/base-chain/specs/reference/builder-codes/overview.mdx
+5c1de8e0205afb9b592a6c6b9bd1f02fc6b403b7  docs/base-chain/specs/reference/builder-codes/wallet-developers.mdx
 9f3d4ce26f7743f31df16e1a1168fee5c148c8e8  docs/base-chain/specs/reference/configurability.mdx
 ed80be168a65cfc06244688676d3f727c3e5dee2  docs/base-chain/specs/reference/glossary.mdx
 b0607b502f3352f015193335e55bf007c0765afc  docs/base-chain/specs/upgrades/azul/exec-engine.mdx
 52b9d962ec4a0f41317c5375a7eef082b4c7dfb6  docs/base-chain/specs/upgrades/azul/node-upgrade.mdx
+439d2aedc363b556b7a75fcb7f5e7ed9a39e7c5c  docs/base-chain/specs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/base-chain/specs/upgrades/azul/proofs.mdx
+224ba7f7ae76aac3d9242c0b486285d18af695f9  docs/base-chain/specs/upgrades/beryl/b20.mdx
+0b3e9d7f502b4759a4a9ff2b6b136781effae0e1  docs/base-chain/specs/upgrades/beryl/overview.mdx
+59b7f31c1b734cfbee74b56c7be6696ccbf75d90  docs/base-chain/specs/upgrades/beryl/reducing-canonical-withdrawal-delay.mdx
+10b0310e81b09d825dad83c375190bd6e229fac1  docs/base-chain/specs/upgrades/beryl/reth-v2.mdx
 9a57e335fa7dd4f07e7655b71385e4a193035134  docs/base-chain/specs/upgrades/canyon/overview.mdx
 61dc070864e29e703328809c237cf1c7285ad643  docs/base-chain/specs/upgrades/cobalt/dynamic-upgrades.mdx
+c704425a54fe868f1a95ae880673b9bd9a8e94c1  docs/base-chain/specs/upgrades/cobalt/eip-8130.mdx
 80cbc312b2166e70b754dd7043e40da33c0bf580  docs/base-chain/specs/upgrades/cobalt/overview.mdx
 43052e954dadabe44beba9c33f850328c58f70e1  docs/base-chain/specs/upgrades/delta/overview.mdx
 f4187a5b98ca30f12e0bb82ce76b7fcbb43df1de  docs/base-chain/specs/upgrades/delta/span-batches.mdx
@@ -245,6 +260,7 @@ c8c2c1d60b7bc91d9b15ae2f1501ce2780ca8e0d  docs/base-chain/specs/upgrades/jovian/
 cc720371f85228397694475dc773295d92dc3e9a  docs/base-chain/specs/upgrades/jovian/l1-attributes.mdx
 deaffc7df23d65547ac53b1921eb78616d66074c  docs/base-chain/specs/upgrades/jovian/overview.mdx
 aa44cb2758cad1f80db4122ab7fcc6b7addf4460  docs/base-chain/specs/upgrades/jovian/system-config.mdx
+2753edf05f92988ec72d46e5056690296dfdfdbf  docs/base-chain/specs/upgrades/overview.mdx
 
 ### blog.base.dev RSS
 
