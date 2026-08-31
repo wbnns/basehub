@@ -355,6 +355,7 @@ export default defineConfig({
 						{ label: 'Metering RPC', slug: 'integration-guides/metering-rpc' },
 						{ label: 'Transaction Pool', slug: 'integration-guides/txpool' },
 						{ label: 'Builder Codes', slug: 'integration-guides/builder-codes' },
+						{ label: 'Launch a B20 Token', slug: 'integration-guides/launch-a-b20-token' },
 						{ label: 'Tokenized Stocks', slug: 'integration-guides/tokenized-stocks' },
 					],
 				},

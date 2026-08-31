@@ -1,0 +1,307 @@
+---
+title: Launch a B20 Token
+description: End-to-end workflow for creating a B20 Asset or Stablecoin token — Base's Foundry build, the Activation Registry check, a B20FactoryLib create script, minting, and onchain verification.
+sources:
+- base/docs:docs/base-chain/network-information/b20-token-standard.mdx
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A B20 token needs no contract of your own. The [B20 standard](/specifications/b20/) lives in the chain as a precompile, so access control, pause switches, cap enforcement, policy gates, memo fields, and ERC-2612 `permit` are all already there before you write a line of Solidity. One call to the factory hands back a configured token. Nothing to deploy, nothing to audit, nothing to maintain.
+
+This guide takes an Asset token from nothing to a verified onchain balance. The reference material sits elsewhere: [the specification](/specifications/b20/) for behaviour, [the precompile reference](/api-reference/b20-precompiles/) for selectors and ABIs.
+
+## Pick a variant first
+
+The singleton **B20 Factory** builds both variants, and the choice is fixed at creation:
+
+- **Asset** — decimals are yours to set anywhere in `[6, 18]`. It also gains batched issuance, announcements published onchain, and a rebase multiplier. Reach for it with long-tail tokens, real-world assets, and equities.
+- **Stablecoin** — decimals are pinned at 6, and the token carries an immutable ISO currency code instead. This is the variant for fiat-backed tokens.
+
+Past that split the two behave identically. Both get the same roles, caps, policies, pause controls, memos, and `permit`.
+
+The steps below use `ASSET`. A stablecoin swaps two lines, shown at the end of the create step.
+
+## Install Base's Foundry build
+
+Stock Foundry cannot do this work. B20 precompiles sit at fixed addresses that hold no bytecode, so `forge` refuses the call with `call to non-contract address`. Base ships `base-forge`, `base-cast`, and [`base-anvil`](https://github.com/base/base-anvil), which register those addresses into the EVM. They install beside your existing Foundry rather than over it.
+
+Pin the Beryl-compatible release:
+
+```bash
+curl -L https://raw.githubusercontent.com/base/base-anvil/HEAD/foundryup/install | bash
+base-foundryup --install v1.1.1
+```
+
+## Confirm the feature is switched on
+
+Each variant is gated separately by the Activation Registry. Deploy against a network where the gate is closed and the call reverts with `FeatureNotActivated`. Check before you spend gas — query the variant you plan to use and read `true` back:
+
+```bash
+REG=0x8453000000000000000000000000000000000001  # Activation Registry precompile
+RPC=https://mainnet.base.org  # replace with your target network (e.g. https://sepolia.base.org, https://rpc.vibes.base.org)
+
+base-cast call $REG "isActivated(bytes32)(bool)" $(base-cast keccak "base.b20_asset") --rpc-url $RPC
+base-cast call $REG "isActivated(bytes32)(bool)" $(base-cast keccak "base.b20_stablecoin") --rpc-url $RPC
+```
+
+## Set up the project
+
+```bash
+base-forge init b20-quickstart && cd b20-quickstart
+base-forge install base/base-std@v1.0.0 --no-git
+```
+
+That pulls in [Base Standard Library v1.0.0](https://github.com/base/base-std/tree/v1.0.0), which is where the shipped Beryl interfaces live, along with the constants and the helpers that encode calls for you.
+
+<Aside type="caution">
+**Pin the tag. Do not track `main`.** Everything here targets the released Beryl surface in `base-std@v1.0.0`. The moving branch carries interfaces that have not shipped, and they compile happily — you find out at deploy time, not build time.
+</Aside>
+
+Then add the remappings to `foundry.toml`, under `[profile.default]`. The `base = true` flag is what puts the precompiles inside the build's EVM, which is what lets the deploy script simulate its own factory call locally:
+
+```toml
+base = true
+remappings = [
+    "base-std/=lib/base-std/src/",
+    "base-std-test/=lib/base-std/test/",
+]
+```
+
+Any Solidity in `>=0.8.20 <0.9.0` compiles the interfaces.
+
+## Choose a network
+
+Create a `.env` **inside `b20-quickstart`** for the network you picked. [Connecting to Base](/introduction/connecting-to-base/) has the full network table.
+
+<Tabs>
+<TabItem label="Mainnet">
+
+| Setting | Value |
+|---|---|
+| RPC URL | `https://mainnet.base.org` |
+| Chain ID | `8453` |
+| Explorer | [basescan.org](https://basescan.org) |
+
+```bash
+export RPC_URL="https://mainnet.base.org"
+export PRIVATE_KEY="0x..."
+export ACCOUNT_ADDRESS="0x..."
+export CHAIN_ID="8453"
+```
+
+</TabItem>
+<TabItem label="Base Sepolia">
+
+| Setting | Value |
+|---|---|
+| RPC URL | `https://sepolia.base.org` |
+| Chain ID | `84532` |
+| Faucet | [CDP Faucet](https://portal.cdp.coinbase.com/products/faucet) |
+| Explorer | [sepolia.basescan.org](https://sepolia.basescan.org) |
+
+```bash
+export RPC_URL="https://sepolia.base.org"
+export PRIVATE_KEY="0x..."
+export ACCOUNT_ADDRESS="0x..."
+export CHAIN_ID="84532"
+```
+
+</TabItem>
+<TabItem label="Vibenet">
+
+| Setting | Value |
+|---|---|
+| RPC URL | `https://rpc.vibes.base.org/` |
+| Chain ID | `84538453` |
+| Faucet | [chain.base.org/vibenet/faucet](https://chain.base.org/vibenet/faucet) |
+| Explorer | [chain.base.org/vibenet/explorer](https://chain.base.org/vibenet/explorer) |
+
+```bash
+export RPC_URL="https://rpc.vibes.base.org/"
+export PRIVATE_KEY="0x..."
+export ACCOUNT_ADDRESS="0x..."
+export CHAIN_ID="84538453"
+```
+
+</TabItem>
+<TabItem label="Local">
+
+Run a Base node in another terminal:
+
+```bash
+base-anvil
+```
+
+Anvil's first pre-funded account is enough:
+
+```bash
+export RPC_URL="http://127.0.0.1:8545"
+export PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+export ACCOUNT_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+export CHAIN_ID="31337"
+```
+
+</TabItem>
+</Tabs>
+
+`base-cast wallet new` prints a fresh address and key if you need one. Check the account holds gas before continuing — it signs both the create and the mint, and the supply lands there:
+
+```bash
+source .env
+base-cast balance $ACCOUNT_ADDRESS --rpc-url $RPC_URL
+```
+
+Against local anvil that prints `10000000000000000000000`, its default 10,000 ETH. Anywhere else, any non-zero number will do.
+
+<Aside type="caution">
+Keep funded keys out of browser code, source control, shell history, and anything a client can read. The scripts here assume a throwaway Sepolia signer.
+</Aside>
+
+## Create the token
+
+The factory exposes one entry point, `createB20(variant, salt, params, initCalls)`, and its four arguments are the whole configuration surface:
+
+- `variant` — `ASSET` or `STABLECOIN`.
+- `salt` — entropy you choose, which determines the token's deterministic address.
+- `params` — name, symbol, first admin, and decimals, ABI-encoded.
+- `initCalls` — configuration applied in the same transaction as creation.
+
+Encode both `params` and `initCalls` with `B20FactoryLib`. Write `script/CreateToken.s.sol`:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {Script, console} from "forge-std/Script.sol";
+
+import {B20Constants} from "base-std/lib/B20Constants.sol";
+import {B20FactoryLib} from "base-std/lib/B20FactoryLib.sol";
+import {IB20Factory} from "base-std/interfaces/IB20Factory.sol";
+import {StdPrecompiles} from "base-std/StdPrecompiles.sol";
+
+contract CreateToken is Script {
+    function run() external returns (address token) {
+        // For the quickstart, one account is admin + minter.
+        address account = vm.envAddress("ACCOUNT_ADDRESS");
+        bytes32 salt = keccak256("my-first-b20");
+
+        // Name, symbol, initial DEFAULT_ADMIN_ROLE holder, decimals (6-18).
+        bytes memory params = B20FactoryLib.encodeAssetCreateParams("My Token", "MYT", account, 18);
+
+        // Configuration applied atomically at creation.
+        bytes[] memory initCalls = new bytes[](2);
+        initCalls[0] = B20FactoryLib.encodeGrantRole(B20Constants.MINT_ROLE, account);
+        initCalls[1] = B20FactoryLib.encodeUpdateSupplyCap(1_000_000e18);
+
+        vm.startBroadcast();
+        token = StdPrecompiles.B20_FACTORY.createB20(IB20Factory.B20Variant.ASSET, salt, params, initCalls);
+        vm.stopBroadcast();
+
+        console.log("B20 token created at:", token);
+    }
+}
+```
+
+<Aside type="caution">
+**Hand-rolled encoding will not work.** The native implementation demands canonical calldata and throws `AbiDecodeFailed` at anything else. `B20FactoryLib` produces the canonical form; that is its job.
+</Aside>
+
+Two constraints worth knowing before you run it. Asset decimals are locked in at creation and have to land in `[6, 18]`. The supply cap is optional — pass `type(uint128).max` to mean no cap, which is also the ceiling the cap can never exceed.
+
+Broadcast it:
+
+```bash
+source .env
+base-forge script script/CreateToken.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
+```
+
+The factory answers from `0xB20f000000000000000000000000000000000000`, the same address on every network, and the tokens it mints all begin `0xB200...`. The script logs the one it made:
+
+```text
+== Logs ==
+  B20 token created at: 0xB200...
+```
+
+A `TokenAlreadyExists` revert means `keccak256("my-first-b20")` has already been used by your account on that network. Change the salt, or restart `base-anvil` for a clean slate.
+
+Pull the address out of the broadcast artifact so nothing needs copying by hand. Appending it to `.env` keeps it around for later steps and later shells:
+
+```bash
+TOKEN_ADDRESS=$(jq -er '.returns.token.value' \
+  broadcast/CreateToken.s.sol/$CHAIN_ID/run-latest.json) \
+  && echo "export TOKEN_ADDRESS=$TOKEN_ADDRESS" >> .env \
+  && source .env \
+  && echo "TOKEN_ADDRESS=$TOKEN_ADDRESS"
+```
+
+The artifact path carries the chain ID, which is where the `CHAIN_ID` you exported earns its place.
+
+### Making a stablecoin instead
+
+Change the variant and the params encoder. The ISO currency code is uppercase `A`–`Z` and immutable, and it takes the place of the decimals argument:
+
+```solidity
+bytes memory params = B20FactoryLib.encodeStablecoinCreateParams("My USD", "MUSD", account, "USD");
+
+token = StdPrecompiles.B20_FACTORY.createB20(IB20Factory.B20Variant.STABLECOIN, salt, params, initCalls);
+```
+
+Roles, caps, minting, and verification are unchanged.
+
+## Mint and verify
+
+`initCalls` already granted `MINT_ROLE` to your account, so this works straight away:
+
+```bash
+base-cast send $TOKEN_ADDRESS "mint(address,uint256)" $ACCOUNT_ADDRESS 1000000000000000000000 \
+  --rpc-url $RPC_URL --private-key $PRIVATE_KEY
+```
+
+A receipt with `status 1 (success)` means it landed. Read the balance back:
+
+```bash
+base-cast call $TOKEN_ADDRESS "balanceOf(address)(uint256)" $ACCOUNT_ADDRESS --rpc-url $RPC_URL
+# 1000000000000000000000 [1e21]
+```
+
+Search `$TOKEN_ADDRESS` in the explorer and the token is there.
+
+## Calling the token from an app
+
+For application code rather than operational commands, upstream's examples run on `viem@2.55.11`. Nothing about the client is B20-specific — a B20 token answers the ERC-20 surface natively, so an ordinary viem client reads and writes it:
+
+```bash
+mkdir b20-viem && cd b20-viem
+npm init -y
+npm install viem@2.55.11
+```
+
+```typescript
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { baseSepolia } from 'viem/chains';
+
+if (!process.env.PRIVATE_KEY) throw new Error('Set PRIVATE_KEY');
+export const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
+export const publicClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(process.env.RPC_URL ?? 'https://sepolia.base.org'),
+});
+export const walletClient = createWalletClient({
+  account,
+  chain: baseSepolia,
+  transport: http(process.env.RPC_URL ?? 'https://sepolia.base.org'),
+});
+```
+
+Scripts that create policies need `jq` as well, to lift `PolicyCreated` out of a transaction receipt.
+
+## Where to go next
+
+You now have a token with an admin, a minter, a supply cap, and real supply — none of it written by you.
+
+- Gate transfers or mints behind PolicyRegistry policies, narrow the pause surface, or hand roles around. [The B20 specification](/specifications/b20/) covers all three.
+- [Tokenized Stocks](/integration-guides/tokenized-stocks/) shows the same primitives configured for a real-world underlying.
+- [B20 precompiles](/api-reference/b20-precompiles/) lists every selector, event `topic0`, and revert.
+- [B20 invariants](/api-reference/b20-invariants/) states what the chain guarantees regardless of configuration.

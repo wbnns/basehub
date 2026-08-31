@@ -1,6 +1,6 @@
 ## Upstream snapshot
 
-Generated 2026-08-30T03:08:30Z
+Generated 2026-08-31T03:04:34Z
 
 ### base/base @ b1b2497
 
@@ -53,6 +53,7 @@ c1da387e792ba25fdb44d8a1da1405d8d116f211  docs/base-chain/api-reference/ethereum
 50068c95ac88bff98ed8f6829c6bb754d66b907a  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 0d4989d7ad0cb8ac5b0a34eb4857a239902b26ff  docs/base-chain/api-reference/rpc-overview.mdx
 497d20826c8cb132cc2621d2f8920155b0c93e3b  docs/base-chain/flashblocks/faq.mdx
+2881fd5017b2587008b9f7075afd2155735797a2  docs/base-chain/network-information/b20-token-standard.mdx
 154ab30c175fe807125789d33556933a274583a3  docs/base-chain/network-information/base-contracts.mdx
 7bc244a78a0862bb710c7d32ef79d9ccac6554bb  docs/base-chain/network-information/base-solana-bridge.mdx
 861475ae68e54d470e64c4dbafcd1055db857e57  docs/base-chain/network-information/bridging-and-withdrawals.mdx
