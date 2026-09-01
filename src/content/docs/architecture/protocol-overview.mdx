@@ -3,9 +3,23 @@ title: Protocol Overview
 description: A tour of the Base rollup protocol — the network participants, the consensus, execution, bridging, batcher, and proof components, and the deposit, transaction, and withdrawal flows that connect L1 and L2.
 sources:
 - base/docs:docs/base-chain/specs/protocol/overview.mdx
+- base/docs:docs/base-chain/specs/design-goals.mdx
 ---
 
 Base is an Ethereum rollup: L2 transaction data is published to Ethereum so anyone can reconstruct the chain, and proofs let any participant challenge an invalid state transition. This page walks through the protocol-level pieces and the user flows that tie L1 and L2 together. For the codebase-level view of how these subsystems map to Rust crates, see [Architecture Overview](/architecture/overview/).
+
+## Design Goals
+
+Four principles shape the protocol specification. They account for a number of choices that would otherwise look arbitrary.
+
+- **Opinionated** — Where several designs would each work, the spec picks one and commits to it. Simplicity here is a product of refusing to keep options open.
+- **Maximally Simple** — Scope stays limited to what Base itself needs, which strips a great deal of generality out of the stack. The target is a spec and a codebase that one developer can hold in their head.
+- **Fast Cycles** — Risk gets spread across many small upgrades rather than concentrated into a few large ones. The plan is six tightly scoped hard forks a year on a regular cadence, with releases landing fortnightly.
+- **Ethereum Aligned** — Base treats Ethereum's success as its own. High-impact changes ship here ahead of L1, and the production data that comes back feeds into Ethereum's own roadmap.
+
+## Lineage
+
+Base Chain takes its EVM semantics from Ethereum, along with Ethereum's rules for transactions and its security model anchored on L1. The chain was first built on the [OP Stack](https://specs.optimism.io). From the Jovian Hardfork onward it follows this specification instead.
 
 ## Network Participants
 
