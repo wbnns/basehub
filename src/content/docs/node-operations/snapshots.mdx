@@ -54,7 +54,7 @@ Downloads are driven by the `base-reth-node` CLI. If you don't already have it, 
    | **Full**    | `--full`    | Everything a default full node prunes down to — state, headers, and a capped span of recent transactions, receipts, and history. | Best for running an ordinary full node without holding the entire archive. |
    | **Archive** | `--archive` | The complete dataset — every transaction, receipt, and account/storage record, with nothing pruned. | Best when you need the full history, such as for archive queries or indexing. |
 
-   These three presets are just the ready-made defaults published at [chain.base.org/snapshots](https://chain.base.org/snapshots). If none of them matches your retention needs, you can still supply custom pruning flags via the [pruning flag](https://github.com/base/node/blob/main/.env.mainnet#L55) — but to do so you must pull the archival snapshot first and then apply your own pruning arguments on top of it.
+   These three presets are just the ready-made defaults published at [chain.base.org/snapshots](https://chain.base.org/snapshots). If none of them matches your retention needs, you can still supply custom pruning flags through the [`RETH_PRUNING_ARGS` variable](https://github.com/base/base/blob/main/.env.mainnet#L34) in `.env.mainnet` (or `.env.sepolia`) — but to do so you must pull the archival snapshot first and then apply your own pruning arguments on top of it.
 
    <Aside type="note">
    Confirm you have room on disk for both the download itself and its unpacked contents — extraction produces significantly more data than the snapshot you pulled.

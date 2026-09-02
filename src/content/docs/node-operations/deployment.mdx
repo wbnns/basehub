@@ -5,13 +5,15 @@ description: Run base-reth-node in production via the official Docker image or a
 
 import { Aside } from '@astrojs/starlight/components';
 
-<Aside type="caution">
-This repository is for development purposes. For production deployments, use the releases referenced in [base/node](https://github.com/base/node/releases).
+<Aside type="danger">
+Operator releases have moved to [base/base](https://github.com/base/base/releases). Starting at **v1.3.0**, the operator node ships from that repository, and every later release lands there.
+
+`base/node` **becomes read-only on September 4, 2026**. After that date it accepts no issues, no pull requests, and no releases, and it stays online only as a record of the pre-v1.3.0 tags. Point any new install or upgrade at `base/base`.
 </Aside>
 
 ## Production Images
 
-The recommended way to run Base Reth Node in production is via the official Docker image from [base/node](https://github.com/base/node):
+Production runs are best served by the published Docker image, which is built from [base/base](https://github.com/base/base):
 
 ```bash
 docker pull ghcr.io/base/node-reth:latest
@@ -26,6 +28,31 @@ docker run ghcr.io/base/node-reth -e NODE_TYPE=base
 # Run vanilla Reth
 docker run ghcr.io/base/node-reth -e NODE_TYPE=vanilla
 ```
+
+## Pinning a Release with `NODE_TAG`
+
+The root `docker-compose.yml` in `base/base` pulls `ghcr.io/base/node:latest` unless you say otherwise. To run one specific published release without compiling anything, name its tag:
+
+```bash
+NODE_TAG=v1.3.0 docker compose up
+```
+
+A pinned tag bypasses the source build completely, so the node starts once the pull finishes. Leave `--build` off when you pin. Passing it triggers a local compile that takes precedence over the tag you asked for.
+
+Note that `v1.3.0` is the earliest release published to `ghcr.io/base/node` out of `base/base`. Tags older than that were never pushed to this image path, so they are not reachable by pin.
+
+### Compose Variables
+
+A handful of variables let you retune the compose file from your shell or a `.env` file, so you never have to edit the file itself:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `NODE_TAG` | `latest` | Tag pulled from `ghcr.io/base/node`. Give it a release tag such as `v1.3.0` to pin. |
+| `NETWORK_ENV` | `.env.mainnet` | Env file loaded by the `execution` and `node` services. Use `.env.sepolia` for testnet. |
+| `HOST_DATA_DIR` | `./reth-data` | Host directory bind-mounted to `/data` in the execution container. Repoint it at an external volume if you need to. |
+| `PROFILE` | `maxperf` | Cargo profile applied when you pass `--build`. It matches the profile behind the published image. |
+
+Running `docker compose up --build` compiles whatever is in your `base/base` checkout through the `base` target of `etc/docker/Dockerfile.rust-services`. That is the same target the published `ghcr.io/base/node` image comes from, so a local build and a pinned image lay out their binaries identically.
 
 ## Building from Source for Deployment
 

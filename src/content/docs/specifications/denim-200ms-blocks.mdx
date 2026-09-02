@@ -7,26 +7,35 @@ sources:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Denim is a proposed change to how Base produces blocks. Instead of one canonical block every two seconds, the chain would seal five per second. Every 200ms interval would produce a block that is complete in its own right — separately numbered and hashed, with its own state root and receipts, its own forkchoice update, and its own path from unsafe to safe to finalized.
+Denim changes how Base produces blocks. Instead of one canonical block every two seconds, the chain would seal five per second. Every 200ms interval would produce a block that is complete in its own right — separately numbered and hashed, with its own state root and receipts, its own forkchoice update, and its own path from unsafe to safe to finalized.
 
 <Aside type="caution">
-This page tracks a draft. Upstream publishes it for feedback only and makes no commitment to ship it, on any schedule or in this shape. Denim runs on neither Sepolia nor Mainnet, no activation time is set, and the required client versions are still open. Treat nothing here as final until upstream marks it so, and do not build production plans on it.
+200ms native blocks now run on Vibenet, the experimental preview network, so developers can try them early. That deployment can still change. Do not base production decisions on it.
+
+Denim is active on neither Sepolia nor Mainnet. No activation time is set for either, and the required client versions are still open.
 </Aside>
 
 ## What Denim changes
 
 Today [Flashblocks](/flashblocks/overview/) publish incremental previews of pending state inside a single two-second block. Denim removes the need for that layer by making the 200ms interval a real block. Under the rollout Base stops emitting Flashblocks entirely, so anything reading a Flashblocks stream has to move over to canonical block and RPC feeds.
 
+<Aside type="note">
+Does your application read Flashblocks? [Migrate from Flashblocks](/flashblocks/migrate-to-200ms-blocks/) lists the API changes each integration needs.
+</Aside>
+
 The Ethereum block header does not change. Its `timestamp` field stays Unix time in whole seconds, and a metadata deposit called BaseTime supplies the missing sub-second piece. Reading both together gives a block's millisecond timestamp.
 
-## Activation
+## Network availability
 
-| Network | Activation timestamp | Required client versions |
-| --- | --- | --- |
-| `sepolia` | `TBD` | `TBD` |
-| `mainnet` | `TBD` | `TBD` |
+| Network | Status | Activation timestamp | Required client versions |
+| --- | --- | --- | --- |
+| `vibenet` | Live for experimental testing | — | — |
+| `sepolia` | Not active | `TBD` | `TBD` |
+| `mainnet` | Not active | `TBD` | `TBD` |
 
-Nothing is scheduled. Upstream plans a separate node upgrade guide covering releases and rollout once there is a date.
+Vibenet carries 200ms blocks today, which makes it the place to exercise an integration ahead of time.
+
+Upstream's upgrade tracker lists **November 2026** as the planning target for Denim on both Sepolia and Mainnet. That is a target under a planning status, not a booked activation — no timestamp is published for either network, and the required client versions are still open. Treat the month as subject to change until timestamps appear. Upstream plans a separate node upgrade guide covering releases and rollout once a date exists.
 
 ## Execution
 

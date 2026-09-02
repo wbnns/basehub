@@ -19,16 +19,16 @@ Azul went live on mainnet at **May 28, 2026 18:00 UTC** (`1779991200`). The [Azu
 | Consensus (CL) | `base-consensus` | [v0.9.0+](https://github.com/base/base/releases/tag/v0.9.0) | [v0.7.0+](https://github.com/base/base/releases/tag/v0.7.0) |
 
 <Aside type="note">
-Both clients ship from the [base/node](https://github.com/base/node/releases) repository, where the bulk of the configuration is preset and can be overridden through environment variables — see the `.env.mainnet` and `.env.sepolia` files for every adjustable option.
+Both clients now ship from [base/base](https://github.com/base/base/releases). That repository holds the root `docker-compose.yml` along with the `.env.mainnet` and `.env.sepolia` templates operators used to take from `base/node`. Most settings arrive preset, and environment variables override them — see those `.env` files for every adjustable option.
 
-If you instead build straight from [base/base](https://github.com/base/base/releases), you will need to switch your `base-consensus` configuration over to the new `BASE_NODE_*` environment variables. `base-reth-node` keeps working with all of your existing Reth tooling and configuration unchanged.
+`docker compose up` pulls the published `ghcr.io/base/node` image. Add `--build` to compile the tree you have checked out, or set `NODE_TAG=vX.Y.Z` to pin one released image and skip the compile. [Deployment](/node-operations/deployment/) covers both paths.
 </Aside>
 
 ## Migrating the execution layer
 
 ### Coming from OP Reth
 
-Operators already on OP Reth via [base/node](https://github.com/base/node) only need to update — the latest version switches the binary to `base-reth-node` automatically, and your current `./reth-data` directory carries over with no re-sync or snapshot restore required.
+Operators already on OP Reth through the compose setup only need to update — the latest version switches the binary to `base-reth-node` automatically, and your current `./reth-data` directory carries over with no re-sync or snapshot restore required.
 
 1. Stop your node:
 
@@ -36,9 +36,14 @@ Operators already on OP Reth via [base/node](https://github.com/base/node) only 
    docker compose down
    ```
 
-2. Update to the latest version of [base/node](https://github.com/base/node):
+2. Move to [base/base](https://github.com/base/base), which now publishes the operator node, and update it:
 
    ```bash
+   # Coming from a base/node clone? Clone base/base next to it and bring your env file across:
+   git clone https://github.com/base/base.git
+   cp ../node/.env.mainnet ./base/.env.mainnet   # or .env.sepolia
+
+   # Already tracking base/base:
    git pull origin main
    ```
 
@@ -60,9 +65,11 @@ Operators already on OP Reth via [base/node](https://github.com/base/node) only 
    docker compose down
    ```
 
-2. Update to the latest version of [base/node](https://github.com/base/node):
+2. Clone [base/base](https://github.com/base/base), or update an existing clone:
 
    ```bash
+   git clone https://github.com/base/base.git
+   # or, where it is already cloned:
    git pull origin main
    ```
 
@@ -98,7 +105,7 @@ Swap `op-node` for `base-consensus` by updating environment variables.
 
 ### Environment variable mapping
 
-On [base/node](https://github.com/base/node) most of these are already populated in `.env.mainnet` and `.env.sepolia`. If you build from [base/base](https://github.com/base/base), use the table below to translate your `op-node` variables to `base-consensus`. Most are optional; run `base-consensus node --help` for the complete list.
+The `.env.mainnet` and `.env.sepolia` templates in [base/base](https://github.com/base/base) already populate most of these. If you build from [base/base](https://github.com/base/base), translate your `op-node` variables with the table below. Nearly all of them are optional. `base-consensus node --help` prints the complete set.
 
 | `op-node` | `base-consensus` |
 |-----------|-------------------|

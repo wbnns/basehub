@@ -8,7 +8,7 @@ sources:
 import { Aside } from '@astrojs/starlight/components';
 
 <Aside type="caution">
-This repository (`base/base`) is for development. Production releases are published through [base/node](https://github.com/base/node/releases).
+Operator releases now come out of [base/base](https://github.com/base/base/releases) as of **v1.3.0**. The older `base/node` repository **goes read-only on September 4, 2026** and stops receiving issues, pull requests, and releases from that day on. See [Deployment](/node-operations/deployment/) for how to pin a published tag.
 </Aside>
 
 ## Versioning
@@ -44,7 +44,7 @@ Production images are published at:
 ghcr.io/base/node-reth
 ```
 
-These are managed in the [base/node](https://github.com/base/node) repository and include both vanilla Reth and Base Reth, selectable via `NODE_TYPE`.
+These come out of [base/base](https://github.com/base/base) and carry both vanilla Reth and Base Reth, which you pick between with `NODE_TYPE`.
 
 ## Release Process
 

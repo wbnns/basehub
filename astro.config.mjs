@@ -136,6 +136,7 @@ export default defineConfig({
 						{ label: 'Overview', slug: 'flashblocks/overview' },
 						{ label: 'Architecture', slug: 'flashblocks/architecture' },
 						{ label: 'App Integration', slug: 'flashblocks/app-integration' },
+						{ label: 'Migrate to 200ms Blocks', slug: 'flashblocks/migrate-to-200ms-blocks' },
 						{ label: 'FAQ', slug: 'flashblocks/faq' },
 					],
 				},

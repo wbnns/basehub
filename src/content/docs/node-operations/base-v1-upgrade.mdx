@@ -34,7 +34,7 @@ The mainnet activation date is still tentative and can shift. Watch [@buildonbas
 | Consensus (CL) | `base-consensus` | [v0.9.0+](https://github.com/base/base/releases/tag/v0.9.0) | [v0.7.0+](https://github.com/base/base/releases/tag/v0.7.0) |
 
 <Aside type="note">
-Both binaries ship from the [base/node](https://github.com/base/node/releases) repository, where the bulk of configuration is preset and overridable via environment variables. See `.env.mainnet` and `.env.sepolia` for the complete option set.
+Both binaries now ship from [base/base](https://github.com/base/base/releases), which carries the root `docker-compose.yml` and the `.env.mainnet` / `.env.sepolia` templates. Most configuration arrives preset and environment variables override it. See those `.env` files for the complete option set.
 
 If you build from [base/base](https://github.com/base/base/releases) directly, update your `base-consensus` configuration to use the new `BASE_NODE_*` environment variables. `base-reth-node` continues to honor existing Reth tooling and flags.
 </Aside>
@@ -43,7 +43,7 @@ If you build from [base/base](https://github.com/base/base/releases) directly, u
 
 ### From OP Reth
 
-If you already run OP Reth via [base/node](https://github.com/base/node), updating to the latest release switches you to `base-reth-node` automatically. Your existing `./reth-data` directory is fully compatible — no resync or snapshot restore required.
+If you already run OP Reth through the compose setup, updating to the latest release switches you to `base-reth-node` automatically. Your existing `./reth-data` directory is fully compatible — no resync or snapshot restore required.
 
 1. Stop the node:
 
@@ -51,7 +51,7 @@ If you already run OP Reth via [base/node](https://github.com/base/node), updati
    docker compose down
    ```
 
-2. Pull the latest [base/node](https://github.com/base/node):
+2. Pull the latest [base/base](https://github.com/base/base), which now publishes the operator node:
 
    ```bash
    git pull origin main
@@ -75,7 +75,7 @@ If you already run OP Reth via [base/node](https://github.com/base/node), updati
    docker compose down
    ```
 
-2. Pull the latest [base/node](https://github.com/base/node):
+2. Pull the latest [base/base](https://github.com/base/base), which now publishes the operator node:
 
    ```bash
    git pull origin main
@@ -113,7 +113,7 @@ Replace `op-node` with `base-consensus` by updating your environment variables.
 
 ### Environment variable mapping
 
-If you use [base/node](https://github.com/base/node), most variables are already populated in `.env.mainnet` and `.env.sepolia`. If you build from [base/base](https://github.com/base/base), use the table below to translate `op-node` variables to `base-consensus`. Most are optional. Run `base-consensus node --help` for the full list.
+The `.env.mainnet` and `.env.sepolia` templates in [base/base](https://github.com/base/base) already populate most variables. If you build from [base/base](https://github.com/base/base), translate `op-node` variables with the table below. Nearly all of them are optional. `base-consensus node --help` prints the complete set.
 
 | `op-node` | `base-consensus` |
 |-----------|-------------------|

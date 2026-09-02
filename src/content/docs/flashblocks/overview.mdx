@@ -19,8 +19,8 @@ The mechanism, built with [Flashbots](https://www.flashbots.net/), streams sub-b
 Flashblocks are always live on Base — every block is built by the Flashblocks builder. Apps choose whether to consume preconfirmations or wait for the standard 2-second finality.
 </Aside>
 
-<Aside type="caution" title="A draft proposal would retire Flashblocks">
-Upstream has published a draft spec for [Denim](/specifications/denim-200ms-blocks/), which would make each 200ms interval a canonical block and stop Flashblocks production altogether. It is a request for feedback, not a commitment — nothing is scheduled on Sepolia or Mainnet. Everything on this page describes how Base works today.
+<Aside type="caution" title="Denim will retire Flashblocks">
+Upstream now plans to deprecate Flashblocks in the [Denim](/specifications/denim-200ms-blocks/) hardfork, which turns each 200ms interval into a canonical block and ends Flashblocks production. The upgrade is not finalised, and nothing is scheduled on Sepolia or Mainnet. Canonical 200ms blocks are live on Vibenet, so you can test the new behaviour early. [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) lists the application changes each integration eventually needs. Everything else on this page describes how Base works today.
 </Aside>
 
 ### Key concepts

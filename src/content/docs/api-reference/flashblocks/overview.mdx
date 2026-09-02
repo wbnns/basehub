@@ -5,6 +5,12 @@ sources:
 - base/docs:docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution">
+Upstream plans to deprecate Flashblocks in the [Denim](/specifications/denim-200ms-blocks/) hardfork. That upgrade is not finalised. Canonical 200ms block behaviour is available for early testing on Vibenet, and [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) maps every method on this page to its eventual replacement.
+</Aside>
+
 Every public Base endpoint (`mainnet.base.org` / `sepolia.base.org`) is Flashblocks-enabled, serving the full set of standard Ethereum JSON-RPC methods plus a set of pre-confirmation-specific additions. Together they let you read state, simulate transactions, and stream events against sequencer-ordered data up to ~1.8 seconds before a block seals.
 
 Every [standard Ethereum JSON-RPC method](/api-reference/rpc-overview/) accepts the `"pending"` block tag to resolve against pre-confirmed state instead of the transaction pool. See the [RPC overview](/api-reference/rpc-overview/) for endpoint URLs.

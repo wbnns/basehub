@@ -1,0 +1,46 @@
+---
+title: Migrate to 200ms Blocks
+description: Move a Flashblocks integration onto canonical 200ms blocks ahead of the Denim upgrade, with a replacement for every subscription and pending-tag RPC call.
+sources:
+- base/docs:docs/upgrades/denim/migrate-from-flashblocks.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Read this page if your application consumes Flashblocks. The [Denim](/specifications/denim-200ms-blocks/) upgrade swaps Flashblocks for canonical 200ms blocks. Once it activates, Flashblocks subscriptions and the pending state behind them stop being available.
+
+<Aside type="caution">
+200ms native blocks run on [Vibenet](/introduction/connecting-to-base/) today, for experimental developer testing only. That deployment can still change, so keep it out of production decisions.
+
+Neither Base Sepolia nor Base Mainnet runs Denim. No one has fixed a time for either network, and the client versions operators will need are still open.
+</Aside>
+
+## Where to start
+
+Take an inventory before Denim lands. Two things belong on that list: every Flashblocks subscription your application opens, and every RPC request it makes with the `"pending"` block tag. Work through the table below and pair each one with its replacement.
+
+## Replacements by integration
+
+| Flashblocks integration | Update for Denim |
+| --- | --- |
+| `eth_subscribe("newFlashblocks")` | Use `eth_subscribe("newHeads")`. |
+| `eth_subscribe("pendingLogs")` | Use `eth_subscribe("logs")`. |
+| `eth_subscribe("newFlashblockTransactions")` | Use `eth_subscribe("newHeads")`, then fetch transactions for each canonical block. |
+| `eth_getBlockByNumber("pending", ...)` | Use normal RPC calls to read the latest canonical blocks. |
+| `eth_getBalance(..., "pending")` | Use normal RPC calls to read the latest canonical state. |
+| `eth_getTransactionCount(..., "pending", ...)` | Use normal RPC calls to read the latest canonical state. |
+| `eth_call(..., "pending")` | Use normal RPC calls to read the latest canonical state. |
+| `eth_estimateGas(..., "pending")` | Use normal RPC calls to read the latest canonical state. |
+| `eth_simulateV1(..., "pending")` | Use normal RPC calls to read the latest canonical state. |
+| `eth_getLogs` with a range ending at `"pending"` | Use normal RPC calls to query logs from canonical blocks. |
+| `eth_getBlockTransactionCountByNumber("pending")` | Use normal RPC calls to read the latest canonical block. |
+
+<Aside type="caution">
+These replacements are not equivalents. After Denim, nothing maps directly onto the `"pending"` block tag or onto Flashblocks preconfirmation state. The calls above hand back settled data out of 200ms blocks. They do not hand back a preconfirmation.
+</Aside>
+
+The practical difference is one of timing rather than shape. A preconfirmation used to arrive ahead of the block that contained it. A 200ms canonical block arrives at the same cadence but already settled, so the read you make after migrating is a read of committed state.
+
+## Try it on Vibenet
+
+Point your migrated integration at [Vibenet](/introduction/connecting-to-base/) and exercise it there. For the protocol design behind the change, along with the RPC behaviour it produces, see [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/).
