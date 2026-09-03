@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-02T03:08:58Z
+Generated 2026-09-03T03:03:16Z
 
-### base/base @ ce81e28
+### base/base @ 2114980
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
@@ -13,7 +13,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 16eea8f34478db4cb0a286b897dd77050a25318e  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 846ebf6
+### base/docs @ 9e2eeaf
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -263,7 +263,7 @@ cb0372c39a8410f5eababb2e10efe02e1a37c4e6  docs/upgrades/isthmus/predeploys.mdx
 66c3c3d24174e29f8472899c737703f533f7de98  docs/upgrades/jovian/l1-attributes.mdx
 5a38a6c5f7f87a44d70abb276c5b8c6fe1dd593f  docs/upgrades/jovian/overview.mdx
 d58753698a5d333b77751bfde6fc1991583d6bb7  docs/upgrades/jovian/system-config.mdx
-51b82ae2eb16c227708c90000b190918305b76c6  docs/upgrades/overview.mdx
+571f8c263a98237152ee92b1175182537bc705c7  docs/upgrades/overview.mdx
 
 ### blog.base.dev RSS
 
