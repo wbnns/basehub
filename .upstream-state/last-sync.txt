@@ -1,19 +1,19 @@
 ## Upstream snapshot
 
-Generated 2026-09-03T03:03:16Z
+Generated 2026-09-04T03:05:58Z
 
-### base/base @ 2114980
+### base/base @ 728fcd5
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
 6c3d1127d29bcb240139088a2c96f74d74c184cc  docs/guides/RELEASE.md
-d4ac11cb08117dd69e461aecaa1b89a503cb3da5  docs/guides/STANDALONE_PROVING.md
+9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 16eea8f34478db4cb0a286b897dd77050a25318e  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 9e2eeaf
+### base/docs @ cf76fa3
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -56,13 +56,12 @@ b321d1ac3f8e208e382502c7b18bb50c81e57731  docs/base-chain/network-information/br
 e62537023c5af29dc74e951b748ec4bfc7cb3b99  docs/base-chain/network-information/configuration-changelog.mdx
 c8b269d91c213095a3759325af6d9fb6f90388d8  docs/base-chain/network-information/ecosystem-bridges.mdx
 bb103a69633f714f38db441bb6e0fb2ce4f021b6  docs/base-chain/network-information/network-faucets.mdx
-4ace17c49a03eb16881cbb1d9b07d5d8ae242365  docs/base-chain/quickstart/connecting-to-base.mdx
+f1c15ed0cb9488f232277f277d87c37c4d1c9190  docs/base-chain/quickstart/connecting-to-base.mdx
 618da3e81b3e8fd34af4447b11f13306fbc6694d  docs/base-chain/specs/protocol/overview.mdx
 521116f4ff49aa9e5fa8b21460dde578eccf5d43  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize.mdx
 987ab3ca7d3e613d1b6a199c6b679cc917861051  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20asset-multiplier.mdx
 231d7f42781aaae5daed4207d278181e2d3aaa8e  docs/base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy.mdx
 5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
-bf602e8e8dd82b1ff2d4ff38858691c5c92ce641  docs/specifications/b20/launch-a-b20-token.mdx
 11c3181a73e34c636557be903cdb3a13de6a885b  docs/specifications/b20/reference/constants-addresses.mdx
 207fcbe45d16367df427bab6da68c4a8ae4be6b9  docs/specifications/b20/reference/errors-events.mdx
 41d38faeb2ada2fd77daeed301ff0fbb88d1d172  docs/specifications/b20/reference/interfaces/i-activation-registry/activate.mdx
@@ -174,8 +173,8 @@ efeb50b728a4f0d75dfe1de4c53b5e4ced77fe3f  docs/specifications/b20/reference/inte
 4668d1ba12088112240c556f4043318465cb52e6  docs/specifications/b20/reference/interfaces/ib20/update-supply-cap.mdx
 bbbf20826ac6d6cc7849c7ddc2239c4683c9c132  docs/specifications/b20/reference/interfaces/ib20/update-symbol.mdx
 0fafbfc473a751d08cac5aa882938ad223a607d0  docs/specifications/b20/reference/invariants-tests.mdx
-9388aee902465ba22d91793ce83f3b9bd5eb883a  docs/specifications/b20/specification-overview.mdx
-d22432712259f4de9d1f73d1b3fa702e70dfaa26  docs/specifications/b20/tokenized-stocks-on-base.mdx
+ae44d7610acfbcf81ff6c88021df3c6ed4dc5f12  docs/specifications/b20/specification-overview.mdx
+4e00e59be847f2305778862d923b56a649d855df  docs/specifications/b20/tokenized-stocks-on-base.mdx
 f5e60bf06138f0932e5818033a33a4876d2ac78f  docs/specifications/base-protocol/batcher.mdx
 eca6d45c1452cfd46865e852b93a2f2101f23d14  docs/specifications/base-protocol/bridging/base-solana-bridge.mdx
 6aea9922fa8c7bd69b8de5bcfc252f599519c0d6  docs/specifications/base-protocol/bridging/cross-domain-messengers.mdx
@@ -213,7 +212,7 @@ a7c6104bde5629d7445fa71dc53d893bb519fece  docs/specifications/flashblocks.mdx
 154ab30c175fe807125789d33556933a274583a3  docs/specifications/reference/base-contracts.mdx
 89819762a6efa35629053a641c18a445674eebbc  docs/specifications/reference/configuration.mdx
 3ca097acd11119f6aee25780b0b05fc18a452c29  docs/specifications/reference/glossary.mdx
-460ed60623d9e4e1299a577b3bbe43f0d8a017f3  docs/specifications/reference/smart-contracts.mdx
+d8f9fe3ab2cd80903564d6851802412d7ffed931  docs/specifications/reference/smart-contracts.mdx
 99d68dd31af6f06b90ed250b47207f9ff74b64b9  docs/specifications/security/avoid-malicious-flags.mdx
 8c458ab3c1caafc597e49a2bf2411329dffdd3b8  docs/specifications/security/report-a-vulnerability.mdx
 74696e15a38f9ce0cb0774cd2a3738fc3fc5c8b3  docs/specifications/security/security-council-for-base.mdx
@@ -226,7 +225,7 @@ b80b94e1fb819ec146d5c6628f4dbe0fa9bd9edc  docs/upgrades/azul/exec-engine.mdx
 a7eba9b780b478f15cd76a3d085c567faace2678  docs/upgrades/azul/node-upgrade.mdx
 439d2aedc363b556b7a75fcb7f5e7ed9a39e7c5c  docs/upgrades/azul/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/upgrades/azul/proofs.mdx
-0dbaac5c8718d9f55dee0c60e92b656bacdf4901  docs/upgrades/beryl/b20.mdx
+092b46ead3c7a949f89ee099570dd09d36ca79f1  docs/upgrades/beryl/b20.mdx
 0b3e9d7f502b4759a4a9ff2b6b136781effae0e1  docs/upgrades/beryl/overview.mdx
 59b7f31c1b734cfbee74b56c7be6696ccbf75d90  docs/upgrades/beryl/reducing-canonical-withdrawal-delay.mdx
 10b0310e81b09d825dad83c375190bd6e229fac1  docs/upgrades/beryl/reth-v2.mdx
