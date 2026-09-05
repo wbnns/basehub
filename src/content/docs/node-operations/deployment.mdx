@@ -50,7 +50,7 @@ A handful of variables let you retune the compose file from your shell or a `.en
 | `NODE_TAG` | `latest` | Tag pulled from `ghcr.io/base/node`. Give it a release tag such as `v1.3.0` to pin. |
 | `NETWORK_ENV` | `.env.mainnet` | Env file loaded by the `execution` and `node` services. Use `.env.sepolia` for testnet. |
 | `HOST_DATA_DIR` | `./reth-data` | Host directory bind-mounted to `/data` in the execution container. Repoint it at an external volume if you need to. |
-| `PROFILE` | `maxperf` | Cargo profile applied when you pass `--build`. It matches the profile behind the published image. |
+| `PROFILE` | `release` | Cargo profile applied when you pass `--build`. It matches the profile behind the published image. |
 
 Running `docker compose up --build` compiles whatever is in your `base/base` checkout through the `base` target of `etc/docker/Dockerfile.rust-services`. That is the same target the published `ghcr.io/base/node` image comes from, so a local build and a pinned image lay out their binaries identically.
 
@@ -60,18 +60,18 @@ If you need a custom build:
 
 ```bash
 # Standard release build
-just build
-
-# Maximum performance (LTO fat, single codegen unit, jemalloc)
-just build-maxperf
+just build release
 ```
 
-The `maxperf` profile enables:
-- Full LTO (`lto = "fat"`)
-- Single codegen unit (`codegen-units = 1`)
-- jemalloc memory allocator
+One profile now covers production. The workspace dropped its separate `maxperf` profile, so `release` is what the published image is built from and what a local `--build` reproduces. It sets `opt-level = 3`, `lto = "thin"`, `codegen-units = 16`, and strips symbols.
 
-The resulting binary is at `target/release/base-reth-node` (or `target/maxperf/base-reth-node` for maxperf).
+If you need to profile a deployed binary, build the `release-symbols` variant instead. It keeps `release` codegen untouched and only restores the symbol table:
+
+```bash
+cargo build --profile release-symbols --package base-reth-node --bin base-reth-node
+```
+
+A `release` build leaves the binary at `target/release/base-reth-node`. See [Configuration](/node-operations/configuration/#build-profiles) for the full profile table.
 
 ## Hardware Requirements
 

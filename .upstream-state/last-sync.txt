@@ -1,12 +1,12 @@
 ## Upstream snapshot
 
-Generated 2026-09-04T03:05:58Z
+Generated 2026-09-05T03:06:41Z
 
-### base/base @ 728fcd5
+### base/base @ 7dac981
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
-6c3d1127d29bcb240139088a2c96f74d74c184cc  docs/guides/RELEASE.md
+d80f35ee2f941ce655ad1753c0f90a925151faf4  docs/guides/RELEASE.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md

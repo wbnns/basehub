@@ -12,82 +12,116 @@ git clone https://github.com/base/base.git
 cd base
 ```
 
-## Standard Release Build
+## How the Build Recipes Are Organised
 
-The most common build command produces a fully optimized release binary for every binary target in the workspace:
+Build work sits in a Just module rather than in top-level recipes. You reach it by naming the module first, then the recipe:
+
+```bash
+just build release
+```
+
+Running `just build` on its own prints the recipe list instead of compiling anything. That is the module default. To see what is available:
 
 ```bash
 just build
 ```
 
-Under the hood this runs `cargo build --release`. The compiled binaries are placed in `target/release/`.
+## Standard Release Build
 
-## Maximum Performance Build
-
-For production deployments where you want every bit of throughput, use the `maxperf` profile. This enables all CPU-specific optimizations and links against jemalloc:
+This is the usual command. It produces an optimized binary for every binary target in the workspace:
 
 ```bash
-just build-maxperf
+just build release
 ```
 
-This build takes longer to compile but produces a binary tuned for the machine it was compiled on. Do not distribute `maxperf` binaries to machines with different CPU micro-architectures.
+It wraps `cargo build --workspace --release`, and the results land in `target/release/`.
+
+`release` is the only production profile the workspace defines. An earlier `maxperf` profile was removed, so there is no separate "maximum performance" build to reach for — `release` is what the published `ghcr.io/base/node` image is compiled with. Its settings are listed under [build profiles](/node-operations/configuration/#build-profiles).
 
 ## Building Individual Targets
 
-If you only need the node binary and want a faster compile:
+To compile only the node binary:
 
 ```bash
-just build-node
+just build node
 ```
 
-Or build it directly with Cargo:
+Be aware that this recipe is a debug build — it maps to `cargo build --bin base-reth-node` with no profile flag. For an optimized single binary, call Cargo yourself:
 
 ```bash
 cargo build --release --bin base-reth-node
 ```
 
-The resulting binary is at `target/release/base-reth-node`.
+That writes to `target/release/base-reth-node`.
 
 ## Building Solidity Test Contracts
 
-Several crates in the workspace depend on compiled Solidity contracts for their test suites. Build them with:
+Some crates need compiled Solidity contracts before their tests will run. Build them with:
 
 ```bash
-just build-contracts
+just build contracts
 ```
 
-This changes into `crates/shared/primitives/contracts`, installs Soldeer dependencies, and runs `forge build`. You must have [Foundry](/getting-started/prerequisites/#foundry) installed for this to work.
+The recipe changes into `crates/utilities/test-utils/contracts`, pulls dependencies with `forge soldeer install`, and runs `forge build`. [Foundry](/getting-started/prerequisites/#foundry) must be installed first.
 
 ## Debug Build (All Targets)
 
-During development you may want an unoptimized build with debug symbols for every target in the workspace:
+For an unoptimized build of every target in the workspace, including tests and benches:
 
 ```bash
-just build-all-targets
+just build all-targets
 ```
 
-This compiles in debug mode, which is significantly faster to compile but produces slower binaries. Use this when you need to iterate quickly and do not care about runtime performance.
+This one depends on `contracts` and `elfs`, so both are built for you first. Compilation is much quicker than a release build and the binaries are correspondingly slower. Reach for it while iterating.
+
+## CI-Profile Builds
+
+Two recipes mirror what continuous integration does. Both use the `ci` profile, which is tuned for fast GitHub Actions runs and small `target` directories:
+
+```bash
+# Every target in the workspace
+just build ci
+
+# Only the crates affected by your branch
+just build affected-ci
+```
+
+`affected-ci` compares against `main` by default. Pass another ref to compare against it instead — `just build affected-ci origin/develop`. When nothing is affected it reports so and exits without building.
+
+## SP1 ELF Builds
+
+Proving work needs its SP1 ELFs compiled:
+
+```bash
+just build elfs
+```
+
+This delegates to `just succinct build-elfs`.
 
 ## Build Artifacts
 
 | Command | Profile | Output |
 |---|---|---|
-| `just build` | release | `target/release/*` |
-| `just build-maxperf` | maxperf (release + LTO + jemalloc) | `target/release/*` |
-| `just build-node` | release | `target/release/base-reth-node` |
-| `just build-all-targets` | debug | `target/debug/*` |
-| `just build-contracts` | N/A (Foundry) | Solidity artifacts in `crates/shared/primitives/contracts/out/` |
+| `just build release` | release | `target/release/*` |
+| `just build node` | debug | `target/debug/base-reth-node` |
+| `just build all-targets` | debug | `target/debug/*` |
+| `just build ci` | ci | `target/ci/*` |
+| `just build affected-ci` | ci | `target/ci/*` (affected crates only) |
+| `just build contracts` | N/A (Foundry) | Solidity artifacts in `crates/utilities/test-utils/contracts/out/` |
+| `just build elfs` | N/A (SP1) | Compiled SP1 ELFs |
 
 ## Troubleshooting
 
 **Linker errors mentioning `clang` or `llvm`** -- Install `libclang-dev` (Debian/Ubuntu) or make sure Xcode Command Line Tools are installed (macOS).
 
-**Out of memory during linking** -- Release and maxperf builds with LTO can use a lot of RAM. Close other memory-heavy applications or add swap space. You can also reduce parallelism:
+**Out of memory during linking** -- Release builds use link-time optimization, which can consume a lot of RAM. Close other memory-heavy applications or add swap space. You can also reduce parallelism:
 
 ```bash
-CARGO_BUILD_JOBS=2 just build
+CARGO_BUILD_JOBS=2 just build release
 ```
 
-**Stale Solidity artifacts** -- If contract tests fail after pulling new changes, re-run `just build-contracts` to recompile.
+**Stale Solidity artifacts** -- If contract tests fail after pulling new changes, re-run `just build contracts` to recompile.
+
+**`just build` did nothing** -- That prints the module's recipe list. Name a recipe after it, such as `just build release`.
 
 Once the build completes, continue to [Running the Node](/getting-started/running/) or [Docker Builds](/getting-started/docker/).

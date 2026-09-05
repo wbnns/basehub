@@ -42,17 +42,16 @@ These extensions are registered via Reth's `NodeComponents` system. Each one hoo
 
 ```bash
 # Build just this binary
-just build-node
+just build node
 
 # Or using cargo directly
 cargo build --bin base-reth-node
 
 # Release build
 cargo build --release --bin base-reth-node
-
-# Max performance build (PGO + LTO)
-just build-maxperf
 ```
+
+`just build node` is a debug build — it wraps the plain `cargo build --bin base-reth-node` above. Pass `--release` when you want the optimized binary. The workspace no longer carries a `maxperf` profile, so `release` is the production profile.
 
 ## Usage
 

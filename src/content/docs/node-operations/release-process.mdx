@@ -5,69 +5,63 @@ sources:
 - base/base:docs/guides/RELEASE.md
 ---
 
-Releases of `base/base` are produced through two manual workflows and one automatic trigger:
+Shipping a `base/base` release means driving two workflows by hand and letting a third fire on its own. You start a release, let release candidates accumulate on the branch until one looks right, then publish that version as the final tag.
 
-- **Start Release** — choose a bump type (major / minor / patch) and the release branch is created automatically.
-- **Publish Release** — choose a version and the final tag, Docker images, and binaries are published.
-- **Auto-RC** — every commit to a `releases/v*` branch (after the version sync PR is merged) automatically creates an RC tag and builds Docker images and binaries.
+The version number lives in `Cargo.toml` on the release branch, and almost every guard rail in the pipeline keys off it. A branch whose `Cargo.toml` still reads `0.0.0` has not been initialised yet, and the automation declines to build from it.
 
 ## Step by step
 
 ### 1. Start a release
 
-Run the **Start Release** workflow (`Actions → Start Release → Run workflow`):
+Go to `Actions → Start Release → Run workflow` and pick a bump type — `major` for breaking changes, `minor` for a feature release, `patch` for fixes.
 
-- Select the bump type: `minor` (new feature release), `patch` (bug fixes), or `major` (breaking changes).
-- The workflow computes the next version from the latest final tag and creates the `releases/vX.Y.Z` branch.
-- For `patch` bumps, the base is the most recent `releases/vX.Y.*` branch; for `major` and `minor`, the base is `main`.
+You do not supply a version. The workflow derives the next one from the most recent final tag and cuts a `releases/vX.Y.Z` branch for it. Where that branch is cut from depends on the bump: a `patch` branches off the newest matching `releases/vX.Y.*` branch, while `major` and `minor` branch off `main`.
 
-Once the branch is created, the **Release Version Sync** workflow fires automatically and opens a PR to update `Cargo.toml` to the new version.
+Creating the branch sets off **Release Version Sync**, which raises a PR writing the new version into `Cargo.toml`.
 
 ### 2. Merge the version sync PR
 
-Review and merge the auto-generated version sync PR targeting the release branch. Merging unblocks auto-RC creation.
+Nothing else can proceed until that PR lands. While `Cargo.toml` reads `0.0.0`, RC builds keep declining to run. Review it and merge it into the release branch.
 
-### 3. Build release candidates (automatic)
+### 3. Collect release candidates
 
-Every commit pushed to the release branch triggers the **Create RC** workflow, which:
+From here the branch builds itself. **Create RC** runs on every push to it and:
 
-- Skips silently if `Cargo.toml` is still `0.0.0` (the version sync PR has not been merged yet).
-- Otherwise creates the next RC tag (for example, `v0.6.0-rc.1`, `v0.6.0-rc.2`, …).
+- Backs out quietly when `Cargo.toml` is still `0.0.0`, which means step 2 has not finished.
+- Works out the next number in the RC series and tags it — `v0.6.0-rc.1`, then `v0.6.0-rc.2`, and so on.
 - Produces multi-arch Docker images alongside native binaries.
-- Publishes those images under the RC tag alone, leaving `latest` untouched.
+- Publishes those images under the RC tag alone. `latest` is not touched at this stage.
 
-To produce additional RCs, push more commits — bug fixes or backports — to the release branch.
+Need another candidate? Push another commit. Fixes and backports both re-trigger the workflow, so there is no separate command for cutting an RC.
 
 ### 4. Publish the final release
 
-Once you are satisfied with an RC, run the **Publish Release** workflow (`Actions → Publish Release → Run workflow`):
+When a candidate holds up, run `Actions → Publish Release → Run workflow` and type the bare version — `0.6.0`, with no `v` and no `releases/` in front of it.
 
-- Enter the version number (for example, `0.6.0` — no `v` prefix, no `releases/` prefix).
-- The workflow validates that the release branch exists and `Cargo.toml` is not `0.0.0`.
-- Creates the final tag `vX.Y.Z` on the release branch.
-- Runs a single `base` image build under `PROFILE=maxperf`, then tags that one image as `vX.Y.Z`, `X.Y`, `X`, and `latest` on `ghcr.io/base/node`.
-- Opens a draft GitHub release, generates the changelog for it, and attaches the binaries.
-- Review and publish the draft release on GitHub.
+Before doing anything, the workflow confirms the release branch is really there and that `Cargo.toml` has moved off `0.0.0`. Then it:
 
-## Auto-RC behavior
+- Tags the release branch `vX.Y.Z`.
+- Compiles the `base` image a single time under `PROFILE=release`, and hangs four tags off that one image on `ghcr.io/base/node`: `vX.Y.Z`, `X.Y`, `X`, and `latest`.
+- Drafts a GitHub release, writes its changelog automatically, and attaches the binaries.
 
-The **Create RC** workflow runs on every push to any `releases/v*` branch. It is safe to push before the version sync PR is merged — the workflow detects `0.0.0` and skips with a notice rather than failing.
+The draft is the last manual gate. Read it over on GitHub and publish it yourself.
 
-RC tags follow the pattern `vX.Y.Z-rc.N`, where `N` increments automatically based on existing tags.
+## Why RC builds sometimes do nothing
 
-## Quick reference
+**Create RC** is wired to every push on any `releases/v*` branch, including pushes that arrive before the version sync PR merges. Those are harmless. Rather than failing the run, the workflow spots the `0.0.0` version and exits with a notice.
 
-| Action | Workflow | Trigger | Output |
-|--------|----------|---------|--------|
-| Create release branch | **Start Release** | Manual (bump type) | `releases/vX.Y.Z` branch |
-| Sync `Cargo.toml` version | **Release Version Sync** | Automatic on branch creation | PR targeting release branch |
-| Build RC | **Create RC** | Automatic on push to `releases/v*` | RC tag + Docker images + binaries |
-| Publish final release | **Publish Release** | Manual (version number) | Final tag + Docker images + draft GitHub release |
+RC numbering needs no bookkeeping either. `N` in `vX.Y.Z-rc.N` is derived from the tags already present.
 
-## Workflows
+## Workflow reference
 
-- **Start Release** — Creates the release branch from a bump-type dropdown.
-- **Release Version Sync** — Opens a PR to update `Cargo.toml` when a release branch is created.
-- **Create RC** — Triggered on push to `releases/v*`; creates RC tags and builds artifacts.
-- **Build Release** — Reusable workflow (called by Create RC and Publish Release) that builds Docker images and binaries.
-- **Publish Release** — Manual workflow to create the final tag and publish the release.
+| Workflow | Trigger | What it does | Output |
+|----------|---------|--------------|--------|
+| **Start Release** | Manual — bump type | Cuts the release branch from the computed next version | `releases/vX.Y.Z` branch |
+| **Release Version Sync** | Automatic — branch creation | Raises the PR that writes the version into `Cargo.toml` | PR targeting the release branch |
+| **Create RC** | Automatic — push to `releases/v*` | Tags the next candidate and builds its artifacts | RC tag + Docker images + binaries |
+| **Build Release** | Called by Create RC and Publish Release | Shared build step behind both paths | Docker images + binaries |
+| **Publish Release** | Manual — version number | Cuts the final tag and assembles the release | Final tag + Docker images + draft GitHub release |
+
+`Build Release` is the only entry here you never invoke directly. Both the RC path and the publish path delegate their image and binary builds to it, so a final release and the candidate it came from are produced by the same build steps.
+
+The profile named above is the workspace's sole production profile — see [build profiles](/node-operations/configuration/#build-profiles) for what it sets.

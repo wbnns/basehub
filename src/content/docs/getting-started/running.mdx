@@ -13,10 +13,10 @@ Run the binary directly from the build output directory:
 ./target/release/base-reth-node
 ```
 
-Or, if you used `just build-node`:
+That path assumes a release build. `just build node` is a debug build instead, so its binary sits elsewhere:
 
 ```bash
-./target/release/base-reth-node
+./target/debug/base-reth-node
 ```
 
 The node will begin syncing from the network. On the first run it creates a data directory (by default `~/.local/share/reth/` on Linux, `~/Library/Application Support/reth/` on macOS) and starts downloading blocks.
