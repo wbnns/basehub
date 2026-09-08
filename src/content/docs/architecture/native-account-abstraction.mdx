@@ -7,7 +7,7 @@ sources:
 - base/docs:docs/base-chain/network-information/native-account-abstraction.mdx
 ---
 
-Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, and it reaches Base with the **[Cobalt](/specifications/cobalt-overview/)** upgrade, with the rest of the OP Stack to follow. Cobalt carries no Mainnet or Sepolia date yet — both are still listed as TBD, and vibenet remains the only network where you can exercise EIP-8130 today. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
+Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, with the rest of the OP Stack to follow. It has no activation date on Base. The **[Cobalt](/specifications/cobalt-overview/)** upgrade was to carry it until September 2026, when the node source moved EIP-8130 onto an activation gate of its own that no public network sets; vibenet is still the only place you can exercise it. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
 
 ## Why move account abstraction into the protocol
 

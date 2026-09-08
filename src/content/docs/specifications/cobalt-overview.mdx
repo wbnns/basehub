@@ -1,6 +1,6 @@
 ---
 title: Cobalt Upgrade Overview
-description: Summary of the Cobalt hardfork — native account abstraction (EIP-8130), a set of B20 additions, and upgrade timestamps read from an onchain contract.
+description: Summary of the Cobalt hardfork — a set of B20 additions and upgrade timestamps read from an onchain contract. Native account abstraction (EIP-8130) is no longer part of Cobalt.
 sources:
 - base/docs:docs/base-chain/specs/upgrades/cobalt/overview.mdx
 - base/docs:docs/base-chain/specs/upgrades/cobalt/dynamic-upgrades.mdx
@@ -10,7 +10,7 @@ sources:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its headline change is account abstraction: under [EIP-8130](https://eip.tools/eip/8130) an account writes down, onchain, which identities are allowed to act for it and how their signatures get checked, and Base validates every transaction against that record. Alongside it the fork carries a batch of B20 additions and a first step toward taking fork timestamps out of the node binary.
+Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). What it carries today is a batch of B20 additions plus a first step toward lifting fork timestamps out of the node binary. Account abstraction under [EIP-8130](https://eip.tools/eip/8130) was the fork's headline change until early September 2026, when the node source moved it onto an activation gate of its own. The section [below](#native-account-abstraction-eip-8130) covers where that leaves it.
 
 ## Status
 
@@ -21,12 +21,11 @@ Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/
 | vibenet | Active | Available to preview today |
 
 <Aside type="caution">
-September is a target under a planning status, not a booked activation. Cobalt still has no activation timestamp on Mainnet or Sepolia, and EIP-8130 remains experimental — the only network running it today is the [vibenet devnet](https://chain.base.org/vibenet). Treat any date here as subject to change until timestamps are published.
+September is a target under a planning status, not a booked activation, and Cobalt still has no activation timestamp on Mainnet or Sepolia. The fork's contents have also shifted since that target was set, because EIP-8130 has left Cobalt. Treat both the date and the scope as subject to change until timestamps are published.
 </Aside>
 
 ## What Cobalt ships
 
-- **[Native account abstraction](/architecture/native-account-abstraction/) (EIP-8130)** — accounts hold their authorized actors and their signature-validation rules in an onchain system contract. Transaction overhead drops sharply against the previous generation of smart accounts.
 - **B20 additions** — fees payable in B20, scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
 - **Dynamic upgrades** — an L1 contract holds the fork schedule, so activation no longer depends on shipping a binary with the timestamps compiled in.
 
@@ -35,6 +34,10 @@ September is a target under a planning status, not a booked activation. Cobalt s
 Node requirements get published once Cobalt has real activation timestamps, so there is nothing for operators to install ahead of time. To follow the work as it lands, point a client at [vibenet](/introduction/connecting-to-base/) instead.
 
 ## Native account abstraction (EIP-8130)
+
+<Aside type="caution">
+**EIP-8130 has moved off Cobalt.** Since 8 September 2026 the node source has gated it on a separate `zenith` activation, and the chain configuration leaves that value unset for Mainnet, Sepolia, and every other canonical network. A comment beside it is explicit that the gate exists for genesis-level testing and belongs on no canonical schedule; devnets and test harnesses switch it on through their own genesis config. The official Base documentation still files EIP-8130 under Cobalt, so the two disagree as of this writing, and this page follows the node source. Base has announced neither a replacement fork nor a date.
+</Aside>
 
 An account registers its actors and its validation rules once, and from then on the protocol enforces them on every transaction. Nothing sits in between — no bundler, no relay, no separate transaction pool.
 

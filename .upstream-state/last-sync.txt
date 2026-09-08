@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-07T03:01:33Z
+Generated 2026-09-08T03:04:45Z
 
-### base/base @ 7dac981
+### base/base @ d75d13b
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
