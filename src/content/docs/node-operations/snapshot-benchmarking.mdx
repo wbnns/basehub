@@ -1,0 +1,164 @@
+---
+title: Snapshot Benchmarking
+description: Run repeatable base-bench performance measurements on an L1-free snapshot devnet, publish the artifacts, and compare 2-second against 200ms block cadences.
+sources:
+- base/base:docs/guides/SNAPSHOT_BENCHMARKS.md
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`base-bench snapshot` measures node performance against a prepared Base datadir, with no L1 in the loop. It exists for local performance investigation: you restore a snapshot, drive a workload at it, and publish the artifacts somewhere they can be compared.
+
+The important property is repeatability. Two runs are only worth comparing if everything except the variable under test held still, and most of this guide is about the discipline that requires.
+
+<Aside type="caution">
+The harness writes to its builder and validator datadirs as it runs. Every attempt therefore needs a fresh, writable pair restored from the source snapshot. Keep that source snapshot immutable, and only discard the disposable per-run copies.
+</Aside>
+
+## Before you start
+
+You need an optimised `base-bench` binary. A debug build will not give you a meaningful number at 400M gas — it measures the build profile, not the node.
+
+You also need a fully prepared Base datadir snapshot to restore from. Materialise a writable pair for one run using whatever snapshot and restore mechanism your environment provides, then point the paths at it:
+
+```sh
+RUN=blake2f-2s-run-1
+BUILDER_DATADIR=/path/to/restored/${RUN}-builder
+CLIENT_DATADIR=/path/to/restored/${RUN}-client
+
+test -f "$BUILDER_DATADIR/db/mdbx.dat"
+test -f "$CLIENT_DATADIR/db/mdbx.dat"
+```
+
+## Run one benchmark
+
+Build the harness out of `base/base` and run it:
+
+```sh
+cargo build --release -p base-system-tests --bin base-bench
+
+export BASE_BENCH_CLIENT_VERSION="base/$(git rev-parse --short HEAD)"
+
+target/release/base-bench snapshot \
+  --chain sepolia \
+  --builder-datadir "$BUILDER_DATADIR" \
+  --client-datadir "$CLIENT_DATADIR" \
+  --load-test-config /path/to/blake2f-2s.yaml \
+  --benchmark-run snapshot-throughput \
+  --scenario blake2f-2s-run-1 \
+  --run-id blake2f-2s-<timestamp> \
+  --output-dir results/blake2f-2s-run-1
+```
+
+`--chain` picks the network rules used to continue the snapshot. It takes the built-in Base aliases, including `mainnet` (the default) and `sepolia`, or a path to a Base genesis JSON file.
+
+A JSON chain whose L2 chain ID matches a built-in Base network gets that network's rollup configuration automatically, so `--rollup-config` is optional. A chain ID outside that set does not, and you have to supply it:
+
+```sh
+target/release/base-bench snapshot \
+  --chain /path/to/genesis.json \
+  --rollup-config /path/to/rollup.json \
+  --builder-datadir "$BUILDER_DATADIR" \
+  --client-datadir "$CLIENT_DATADIR" \
+  --load-test-config /path/to/load-test.yaml \
+  --benchmark-run custom-throughput \
+  --scenario custom-run-1 \
+  --output-dir results/custom-run-1
+```
+
+One invocation starts the builder and validator, funds a throwaway load-test account, runs the workload, checks that both roles agree on canonical blocks across the measured window, and shuts down.
+
+Each `--output-dir` comes out self-contained, ready to hand to `base/benchmark`:
+
+```text
+<output-dir>/
+  benchmark-result.json
+  load-test-result.json
+  metadata.json
+  metrics-sequencer.json
+  metrics-validator.json
+```
+
+<Aside type="note">
+`metadata.json` is the completion signal when you publish. Get the metrics and artifacts uploaded before it, or a consumer can read the run as finished while it is still arriving.
+</Aside>
+
+## Aggregate selected runs
+
+Result directories are immutable inputs. To build a report index without disturbing them, pass the report root plus the direct-child run directories you want included:
+
+```sh
+target/release/base-bench aggregate \
+  --output-dir /absolute/path/to/results \
+  /absolute/path/to/results/run-a \
+  /absolute/path/to/results/run-b
+```
+
+This writes `results/metadata.json` atomically. For each unique set of report tags — which includes the scenario and the block-time tag — it keeps the entry with the latest `createdAt`. Distinct scenarios, cadences, and client versions all survive that rule; a repeat of an identical tag set does not, because the newer run replaces the older one. Source metadata and scenario labels are left alone. `id` stays the unique raw artifact identifier, and `BenchmarkRun` stays the report cohort key.
+
+## Choose comparable runs
+
+Four flags and one environment variable look similar and do different jobs. Using them interchangeably is the fastest way to produce a comparison that means nothing.
+
+| Field | Purpose | Comparison rule |
+|---|---|---|
+| `--benchmark-run` | Report cohort | Use the same value for every candidate in one comparison, such as `snapshot-throughput`. |
+| `--scenario` | User-visible experiment/repetition label | Use a descriptive value for each selected run, such as `blake2f-2s-run-1` or `blake2f-200ms-run-1`. |
+| `--run-id` | Immutable artifact identifier | Keep it unique. It does not group runs. |
+| `--output-dir` | Complete local artifact directory | Keep it unique. Never allow two runs to write to the same directory. |
+| `BASE_BENCH_CLIENT_VERSION` | Binary/build label | Keep it equal for cadence comparisons; deliberately vary it only for client-version comparisons. |
+
+### A fair 2-second against 200ms comparison
+
+1. Restore both roles from the same immutable snapshot for every repetition.
+2. Use the same release binary, host, load parameters, seed, and funding policy.
+3. Configure the 2-second YAML with 30 measured blocks.
+4. Configure the 200-millisecond YAML with 300 measured blocks.
+5. Give both cases the same `--benchmark-run`; use distinct scenarios and artifact IDs.
+6. Alternate cadence order across repetitions (`2s`, `200ms`, then `200ms`, `2s`) to reduce thermal and cache-order bias.
+
+Both YAMLs should drive one fixed Blake2f precompile payload at 50,000 rounds, with sender count, in-flight limits, batching, funding, and seed held identical. The differing block counts are deliberate: 30 blocks at 2 seconds and 300 at 200ms both cover a 60-second window, so the two cases measure the same span of time.
+
+Keep maximum-throughput tuning separate from fixed-offered-load comparisons; they answer different questions. Record whether each run used a warm or cold page cache, too. Restoring both datadirs from the same snapshot does not by itself put the page cache in the same state.
+
+<Aside type="caution">
+Reth's Engine persistence-backpressure threshold scales with cadence to hold the wall-clock headroom steady: 16 blocks at 2 seconds, 160 at 200ms. Without that scaling a slow persistence flush can halt Engine API intake after just 3.2 seconds at 200ms. What you get is a run of empty blocks followed by a catch-up burst, which reads exactly like a workload capacity limit if you are not looking for it. The artifacts retain the Engine backpressure and failed-response metrics so you can tell the two apart.
+</Aside>
+
+Snapshot roles persist every block, which is what leaves the disposable datadirs inspectable afterwards.
+
+## Compare in base/benchmark
+
+Collect the finished output directories under one parent:
+
+```text
+results/
+  blake2f-2s-run-1/
+  blake2f-200ms-run-1/
+```
+
+From the paired `base/benchmark` repository, serve that directory and start the frontend in API mode:
+
+```sh
+make build-server
+./bin/report-server --local-dir /absolute/path/to/results --port 8080
+
+cd report
+yarn install
+VITE_DATA_SOURCE=api \
+  VITE_API_BASE_URL=http://127.0.0.1:8080/ \
+  VITE_ALLOWED_HOSTS=localhost \
+  yarn dev --host 127.0.0.1 --port 3000
+```
+
+Open `http://127.0.0.1:3000/#/run-comparison/snapshot-throughput`. Filter `Transaction Payload=blake2f`, pick the `Scenario` values and the node role you want, then set **Show Line Per** to **Block Time Milliseconds**. That draws the 2-second and 200-millisecond series together while keeping their scenarios distinct.
+
+The x-axis lines up because the metric files record `BlockNumber` in two-second-equivalent units. At 200ms, block 1 is `0.1` and block 10 is `1.0`, so a 6,000-block run ends at `600.0` — directly comparable with a 600-block run at 2 seconds.
+
+The report server can also synthesise extra comparison rows from the source runs. Those are views, not executions: cite the original run IDs when you refer to raw artifacts.
+
+## Cleanup
+
+Once the harness exits, keep the result directory and reset only the disposable datadirs through your environment's snapshot lifecycle.
+
+If a run was interrupted, look for leftover `base-bench` or `base-devnet` processes before you remove its datadirs. Never remove or modify the immutable source snapshot.

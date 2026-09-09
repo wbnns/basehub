@@ -1,19 +1,20 @@
 ## Upstream snapshot
 
-Generated 2026-09-08T03:04:45Z
+Generated 2026-09-09T03:07:05Z
 
-### base/base @ d75d13b
+### base/base @ 5c7850b
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
 d80f35ee2f941ce655ad1753c0f90a925151faf4  docs/guides/RELEASE.md
+cff94f2c1fd27cae1c4a9c1c97132e3256b6ba6a  docs/guides/SNAPSHOT_BENCHMARKS.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 16eea8f34478db4cb0a286b897dd77050a25318e  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ cf76fa3
+### base/docs @ ce69c70
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -47,7 +48,7 @@ c1da387e792ba25fdb44d8a1da1405d8d116f211  docs/base-chain/api-reference/ethereum
 0c13fbb5a8a0033f8c567c92fcf73dacd4e30b7c  docs/base-chain/api-reference/ethereum-json-rpc-api/web3_clientVersion.mdx
 1d10a44cdd4f52d80422bb14235751ec6b1872dc  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 526abc24a9bf7268d91bb97eddd0479ac1059827  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
-cb2f10f48e1ed1143247816c541f6fc31cb1df7e  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
+88b2ed5f16e23a29b52d49e273dfd0914cc2d23a  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
 81845a980f490f1697c93ac4508a0364a8512c4c  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
 689a99c1b08987e85d2538190a778884debf80b6  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
 92212c8fd5a2f03db54ce440aedc76d082a00d45  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
@@ -202,7 +203,7 @@ e7fca6e85d4561b7e4931486a7725e1051ff1d03  docs/specifications/base-protocol/proo
 3ac3cabe8d44b3de57f50e2d79a03dc4b2955f92  docs/specifications/builder-codes/for-app-developers.mdx
 5c1de8e0205afb9b592a6c6b9bd1f02fc6b403b7  docs/specifications/builder-codes/for-wallet-developers.mdx
 31c9106e7a491d2f05301836258547812f7b1090  docs/specifications/builder-codes/overview.mdx
-a7c6104bde5629d7445fa71dc53d893bb519fece  docs/specifications/flashblocks.mdx
+c68045b06c91435a243d7040a6676281c30619a0  docs/specifications/flashblocks.mdx
 9349a2deee160d5ad3d65af1571b58b00fdb2612  docs/specifications/native-account-abstraction.mdx
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
 2ee643819bc715741e050e24d57e08ae111e2298  docs/specifications/node-operators/run-a-node.mdx
@@ -230,13 +231,13 @@ a7eba9b780b478f15cd76a3d085c567faace2678  docs/upgrades/azul/node-upgrade.mdx
 59b7f31c1b734cfbee74b56c7be6696ccbf75d90  docs/upgrades/beryl/reducing-canonical-withdrawal-delay.mdx
 10b0310e81b09d825dad83c375190bd6e229fac1  docs/upgrades/beryl/reth-v2.mdx
 b9d7a4042bf4c144c219b38c77f15e374bc08f57  docs/upgrades/canyon/overview.mdx
+e2ea91772e9811d703a582b0c0f313ce9def08d1  docs/upgrades/cobalt/200ms-blocks.mdx
 61dc070864e29e703328809c237cf1c7285ad643  docs/upgrades/cobalt/dynamic-upgrades.mdx
-6ddb92e5aac3a48866cad16972f5ea560d89bcd1  docs/upgrades/cobalt/eip-8130.mdx
-80cbc312b2166e70b754dd7043e40da33c0bf580  docs/upgrades/cobalt/overview.mdx
+b07415fcbb456067dce361b62faec62b16bcff26  docs/upgrades/cobalt/migrate-from-flashblocks.mdx
+ede0544dbd7e4878d2a3df15d4e934cd00c6d9c1  docs/upgrades/cobalt/overview.mdx
 46c538631428ca45a48807e89ad69ac36c30fafb  docs/upgrades/delta/overview.mdx
 5c37cd1086e69bcdf8167bb5e579109483187fcb  docs/upgrades/delta/span-batches.mdx
-bbf3333d4ab8d5324f7251ef57529522ac797260  docs/upgrades/denim/200ms-blocks.mdx
-7c4649b86074f1a564becd412fd81fe003845097  docs/upgrades/denim/migrate-from-flashblocks.mdx
+7a6a7fb5d8252cb26035139946a04450cd2c6f8a  docs/upgrades/denim/eip-8130.mdx
 091b86e568364605e020766d6f10ea29c51f8c4b  docs/upgrades/ecotone/derivation.mdx
 6189ca87b886eee8e241491f8b8334ebfa8f1045  docs/upgrades/ecotone/l1-attributes.mdx
 42e77f00935a5146cf9334d5332e73893ee6ea24  docs/upgrades/ecotone/overview.mdx
@@ -262,7 +263,7 @@ cb0372c39a8410f5eababb2e10efe02e1a37c4e6  docs/upgrades/isthmus/predeploys.mdx
 66c3c3d24174e29f8472899c737703f533f7de98  docs/upgrades/jovian/l1-attributes.mdx
 5a38a6c5f7f87a44d70abb276c5b8c6fe1dd593f  docs/upgrades/jovian/overview.mdx
 d58753698a5d333b77751bfde6fc1991583d6bb7  docs/upgrades/jovian/system-config.mdx
-571f8c263a98237152ee92b1175182537bc705c7  docs/upgrades/overview.mdx
+729c7b5bf49f2147c77cab0cbfd1278991f041e2  docs/upgrades/overview.mdx
 
 ### blog.base.dev RSS
 

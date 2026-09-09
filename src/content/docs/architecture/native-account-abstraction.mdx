@@ -7,7 +7,7 @@ sources:
 - base/docs:docs/base-chain/network-information/native-account-abstraction.mdx
 ---
 
-Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, with the rest of the OP Stack to follow. It has no activation date on Base. The **[Cobalt](/specifications/cobalt-overview/)** upgrade was to carry it until September 2026, when the node source moved EIP-8130 onto an activation gate of its own that no public network sets; vibenet is still the only place you can exercise it. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
+Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, with the rest of the OP Stack to follow. It has no activation date on Base. The **[Cobalt](/specifications/cobalt-overview/)** upgrade was to carry it until early September 2026, when upstream reassigned it to **Denim**, the fork after Cobalt, with no target on either Sepolia or Mainnet. The node source is a step behind that: EIP-8130 transactions sit on a separate `zenith` gate that no canonical network sets, reserved for genesis-level testing. Vibenet is still the only place you can exercise it. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
 
 ## Why move account abstraction into the protocol
 
@@ -81,7 +81,7 @@ The `viem/experimental/eip8130` helpers let a single transaction create an accou
 - **Users.** A standard EOA gains access to new behaviors such as gas sponsorship and batching automatically. An existing ERC-4337 smart account takes a one-time upgrade to move onto the cheaper, faster-to-include path.
 - **Application developers.** Existing integrations keep working unchanged — for example, `wallet_sendCalls` continues to function against Native AA — while new capabilities like memos (for attribution), session keys, and sub-accounts become available.
 - **Wallets.** No changes are required to keep working as they do today. Adding Native AA support opens new revenue paths through subscriptions and **ERC-8168** payer services.
-- **Node operators.** Once Cobalt is scheduled, the only required step is moving nodes onto the Cobalt build and opening access to several new RPC methods. Upstream publishes those version requirements when a date lands.
+- **Node operators.** Nothing to do yet, because no fork carrying EIP-8130 is scheduled. When Denim gets a date, the required step is moving nodes onto that build and opening access to several new RPC methods. Upstream publishes the version requirements at that point.
 
 ## Testing ahead of activation
 
