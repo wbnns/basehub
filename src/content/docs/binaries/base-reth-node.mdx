@@ -51,7 +51,7 @@ cargo build --bin base-reth-node
 cargo build --release --bin base-reth-node
 ```
 
-`just build node` is a debug build — it wraps the plain `cargo build --bin base-reth-node` above. Pass `--release` when you want the optimized binary. The workspace no longer carries a `maxperf` profile, so `release` is the production profile.
+`just build node` is a debug build — it wraps the plain `cargo build --bin base-reth-node` above. Pass `--release` when you want the optimized binary. That covers local use. The published binary archives are compiled with `maxperf` instead, a heavier variant of `release` that Base applies only to release artifacts.
 
 ## Usage
 

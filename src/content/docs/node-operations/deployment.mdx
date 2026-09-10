@@ -63,7 +63,7 @@ If you need a custom build:
 just build release
 ```
 
-One profile now covers production. The workspace dropped its separate `maxperf` profile, so `release` is what the published image is built from and what a local `--build` reproduces. It sets `opt-level = 3`, `lto = "thin"`, `codegen-units = 16`, and strips symbols.
+A local `--build` compiles with `release`, which sets `opt-level = 3`, `lto = "thin"`, `codegen-units = 16`, and strips symbols. Note that this is not the profile behind the image you pull. Base bakes its published images with `maxperf`, which adds fat LTO and one codegen unit on top of `release`. Expect a locally built node to behave the same and to benchmark a little slower.
 
 If you need to profile a deployed binary, build the `release-symbols` variant instead. It keeps `release` codegen untouched and only restores the symbol table:
 

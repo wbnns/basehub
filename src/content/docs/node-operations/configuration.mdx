@@ -32,12 +32,13 @@ The workspace defines several Cargo build profiles:
 |---------|---------|-------------|
 | `dev` | Development | `debug = "line-tables-only"` |
 | `release` | Production | `opt-level = 3`, `lto = "thin"`, `codegen-units = 16`, `strip = "symbols"`, `panic = "unwind"` |
+| `maxperf` | Published release artifacts | Inherits `release`, then `lto = "fat"`, `codegen-units = 1` |
 | `release-symbols` | Production build you need to profile | Inherits `release`, then `debug = "line-tables-only"`, `strip = "none"` |
 | `bench` | Callgrind-driven benchmarks | Inherits `release`, then `debug = true`, `strip = false` |
 | `profiling` | Performance analysis | Inherits `release`, then `lto = false`, `debug = "line-tables-only"`, `strip = "none"` |
 | `ci` | CI builds | Inherits `dev`, then `debug = false`, `incremental = false` |
 
-There is no longer a `maxperf` profile. It was removed from the workspace, and `release` is now the single production profile — both the published `ghcr.io/base/node` image and a local `--build` come from it.
+Two profiles share the production role, and which one you get depends on who is building. `release` is the default everywhere you build yourself: `docker-bake.hcl` declares `PROFILE` with a default of `release`, so a local `--build` and an ordinary Cargo build both land there. `maxperf` is reserved for what Base actually publishes. The release workflow compiles the native binary archives with it and passes `PROFILE: maxperf` when it bakes the image pushed to `ghcr.io/base/node`. It inherits everything from `release` and then trades build time for speed, using fat LTO across the whole graph and a single codegen unit. So a binary you build locally is not bit-identical to the published one, even at the same tag.
 
 Two of these exist because `release` strips symbols. `release-symbols` restores them without changing any codegen setting, so a profiled binary matches what you ship. `bench` goes further and keeps full debug info, which iai-callgrind needs to find the function it measures; without symbols every counter reads zero.
 

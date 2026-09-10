@@ -41,7 +41,7 @@ When a candidate holds up, run `Actions → Publish Release → Run workflow` an
 Before doing anything, the workflow confirms the release branch is really there and that `Cargo.toml` has moved off `0.0.0`. Then it:
 
 - Tags the release branch `vX.Y.Z`.
-- Compiles the `base` image a single time under `PROFILE=release`, and hangs four tags off that one image on `ghcr.io/base/node`: `vX.Y.Z`, `X.Y`, `X`, and `latest`.
+- Compiles the `base` image a single time under `PROFILE=maxperf`, and hangs four tags off that one image on `ghcr.io/base/node`: `vX.Y.Z`, `X.Y`, `X`, and `latest`.
 - Drafts a GitHub release, writes its changelog automatically, and attaches the binaries.
 
 The draft is the last manual gate. Read it over on GitHub and publish it yourself.
@@ -64,4 +64,4 @@ RC numbering needs no bookkeeping either. `N` in `vX.Y.Z-rc.N` is derived from t
 
 `Build Release` is the only entry here you never invoke directly. Both the RC path and the publish path delegate their image and binary builds to it, so a final release and the candidate it came from are produced by the same build steps.
 
-The profile named above is the workspace's sole production profile — see [build profiles](/node-operations/configuration/#build-profiles) for what it sets.
+Both paths build with `maxperf`, not the `release` default. `Build Release` compiles every native binary archive under it and passes it through to the image bake, so candidates and final releases are optimized identically. It layers fat LTO and a single codegen unit over `release`, which is why these builds take considerably longer than one you run yourself. See [build profiles](/node-operations/configuration/#build-profiles) for the full settings.

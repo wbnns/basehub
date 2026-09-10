@@ -41,6 +41,8 @@ Cobalt and the fork after it swapped their headline features. It is worth statin
 
 Cobalt's target moved from September to late October 2026 alongside the swap. Denim lost its November target and now carries no date at all.
 
+The swap has not fully settled in the implementation. On 2026-09-10 upstream restored the block-timing activation gate to `is_denim_active`, undoing a move onto Cobalt, so the node source still ties 200ms blocks to Denim while the published docs tie them to Cobalt. Nothing is scheduled either way — both `cobalt_timestamp` and `denim_timestamp` are unset on every built-in chain. [Cobalt 200ms Native Blocks](/specifications/cobalt-200ms-blocks/) covers the mechanics, which the naming does not affect.
+
 ## Required software
 
 Node requirements get published once Cobalt has real activation timestamps, so there is nothing for operators to install ahead of time. To follow the work as it lands, point a client at [vibenet](/introduction/connecting-to-base/) instead.

@@ -16,7 +16,7 @@ Cobalt changes how Base produces blocks. Instead of one canonical block every tw
 
 Cobalt is active on neither Sepolia nor Mainnet. No activation time is set for either, and the required client versions are still open.
 
-This work carried the name **Denim** until early September 2026, when upstream reassigned it to Cobalt and handed the Denim slot to account abstraction instead. Nothing technical moved with the rename — only the fork it ships in, and the target month.
+Which fork ships this is genuinely unsettled, so treat the name as provisional. The published upgrade docs place 200ms blocks under Cobalt, having moved them out of **Denim** in early September 2026. The node implementation says otherwise: as of 2026-09-10 every block-timing path is gated on `is_denim_active`, and a commit that day restored that gate after it had been pointed at Cobalt. Neither fork has an activation timestamp on any built-in chain, so nothing here is live outside Vibenet regardless of the label. None of the mechanics below depend on the outcome — the BaseTime deposit, the 200ms cadence, and the Flashblocks retirement are the same either way.
 </Aside>
 
 ## What Cobalt changes

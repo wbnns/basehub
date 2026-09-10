@@ -36,7 +36,7 @@ just build release
 
 It wraps `cargo build --workspace --release`, and the results land in `target/release/`.
 
-`release` is the only production profile the workspace defines. An earlier `maxperf` profile was removed, so there is no separate "maximum performance" build to reach for — `release` is what the published `ghcr.io/base/node` image is compiled with. Its settings are listed under [build profiles](/node-operations/configuration/#build-profiles).
+`release` is the profile you want for day-to-day work, and it is what `docker-bake.hcl` falls back to when nothing sets `PROFILE`. The workspace also keeps `maxperf`, which inherits `release` and then switches to fat LTO with a single codegen unit. Base reserves it for the artifacts it publishes, so reaching for it locally mostly buys you a much longer compile. Every profile is listed under [build profiles](/node-operations/configuration/#build-profiles).
 
 ## Building Individual Targets
 
