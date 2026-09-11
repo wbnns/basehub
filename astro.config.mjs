@@ -7,8 +7,8 @@ import rehypeNowrapInlineCode from './src/plugins/rehype-nowrap-inline-code.mjs'
 export default defineConfig({
 	site: 'https://basehub.org',
 	redirects: {
-		'/specifications/denim-200ms-blocks': '/specifications/cobalt-200ms-blocks/',
-		'/specifications/denim-200ms-blocks/': '/specifications/cobalt-200ms-blocks/',
+		'/specifications/cobalt-200ms-blocks': '/specifications/denim-200ms-blocks/',
+		'/specifications/cobalt-200ms-blocks/': '/specifications/denim-200ms-blocks/',
 	},
 	markdown: {
 		rehypePlugins: [rehypeNowrapInlineCode],
@@ -149,6 +149,7 @@ export default defineConfig({
 					items: [
 						{ label: 'RPC Overview', slug: 'api-reference/rpc-overview' },
 						{ label: 'Rollup Node RPC', slug: 'api-reference/rollup-node-rpc' },
+						{ label: 'Validity Transactions', slug: 'api-reference/validity-transactions' },
 						{ label: 'B20 Precompiles', slug: 'api-reference/b20-precompiles' },
 						{ label: 'B20 Invariants & Tests', slug: 'api-reference/b20-invariants' },
 						{
@@ -424,7 +425,8 @@ export default defineConfig({
 						{ label: 'Azul Execution Engine', slug: 'specifications/azul-exec-engine' },
 						{ label: 'Beryl Upgrade Overview', slug: 'specifications/beryl-overview' },
 						{ label: 'Cobalt Upgrade Overview', slug: 'specifications/cobalt-overview' },
-						{ label: 'Cobalt 200ms Native Blocks', slug: 'specifications/cobalt-200ms-blocks' },
+						{ label: 'Denim Upgrade Overview', slug: 'specifications/denim-overview' },
+						{ label: 'Denim 200ms Native Blocks', slug: 'specifications/denim-200ms-blocks' },
 						{ label: 'B20 Token Standard', slug: 'specifications/b20' },
 						{ label: 'Reth V2', slug: 'specifications/reth-v2' },
 						{ label: 'Transaction Event Journal', slug: 'specifications/transaction-events' },

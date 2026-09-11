@@ -134,7 +134,7 @@ B20 exposes a fixed set of policy scopes, each holding a `uint64` policy ID into
 | `TRANSFER_RECEIVER_POLICY` | The `to` of `transfer` / `transferFrom` |
 | `TRANSFER_EXECUTOR_POLICY` | The `msg.sender` of `transferFrom`, when distinct from `from` (not checked on `transfer`) |
 | `MINT_RECEIVER_POLICY` | The `to` of `mint` |
-| `SEIZE_HOLDER_POLICY` | The `from` of `seizeWithMemo`. Note the inversion — a holder is only seizable while this scope *denies* them |
+| `SEIZE_EXEMPT_POLICY` | The `from` of `seizeWithMemo`. Note the inversion — a holder is only seizable while this scope *denies* them |
 | `SEIZE_RECEIVER_POLICY` | The `to` of `seizeWithMemo`, which must be authorized |
 
 Note that neither `approve` nor `permit` is policy-gated — only real balance movement through `transfer` / `transferFrom` is checked.
@@ -166,7 +166,7 @@ There are two ways to burn:
 
 The call answers to `SEIZE_ROLE`, and it deliberately bypasses both allowance and the ordinary transfer policies. In their place it applies two checks of its own, and the first one runs backwards from what you'd expect:
 
-- `from` must be **denied** by `SEIZE_HOLDER_POLICY`. Authorization here marks an account as protected, so only accounts the policy turns away can be seized from.
+- `from` must be **denied** by `SEIZE_EXEMPT_POLICY`. Authorization here marks an account as protected, so only accounts the policy turns away can be seized from.
 - `to` must be **authorized** by `SEIZE_RECEIVER_POLICY`, which keeps seized balance flowing only to destinations the issuer has sanctioned.
 
 Missing either check reverts — `AccountNotSeizable` for the holder, `PolicyForbids` for the destination.

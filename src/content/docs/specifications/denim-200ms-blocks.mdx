@@ -1,27 +1,27 @@
 ---
-title: Cobalt 200ms Native Blocks
-description: Specification for the Cobalt upgrade's canonical 200ms blocks, where every 200ms interval becomes a full Base block and BaseTime supplies the sub-second timestamp.
+title: Denim 200ms Native Blocks
+description: Specification for the Denim upgrade's canonical 200ms blocks, where every 200ms interval becomes a full Base block, BaseTime supplies the sub-second timestamp, and block-counted durations shrink tenfold.
 sources:
-- base/docs:docs/upgrades/cobalt/200ms-blocks.mdx
-- base/docs:docs/upgrades/cobalt/overview.mdx
+- base/docs:docs/upgrades/denim/200ms-blocks.mdx
+- base/docs:docs/upgrades/denim/overview.mdx
 - base/docs:docs/upgrades/overview.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Cobalt changes how Base produces blocks. Instead of one canonical block every two seconds, the chain would seal five per second. Every 200ms interval would produce a block that is complete in its own right — separately numbered and hashed, with its own state root and receipts, its own forkchoice update, and its own path from unsafe to safe to finalized.
+Denim changes how Base produces blocks. Instead of one canonical block every two seconds, the chain would seal five per second. Every 200ms interval would produce a block that is complete in its own right — separately numbered and hashed, with its own state root and receipts, its own forkchoice update, and its own path from unsafe to safe to finalized.
 
 <Aside type="caution">
 200ms native blocks now run on Vibenet, the experimental preview network, so developers can try them early. That deployment can still change. Do not base production decisions on it.
 
-Cobalt is active on neither Sepolia nor Mainnet. No activation time is set for either, and the required client versions are still open.
+Denim is active on neither Sepolia nor Mainnet. Upstream now lists **October 2026** as the planning target for both, but no activation timestamp is published and the required client versions are still open.
 
-Which fork ships this is genuinely unsettled, so treat the name as provisional. The published upgrade docs place 200ms blocks under Cobalt, having moved them out of **Denim** in early September 2026. The node implementation says otherwise: as of 2026-09-10 every block-timing path is gated on `is_denim_active`, and a commit that day restored that gate after it had been pointed at Cobalt. Neither fork has an activation timestamp on any built-in chain, so nothing here is live outside Vibenet regardless of the label. None of the mechanics below depend on the outcome — the BaseTime deposit, the 200ms cadence, and the Flashblocks retirement are the same either way.
+Denim makes `block.number` advance ten times faster in wall-clock time. Any contract that counts blocks to measure a duration is affected. Read [Block-number contract logic](#block-number-contract-logic) before activation.
 </Aside>
 
-## What Cobalt changes
+## What Denim changes
 
-Today [Flashblocks](/flashblocks/overview/) publish incremental previews of pending state inside a single two-second block. Cobalt removes the need for that layer by making the 200ms interval a real block. Under the rollout Base stops emitting Flashblocks entirely, so anything reading a Flashblocks stream has to move over to canonical block and RPC feeds.
+Today [Flashblocks](/flashblocks/overview/) publish incremental previews of pending state inside a single two-second block. Denim removes the need for that layer by making the 200ms interval a real block. Under the rollout Base stops emitting Flashblocks entirely, so anything reading a Flashblocks stream has to move over to canonical block and RPC feeds.
 
 <Aside type="note">
 Does your application read Flashblocks? [Migrate from Flashblocks](/flashblocks/migrate-to-200ms-blocks/) lists the API changes each integration needs.
@@ -34,12 +34,40 @@ The Ethereum block header does not change. Its `timestamp` field stays Unix time
 | Network | Status | Activation timestamp | Required client versions |
 | --- | --- | --- | --- |
 | `vibenet` | Live for experimental testing | — | — |
-| `sepolia` | Not active | `TBD` | `TBD` |
-| `mainnet` | Not active | `TBD` | `TBD` |
+| `sepolia` | Planning for October 2026 | `TBD` | `TBD` |
+| `mainnet` | Planning for October 2026 | `TBD` | `TBD` |
 
 Vibenet carries 200ms blocks today, which makes it the place to exercise an integration ahead of time.
 
-Upstream lists **late October 2026** as the planning target for Cobalt on both Sepolia and Mainnet. That is a target under a planning status rather than a booked activation: no timestamp is published for either network, and the required client versions are still open. The node source agrees, leaving `cobalt_timestamp` unset on every canonical network. Treat the month as subject to change until timestamps appear.
+Upstream lists **October 2026** as the planning target for Denim on both Sepolia and Mainnet. That is a target under a planning status rather than a booked activation: neither network has a published timestamp, and the required client versions are still open. The node source is consistent with that, leaving `denim_timestamp` unset on every canonical network. Treat the month as subject to change until timestamps appear.
+
+The fork name is no longer in doubt. Upstream briefly filed 200ms blocks under Cobalt in early September 2026 and has since moved them back to Denim, which matches what the node has done throughout: every block-timing path gates on `is_denim_active_at_timestamp`, and the BaseTime helper lives under the same gate.
+
+## Block-number contract logic
+
+<Aside type="caution">
+This is the change most likely to break deployed code. Denim does not slow `block.number` down to keep pace with wall-clock time. Blocks arrive five times per second instead of once every two seconds, so the counter runs **ten times faster** while `block.timestamp` keeps advancing in whole seconds. Every duration a contract expresses as a number of blocks shrinks to a tenth of its intended length the moment the fork activates. A block count compiled into an immutable or non-upgradeable contract cannot be retuned afterwards.
+</Aside>
+
+Audit anything that converts a block count into a duration before activation. The common patterns and what each does afterwards:
+
+| Pattern | Effect after Denim |
+| --- | --- |
+| Timelocks, cooldowns, and exit delays written as `block.number - start >= N` | Elapse in one tenth of the intended wall-clock time. |
+| Vesting, emission, or difficulty schedules counted in blocks | Complete or retarget ten times faster in wall-clock time. |
+| Per-block rate limits or caps that reset whenever `block.number` moves | Reset five times per second rather than once every two seconds, lifting the effective per-second limit ten times. |
+| Deadlines set as `expirationBlock = block.number + N` | Expire in one tenth of the intended wall-clock time. |
+| Governance voting delay and voting period in blocks, including `ERC20Votes` on the default block-number `clock()` | Voting windows shrink ten times. Stored checkpoints stay correct. |
+| Uniswap V3 style TWAP oracles | The averages stay correct, because the accumulators weight by seconds rather than by blocks. The catch is history depth: a fixed observation cardinality now spans roughly half the wall-clock window it used to, so a long `observe()` lookback starts reverting with `OLD` earlier than it did. |
+
+Logic that measures time with `block.timestamp` is unaffected, which is the cheapest fix where a redeploy is possible.
+
+Four ways to prepare, roughly in order of preference:
+
+- Swap block-count durations for `block.timestamp` comparisons anywhere you can redeploy or upgrade.
+- Where the block count is governance-tunable, queue a change that divides it by ten at activation.
+- Where the count is immutable and cannot be changed, work out the blast radius now and plan a migration rather than discovering it on activation day.
+- Exercise the new behaviour on [vibenet](/introduction/connecting-to-base/), which already seals 200ms blocks.
 
 ## Execution
 
@@ -92,7 +120,7 @@ Contracts that need the current millisecond part read it from a predeploy.
 
 Ordering is what makes the value trustworthy inside a block. BaseTime executes ahead of L1 user deposits and ahead of user transactions, so everything that runs later already sees the current value.
 
-A chain starting fresh gets the linked predeploy in genesis. On a chain that already exists, the reserved address holds the canonical proxy runtime under the Base ProxyAdmin, but with no implementation set — calls to it revert until Cobalt activates. Activation installs the canonical implementation and links the proxy before any transaction executes, and it leaves both the proxy admin and any implementation that governance already set in place.
+A chain starting fresh gets the linked predeploy in genesis. On a chain that already exists, the reserved address holds the canonical proxy runtime under the Base ProxyAdmin, but with no implementation set — calls to it revert until Denim activates. Activation installs the canonical implementation and links the proxy before any transaction executes, and it leaves both the proxy admin and any implementation that governance already set in place.
 
 ### Engine payload attributes
 
@@ -110,7 +138,7 @@ Payload IDs fold in `timestampMillisPart`, so two builds that differ only by mil
 
 The checks split across two moments, because headers carry no milliseconds.
 
-On `forkchoiceUpdated` the execution client validates what it can without touching contract state: the millisecond part is absent before Cobalt, present and one of the five legal values after, and the whole-second timestamp is not behind the parent's.
+On `forkchoiceUpdated` the execution client validates what it can without touching contract state: the millisecond part is absent before Denim, present and one of the five legal values after, and the whole-second timestamp is not behind the parent's.
 
 The 200ms spacing can only be confirmed once the block has executed and the deposit is readable. At that point the client **MUST** confirm the full timestamp lands exactly 200ms past the parent's. A block that misses is invalid.
 
@@ -118,7 +146,7 @@ The 200ms spacing can only be confirmed once the block has executed and the depo
 
 ### Scheduled timestamps
 
-After activation, derivation computes timestamps from the Cobalt schedule and the absolute L2 block number. It reads the millisecond part neither from batch data nor from the local clock, which is what keeps the result deterministic. Blocks walk the second in five steps:
+After activation, derivation computes timestamps from the Denim schedule and the absolute L2 block number. It reads the millisecond part neither from batch data nor from the local clock, which is what keeps the result deterministic. Blocks walk the second in five steps:
 
 `p (.000)` → `child (.200)` → `child (.400)` → `child (.600)` → `child (.800)` → `child (.000 in the next second)`
 
@@ -133,7 +161,7 @@ Two deposits lead the transaction list — L1 information first at `tx[0]`, Base
 ## RPC
 
 <Aside>
-The behavior in this section is planned for Cobalt. None of it is live on production endpoints.
+The behavior in this section is planned for Denim. None of it is live on production endpoints.
 </Aside>
 
 ### Seconds stay put
@@ -185,14 +213,14 @@ Mined logs gain the same optional `blockTimestampMs` when returned by:
 
 Receipts place the field one level down, on each nested log, and never on the receipt object itself. Should a log be removed, it keeps the block timestamp and the provenance it was first given. When the originating block's authenticated metadata cannot be read, the field is dropped instead of estimated.
 
-Pruned or unprovenanced transaction and log data behaves the same way. Keeping all of these optional is what lets pre-Cobalt history, and clients lacking the body data, still be represented.
+Pruned or unprovenanced transaction and log data behaves the same way. Keeping all of these optional is what lets pre-Denim history, and clients lacking the body data, still be represented.
 
 ### Tooling
 
-Foundry can carry an unknown block-level `timestampMs` through its `AnyRpcBlock` and `OtherFields` paths while EVM execution keeps working in seconds. Plain Alloy `AnyRpcHeader` discards unknown fields, so anything that needs Cobalt timestamps should reach for `WithOtherFields<AnyRpcHeader>` or a typed Base response instead. Anvil is not expected to attach BaseTime metadata to locally mined blocks in the first rollout.
+Foundry can carry an unknown block-level `timestampMs` through its `AnyRpcBlock` and `OtherFields` paths while EVM execution keeps working in seconds. Plain Alloy `AnyRpcHeader` discards unknown fields, so anything that needs Denim timestamps should reach for `WithOtherFields<AnyRpcHeader>` or a typed Base response instead. Anvil is not expected to attach BaseTime metadata to locally mined blocks in the first rollout.
 
 ## What this means for integrators
 
-Applications reading Flashblocks preconfirmations are the ones with work to do, because that stream goes away rather than changing shape. The replacement is the canonical block feed, which after Cobalt arrives at the same 200ms cadence the Flashblocks stream did — with the difference that each update is a sealed block rather than a preview of a pending one.
+Applications reading Flashblocks preconfirmations are the ones with work to do, because that stream goes away rather than changing shape. The replacement is the canonical block feed, which after Denim arrives at the same 200ms cadence the Flashblocks stream did — with the difference that each update is a sealed block rather than a preview of a pending one.
 
 Code that only reads `timestamp` needs no change. Code that needs millisecond resolution reads `timestampMs` on blocks and headers, or `blockTimestampMs` on transactions and logs, and must tolerate the field being absent for older or pruned data.

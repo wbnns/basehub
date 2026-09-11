@@ -1,75 +1,66 @@
 ---
 title: Cobalt Upgrade Overview
-description: Summary of the Cobalt hardfork — canonical 200ms blocks, a batch of B20 additions, and upgrade timestamps read from an onchain contract. Native account abstraction has moved to Denim.
+description: Summary of the Cobalt hardfork — B20 improvements, validity transactions, upgrade timestamps read from an onchain contract, and a move into a trusted execution environment.
 sources:
 - base/docs:docs/upgrades/cobalt/overview.mdx
-- base/docs:docs/upgrades/cobalt/200ms-blocks.mdx
 - base/docs:docs/upgrades/cobalt/dynamic-upgrades.mdx
 - base/docs:docs/upgrades/overview.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). It carries three things: canonical 200ms block production, a batch of B20 additions, and a first step toward lifting fork timestamps out of the node binary. Account abstraction under [EIP-8130](https://eip.tools/eip/8130) was the fork's headline change until early September 2026, when upstream moved it to the following fork. The section [below](#where-account-abstraction-went) covers where that leaves it.
+Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its scope settled in mid-September 2026 after two rounds of reshuffling, and it now carries four things: a batch of B20 additions, conditional transactions that only become eligible when chain state matches, a first step toward lifting fork timestamps out of the node binary, and a move of Base infrastructure into a trusted execution environment.
 
 ## Status
 
 | Network | Status | Target |
 |---|---|---|
-| Base Sepolia | Planning | Late October 2026 |
-| Base Mainnet | Planning | Late October 2026 |
-| vibenet | Active | Available to preview today |
+| Base Sepolia | Planning | September 2026 |
+| Base Mainnet | Planning | September 2026 |
 
 <Aside type="caution">
-Late October is a target under a planning status, not a booked activation. Cobalt has no activation timestamp on Mainnet or Sepolia, and the node source matches that: `cobalt_timestamp` is unset on every canonical network. The fork's contents have also moved twice since the first target was published. Treat both the date and the scope as provisional until timestamps appear.
+September is a target under a planning status, not a booked activation. Cobalt has no activation timestamp on Mainnet or Sepolia, and the node source matches that: `cobalt_timestamp` is unset on every canonical network. The fork's contents have also moved more than once. Treat both the date and the scope as provisional until timestamps appear.
 </Aside>
 
 ## What Cobalt ships
 
-- **200ms native blocks** — block production goes from one canonical block every two seconds to five per second, each a complete block with its own hash, state root, receipts, and forkchoice lifecycle. This retires [Flashblocks](/flashblocks/overview/). Full detail in [Cobalt 200ms Native Blocks](/specifications/cobalt-200ms-blocks/).
-- **B20 additions** — fees payable in B20, scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
+- **B20 improvements** — fees payable in B20, scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
+- **Validity transactions** — a signed transaction paired with conditions on chain state, which Base holds back until every condition matches. See [Validity Transactions](/api-reference/validity-transactions/).
 - **Dynamic upgrades** — an L1 contract holds the fork schedule, so activation no longer depends on shipping a binary with the timestamps compiled in.
+- **TEE migration** — Base infrastructure moves inside a trusted execution environment. Upstream has not published the specification yet.
 
-## The scope change of September 2026
+## What moved out of Cobalt
 
-Cobalt and the fork after it swapped their headline features. It is worth stating plainly, because material written before the swap says the opposite:
+Two features carried the Cobalt label at some point and no longer do. Material written earlier says otherwise, so it is worth stating plainly:
 
-| | Before | Now |
+| Feature | Now shipped by | Status |
 |---|---|---|
-| **Cobalt** | Native account abstraction (EIP-8130) | Canonical 200ms blocks |
-| **Denim** | Canonical 200ms blocks | Native account abstraction (EIP-8130) |
+| Canonical 200ms blocks, BaseTime, millisecond RPC timestamps | [Denim](/specifications/denim-overview/) | Planning, targeting October 2026 |
+| Native account abstraction (EIP-8130) | No scheduled fork | Gated behind `zenith`, which is unset everywhere |
 
-Cobalt's target moved from September to late October 2026 alongside the swap. Denim lost its November target and now carries no date at all.
+The 200ms work was briefly filed under Cobalt in early September 2026 and has since moved back to Denim. The node source never followed it across: block-timing paths have gated on `is_denim_active_at_timestamp` throughout, so the reassignment restores agreement between the docs and the implementation.
 
-The swap has not fully settled in the implementation. On 2026-09-10 upstream restored the block-timing activation gate to `is_denim_active`, undoing a move onto Cobalt, so the node source still ties 200ms blocks to Denim while the published docs tie them to Cobalt. Nothing is scheduled either way — both `cobalt_timestamp` and `denim_timestamp` are unset on every built-in chain. [Cobalt 200ms Native Blocks](/specifications/cobalt-200ms-blocks/) covers the mechanics, which the naming does not affect.
+Account abstraction is the murkier of the two. It has no fork of its own now. Its runtime gate is `zenith`, which sits off the execution fork ladder and is hardcoded to `None` for every canonical network, with a source comment stating the gate exists for genesis-level testing and must not reach a canonical schedule. Devnets opt in through their own genesis config. The model itself is documented in [Native Account Abstraction](/architecture/native-account-abstraction/); what is missing is a date and a fork to carry it.
 
 ## Required software
 
 Node requirements get published once Cobalt has real activation timestamps, so there is nothing for operators to install ahead of time. To follow the work as it lands, point a client at [vibenet](/introduction/connecting-to-base/) instead.
 
-## Canonical 200ms blocks
+## B20 improvements
 
-Base currently seals one block every two seconds. Cobalt makes each 200ms interval its own canonical block — separately numbered and hashed, carrying its own state root, receipts, and Engine payload, and walking its own path from unsafe to safe to finalized.
+Cobalt widens the B20 surface rather than changing it. Every Beryl selector, event topic, and error keeps its 4-byte identity, so existing integrations keep compiling and keep working.
 
-The Ethereum header is untouched. Its `timestamp` field stays Unix time in whole seconds, and a BaseTime metadata deposit at `tx[1]` supplies the sub-second part. Only `0`, `200`, `400`, `600`, and `800` are legal values for it. Contracts see no change, because EVM `block.timestamp` still reports the whole-second header value.
-
-<Aside type="caution">
-Flashblocks production stops at the Cobalt rollout. Applications reading a Flashblocks stream or the `"pending"` block tag have migration work, and there is no direct replacement for preconfirmation state. [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) pairs each integration with its replacement.
-</Aside>
-
-The node source corroborates the reassignment. BaseTime predeploy installation is staged behind `is_cobalt_active_at_timestamp`, so the 200ms mechanism activates on the Cobalt gate rather than a later one.
-
-## Where account abstraction went
+The additions worth knowing about: transaction fees payable in a B20 token, multiplier updates that can be scheduled ahead of time instead of landing instantly, a `seizeWithMemo` call that reassigns a holder's balance in one admin step, and Union and Intersect policy types that compose existing policies.
 
 <Aside type="caution">
-**EIP-8130 has left Cobalt.** Upstream documentation now files it under Denim, the fork after Cobalt, with no target date on either Sepolia or Mainnet. The node source tells a subtler story: the runtime gate for EIP-8130 transactions is `zenith`, which sits off the execution fork ladder and is hardcoded to `None` for every canonical network. A comment beside it states that the gate exists for genesis-level testing and must never reach a canonical schedule; devnets opt in through their own genesis config. The likeliest reading is that Denim is the fork intended to carry EIP-8130 to production while Zenith remains the devnet gate, but upstream has not said so directly. Either way, no network has a date.
+One Cobalt rename does break an ABI. The policy scope consulted by `seizeWithMemo` was `SEIZE_HOLDER_POLICY` (`0xb279d311`) and is now `SEIZE_EXEMPT_POLICY` (`0xfeb346ec`). The selector and the `keccak256` scope constant both change with it. Code that hardcodes either value needs updating. The behaviour is unchanged: an account authorized by this scope is exempt from seizure, and a token whose issuer never configures the slot has no seize capability at all.
 </Aside>
 
-An account registers its actors and its validation rules once, and from then on the protocol enforces them on every transaction. Nothing sits in between — no bundler, no relay, no separate transaction pool.
+## Validity transactions
 
-What that buys an application is a set of behaviours that previously each needed their own machinery: accounts that a user carries between chains, session keys that expire and revoke as real permissions rather than blanket approvals, batches that succeed or fail as one unit, and gas that someone else can pay without a paymaster contract in the path. Because the transaction type was designed together with the chain rather than layered above it, the per-transaction cost falls well below what ERC-4337 charges for the same work.
+A validity transaction is an ordinary signed transaction submitted alongside a list of predicates over chain state. Base holds it out of the block until every predicate matches, then lets it compete for inclusion on normal fee rules. This makes conditional swaps, conditional withdrawals, and similar state-dependent actions expressible without a keeper watching the chain and racing to submit.
 
-The full model — accounts, signers and actors, scopes and policies, authenticators, and payers — plus a working vibenet example is in [Native Account Abstraction](/architecture/native-account-abstraction/).
+The predicates read balances, raw storage slots, block numbers, and Flashblock positions. They are submitted out of band and never appear onchain. The [Validity Transactions reference](/api-reference/validity-transactions/) covers the request format, the predicate types, and the safety rules that go with reading storage directly.
 
 ## Dynamic upgrades
 
@@ -78,5 +69,5 @@ Every fork so far has needed a fresh node release carrying the activation timest
 Cobalt separates them. An Ethereum contract stores the upgrade schedule, and both the execution and consensus clients run a poller that reads it over an L1 RPC endpoint, writes the result into the client's activation overrides, and applies it everywhere the schedule is consulted. A fork can then activate at its scheduled moment with no restart.
 
 <Aside type="note">
-At Cobalt this runs in metrics-only mode while Base gathers evidence that the mechanism behaves. It arrives inside the Cobalt node release, so operators have nothing to configure.
+At Cobalt this runs in metrics-only mode on Mainnet while Base gathers evidence that the mechanism behaves. It arrives inside the Cobalt node release, so operators have nothing to configure.
 </Aside>

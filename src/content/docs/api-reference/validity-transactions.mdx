@@ -1,0 +1,216 @@
+---
+title: Validity Transactions
+description: Reference for base_sendRawTransactionValidity — submitting a signed transaction with predicates over chain state, so Base holds it back until every condition matches.
+sources:
+- base/docs:docs/specifications/build-transaction/validity-transactions.mdx
+- base/docs:docs/specifications/build-transaction/base_sendRawTransactionValidity.mdx
+- base/docs:docs/specifications/build-transaction/build-a-validity-transaction.mdx
+- base/docs:docs/specifications/build-transaction/predicates-and-safety.mdx
+- base/docs:docs/specifications/build-transaction/fees-ordering-and-lifecycle.mdx
+- base/docs:docs/specifications/build-transaction/troubleshooting.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A validity transaction is an ordinary signed transaction handed to Base together with a list of conditions on chain state. Base keeps it out of a block until every condition matches, then lets it compete for inclusion on the usual fee rules. The pattern suits conditional swaps, conditional withdrawals, and anything else that should only fire once the chain reaches a particular state.
+
+The method accepts legacy, EIP-2930, and EIP-1559 transactions. EIP-1559 is the recommended type.
+
+<Aside type="caution">
+This is experimental. `base_sendRawTransactionValidity` is available on Vibenet only. Mainnet and Base Sepolia availability are unconfirmed, error codes and messages are not stable, and the production API contract is not settled. Arriving in the [Cobalt](/specifications/cobalt-overview/) upgrade.
+</Aside>
+
+## How it works
+
+Submit two things: a signed raw transaction, and an object carrying a non-empty `validity` array. Base evaluates the predicates before inclusion. A transaction whose predicates do not all match stays pending rather than failing.
+
+That waiting behaviour is the useful part. An earlier transaction can move the balance or storage value a pending transaction is watching, and the pending transaction then becomes eligible — possibly within the same Flashblock. No keeper has to watch the chain and race to submit.
+
+Eligibility is not a reservation. A matching predicate set earns a place in the ordinary competition for block space, nothing more.
+
+## `base_sendRawTransactionValidity`
+
+### Parameters
+
+| Position | Value |
+| --- | --- |
+| 1 | A signed, serialized transaction (legacy, EIP-2930, or EIP-1559) |
+| 2 | An object containing a non-empty `validity` array |
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "base_sendRawTransactionValidity",
+  "params": [
+    "0x<signed-raw-transaction>",
+    {
+      "validity": [
+        {
+          "type": "storage",
+          "params": {
+            "address": "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
+            "slot": "0x8",
+            "mask": "0xff",
+            "op": "=",
+            "value": "0x2a"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Returns
+
+A 32-byte transaction hash, as a `0x`-prefixed string.
+
+<Aside type="note">
+The hash confirms that Base accepted the submission. It does not confirm inclusion. Poll [`eth_getTransactionReceipt`](/api-reference/eth/) to find out whether the transaction actually landed.
+</Aside>
+
+### Errors
+
+Failures come back as JSON-RPC errors. Handle at least three cases: the method being unavailable on the endpoint, invalid parameters, and a missing transaction hash in the response. Do not pattern-match on codes or message text yet, because neither is stable.
+
+## Predicate types
+
+| Type | Parameters |
+| --- | --- |
+| `balance` | `address`, `op`, `value` |
+| `storage` | `address`, `slot`, `op`, `value`, optional `mask` |
+| `block_number` | `op`, `value` |
+| `flashblock_index` | `op`, `value` |
+
+Operators are `<`, `<=`, `=`, `!=`, `>`, and `>=`. Every value is a `0x`-prefixed hexadecimal string.
+
+For a storage predicate Base compares `(storage[address][slot] & mask)` against `value`. Leave `mask` out to compare the whole storage word; it defaults to all ones.
+
+Use `block_number` to pin a target block and `flashblock_index` to pin a position inside it. Both conditions need their own predicate — one entry cannot express both.
+
+## Safety
+
+<Aside type="caution">
+A predicate is not a simulation. It reads a value and compares it, and that is all. Keep the checks your application actually depends on inside the contract call, where a failure reverts. A predicate that passes tells you nothing about whether the call will succeed.
+</Aside>
+
+Three further limits are worth internalising before writing one:
+
+- **Storage predicates read raw slots.** They cannot call a view function or evaluate anything computed. You need the target contract's storage layout, and that layout is an implementation detail the contract author can change under an upgrade.
+- **State moves during block building.** A condition true when you submit can be false at inclusion, and the reverse. Treat the predicate as a filter, not a guarantee.
+- **A zero-valued slot proves nothing.** An uninitialized contract, a proxy before initialization, and a CREATE2 address that has not been deployed yet all read as zero. None of them is safe to call on that basis.
+
+Do not use a transaction's position as a randomness source.
+
+## Fees, ordering, and lifecycle
+
+Fees follow the normal rules for the transaction type. For EIP-1559 set `maxFeePerGas` and `maxPriorityFeePerGas` on the signed transaction as usual.
+
+A transaction that never becomes eligible costs nothing onchain. One that is included pays normal execution fees, and it pays them even if it reverts.
+
+**Expiry** is something you build rather than something you get. Add a `block_number` predicate with an upper bound to cap a transaction's lifetime, and pair it with `flashblock_index` to tighten that bound to a position within the block.
+
+**Replacement** works the way it does for ordinary transactions: sign again with the same sender and nonce. If the node answers with an underpriced-replacement error, raise the fee fields, re-sign, and retry.
+
+<Aside type="caution">
+Validity criteria travel beside the signed transaction, not inside it, and never appear in the resulting onchain transaction. That is a privacy property worth understanding rather than relying on. Keep secrets out of both calldata and predicate values.
+</Aside>
+
+## Worked example
+
+Build the predicate list first. This one waits for an account to hold a balance, waits for a storage slot to reach a value, and bounds the result to a block and a Flashblock position:
+
+```ts
+import type { Address, Hex } from 'viem';
+
+const validity = [
+  {
+    type: 'balance',
+    params: {
+      address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72' as Address,
+      op: '>=',
+      value: '0x1' as Hex,
+    },
+  },
+  {
+    type: 'storage',
+    params: {
+      address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72' as Address,
+      slot: '0x8' as Hex,
+      op: '=',
+      value: '0x2a' as Hex,
+    },
+  },
+  {
+    type: 'block_number',
+    params: { op: '<=', value: '0x11a6a1' as Hex },
+  },
+  {
+    type: 'flashblock_index',
+    params: { op: '<=', value: '0x2' as Hex },
+  },
+] as const;
+```
+
+Sign an EIP-1559 transaction against the sender's next nonce. The signed payload becomes the first RPC parameter:
+
+```ts
+import { createPublicClient, http, type Chain } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const client = createPublicClient({ chain, transport: http(rpcUrl) });
+const account = privateKeyToAccount(privateKey);
+const fees = await client.estimateFeesPerGas();
+const nonce = await client.getTransactionCount({
+  address: account.address,
+  blockTag: 'latest',
+});
+
+const rawTransaction = await account.signTransaction({
+  chainId: (chain as Chain).id,
+  type: 'eip1559',
+  nonce,
+  to: '0x...' as Address,
+  data: '0x...' as Hex,
+  value: 0n,
+  gas: 100_000n,
+  maxFeePerGas: fees.maxFeePerGas,
+  maxPriorityFeePerGas: fees.maxPriorityFeePerGas,
+});
+```
+
+Then submit both parameters. Viem has no client method for this yet, so call the endpoint directly:
+
+```ts
+const response = await fetch(rpcUrl, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'base_sendRawTransactionValidity',
+    params: [rawTransaction, { validity }],
+  }),
+});
+
+const body = await response.json();
+if (body.error) throw new Error(body.error.message);
+const hash = body.result;
+```
+
+## When a transaction does not land
+
+Start by separating "not accepted" from "accepted but not included". A returned hash means the submission was accepted, so anything after that is an inclusion question.
+
+**The method is unavailable.** The endpoint does not support `base_sendRawTransactionValidity`. Vibenet is currently the only network that does.
+
+**Submission fails.** Check that the first parameter really is a signed legacy, EIP-2930, or EIP-1559 transaction, and that the second parameter carries a non-empty `validity` array. Then check each predicate's type, operator, and that every value is `0x`-prefixed hex.
+
+**It stays pending.** Four ordinary explanations: a predicate is still false, other transactions are outbidding it, a replacement superseded it, or its `block_number` or `flashblock_index` bound has passed.
+
+**It expired.** Sign and submit a fresh transaction with later bounds. An expired one does not revive.
+
+**Replacement is underpriced.** Raise the fee fields and retry with the same sender and nonce.
+
+When escalating, record the network, RPC provider, transaction hash, predicate type, submission time, and the full JSON-RPC error. Never paste private keys, authentication data, or complete signed transactions into a public channel.

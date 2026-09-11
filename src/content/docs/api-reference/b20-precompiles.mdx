@@ -66,7 +66,7 @@ Each of these names one slot on the token. The slot holds a `uint64` policy ID, 
 | `TRANSFER_RECEIVER_POLICY` | `0x210f521b` | `to`, on every transfer. |
 | `TRANSFER_EXECUTOR_POLICY` | `0x724e9c53` | `msg.sender` on `transferFrom`, but only where it differs from `from`. |
 | `MINT_RECEIVER_POLICY` | `0x6e5b013d` | `to`, on every mint. |
-| `SEIZE_HOLDER_POLICY` | `0xb279d311` | `from`, when `seizeWithMemo` runs. |
+| `SEIZE_EXEMPT_POLICY` | `0xfeb346ec` | `from`, when `seizeWithMemo` runs. |
 | `SEIZE_RECEIVER_POLICY` | `0xb31da27f` | `to`, when `seizeWithMemo` runs. |
 
 ### ERC-20 surface
@@ -310,7 +310,7 @@ Reverse lookup for revert selectors. A few names appear more than once — `NonP
 | `PolicyForbids` | `0xa43fec12` | One of the policy slots turned the operation down. |
 | `PolicyNotFound` | `0xcccad523` | The policy ID given isn't in the registry. |
 | `UnsupportedPolicyType` | `0xcdd98a4a` | This token, or this variant of it, has no such `policyScope`. |
-| `AccountNotSeizable` | `0x91dbbc8d` | `seizeWithMemo` targeted a `from` that `SEIZE_HOLDER_POLICY` still authorizes. |
+| `AccountNotSeizable` | `0x91dbbc8d` | `seizeWithMemo` targeted a `from` that `SEIZE_EXEMPT_POLICY` still authorizes. |
 | `AccountNotBlocked` | `0x64a5cb46` | The deprecated `burnBlocked` targeted a `from` that is still authorized. |
 | `ExpiredSignature` | `0xbd2a913c` | The `permit` arrived with a `deadline` already behind `block.timestamp`. |
 | `InvalidSigner` | `0x7ba5ffb5` | ECDSA recovery on the `permit` produced a `signer` that isn't the `owner` claimed. |
@@ -395,7 +395,7 @@ Reverse lookup for revert selectors. A few names appear more than once — `NonP
 | Transfer receiver | `keccak256("TRANSFER_RECEIVER_POLICY")` |
 | Transfer executor | `keccak256("TRANSFER_EXECUTOR_POLICY")` |
 | Mint receiver | `keccak256("MINT_RECEIVER_POLICY")` |
-| Seize holder | `keccak256("SEIZE_HOLDER_POLICY")` |
+| Seize exempt | `keccak256("SEIZE_EXEMPT_POLICY")` |
 | Seize receiver | `keccak256("SEIZE_RECEIVER_POLICY")` |
 
 ### Policy IDs
@@ -456,7 +456,7 @@ Beryl carried the roles model, the policy registry with its six per-token scopes
 
 Three groups are specified and documented above, but undialable until Cobalt activates.
 
-**The seize surface on `IB20`.** `seizeWithMemo` (`0xf916d81b`), the `SEIZE_ROLE`, `SEIZE_HOLDER_POLICY` and `SEIZE_RECEIVER_POLICY` getters, the `Seized` event, the `AccountNotSeizable` error, and the `SEIZE` pause ordinal (`3`, bit `8`) all land together. It is defined on the shared `IB20` surface, so Asset and Stablecoin expose it identically.
+**The seize surface on `IB20`.** `seizeWithMemo` (`0xf916d81b`), the `SEIZE_ROLE`, `SEIZE_EXEMPT_POLICY` and `SEIZE_RECEIVER_POLICY` getters, the `Seized` event, the `AccountNotSeizable` error, and the `SEIZE` pause ordinal (`3`, bit `8`) all land together. It is defined on the shared `IB20` surface, so Asset and Stablecoin expose it identically.
 
 **The ERC-8056 multiplier surface on `IB20Asset`.** `uiMultiplier`, `toUIAmount`, `fromUIAmount`, `balanceOfUI` and `totalSupplyUI` become the canonical names, and the scheduled setter `updateUIMultiplier` joins `newUIMultiplier`, `effectiveAt`, `cancelUIMultiplierUpdate`, `MAX_UI_MULTIPLIER` and `supportsInterface`. The older `multiplier`, `toScaledBalance`, `toRawBalance` and `scaledBalanceOf` are kept as aliases returning the same values.
 
@@ -473,12 +473,16 @@ Nothing you call today stops working, so none of this is urgent. Each item is a 
 The two are not interchangeable, and swapping the selector alone will not reproduce the old outcome:
 
 - **Seize is a transfer, not a burn.** It moves `amount` from `from` to `to` and leaves `totalSupply` alone. To get the old result, seize into a treasury or self address and then call `burn`.
-- **They read different policies.** `seizeWithMemo` consults `SEIZE_HOLDER_POLICY`; `burnBlocked` consults `TRANSFER_SENDER_POLICY`. A token can define a seizable set that has nothing to do with its transfer-blocked set. Under both, "eligible" means *not* authorized by the relevant policy.
+- **They read different policies.** `seizeWithMemo` consults `SEIZE_EXEMPT_POLICY`; `burnBlocked` consults `TRANSFER_SENDER_POLICY`. A token can define a seizable set that has nothing to do with its transfer-blocked set. Under both, "eligible" means *not* authorized by the relevant policy.
 - **They sit in different role and pause domains.** `SEIZE_ROLE` and `BURN_BLOCKED_ROLE` are separate grants, and `SEIZE` (ordinal 3) and `BURN` (ordinal 2) are separate pause bits. Pausing one leaves the other running.
 
 <Aside type="caution">
-Seize is off until an issuer switches it on. An unset policy slot reads as always-allow, so with `SEIZE_HOLDER_POLICY` unset no account qualifies as seizable and every `seizeWithMemo` call reverts `AccountNotSeizable`. A token whose issuer never configures that slot has no seize capability at all. Leaving `SEIZE_RECEIVER_POLICY` unset has the opposite effect — any destination is permitted.
+Seize is off until an issuer switches it on. An unset policy slot reads as always-allow, so with `SEIZE_EXEMPT_POLICY` unset no account qualifies as seizable and every `seizeWithMemo` call reverts `AccountNotSeizable`. A token whose issuer never configures that slot has no seize capability at all. Leaving `SEIZE_RECEIVER_POLICY` unset has the opposite effect — any destination is permitted.
 </Aside>
+
+The scope was renamed at Cobalt. It was `SEIZE_HOLDER_POLICY` with selector `0xb279d311`, and it is now `SEIZE_EXEMPT_POLICY` with selector `0xfeb346ec`. Both the selector and the `keccak256` scope constant change, so any code holding either value hardcoded needs updating. Behaviour did not move with the name — the inverted check is the same one it always was.
+
+Attach a `BLOCKLIST` to this scope. Accounts on the blocklist read as unauthorized and are therefore seizable; everyone else stays exempt. An `ALLOWLIST` or the `ALWAYS_BLOCK` sentinel inverts that and makes every holder seizable, which is almost never what an issuer wants here. The scope is also independent of `TRANSFER_SENDER_POLICY`: blocking an account from transferring does not make it seizable.
 
 When more than one guard would fail, the holder gate reports first, then the destination gate, then the balance: `AccountNotSeizable` before `PolicyForbids(SEIZE_RECEIVER_POLICY, ...)` before `InsufficientBalance`.
 

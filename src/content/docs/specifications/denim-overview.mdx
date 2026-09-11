@@ -1,0 +1,52 @@
+---
+title: Denim Upgrade Overview
+description: Summary of the Denim hardfork — canonical 200ms blocks, onchain millisecond time through the BaseTime predeploy, and millisecond-resolution RPC timestamps.
+sources:
+- base/docs:docs/upgrades/denim/overview.mdx
+- base/docs:docs/upgrades/denim/200ms-blocks.mdx
+- base/docs:docs/upgrades/overview.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Denim is the Base hardfork that follows [Cobalt](/specifications/cobalt-overview/). It is a single idea expressed three ways: Base seals blocks five times per second instead of once every two seconds, the chain gains a millisecond clock that contracts can read, and RPC responses learn to report time at that resolution.
+
+## Status
+
+| Network | Status | Target |
+|---|---|---|
+| Base Sepolia | Planning | October 2026 |
+| Base Mainnet | Planning | October 2026 |
+| vibenet | Live for experimental testing | Available to preview today |
+
+<Aside type="caution">
+October is a planning target, not a booked activation. Neither Sepolia nor Mainnet has a published activation timestamp, the required client versions are still open, and `denim_timestamp` is unset on every canonical network in the node source. Vibenet already seals 200ms blocks, which makes it the place to exercise an integration early, but that deployment can still change.
+</Aside>
+
+## What Denim ships
+
+- **200ms native blocks** — block production goes from one canonical block every two seconds to five per second, each a complete block with its own number, hash, state root, receipts, and forkchoice lifecycle. This retires [Flashblocks](/flashblocks/overview/). Full detail in [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/).
+- **BaseTime** — a predeploy that carries the sub-second part of each block's timestamp, supplied by a metadata deposit. Contracts can read the current block's millisecond component while EVM `block.timestamp` stays whole-second.
+- **Millisecond RPC timestamps** — blocks, headers, transactions, logs, and receipts gain optional `timestampMs` and `blockTimestampMs` fields derived from authenticated BaseTime metadata. The existing seconds-based `timestamp` field does not change.
+
+<Aside type="caution">
+**Check your contracts for block-counted durations before activation.** `block.number` advances ten times faster in wall-clock time under Denim while `block.timestamp` does not change its pace. Timelocks, cooldowns, vesting schedules, governance windows, and per-block rate limits expressed as block counts all shrink to a tenth of their intended length. Constants compiled into an immutable contract cannot be retuned afterwards. [Block-number contract logic](/specifications/denim-200ms-blocks/#block-number-contract-logic) has the full pattern table and the migration options.
+</Aside>
+
+## Why the header does not change
+
+The obvious way to seal blocks every 200ms would be to make the Ethereum header timestamp finer-grained. Denim does not do that. `block.header.timestamp` stays Unix time in whole seconds, and a BaseTime metadata deposit at `tx[1]` supplies the sub-second piece, restricted to `0`, `200`, `400`, `600`, or `800`. Reading both together gives the block's millisecond timestamp.
+
+Keeping the header intact is what lets existing tooling stay standing. Contracts observe no change, because EVM `block.timestamp` still reports the whole-second header value. The cost is that anything wanting millisecond precision has to read the BaseTime deposit or the new optional RPC fields rather than the header alone.
+
+## Flashblocks retirement
+
+Flashblocks publish incremental previews of pending state inside a two-second block. Once the 200ms interval is a real block, that preview layer has nothing left to do, so Base stops producing Flashblocks as part of the Denim rollout.
+
+<Aside type="note">
+There is no drop-in replacement for preconfirmation state. Applications reading a Flashblocks stream or the `"pending"` block tag have migration work. [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) pairs each integration with its canonical equivalent.
+</Aside>
+
+## A note on naming
+
+Denim briefly lost 200ms blocks to Cobalt in early September 2026, then got them back a week later. The node source stayed put across both moves: `is_denim_active_at_timestamp` has gated every block-timing path throughout, and the BaseTime helper sits under the same gate. Documentation written during that window may attribute 200ms blocks to Cobalt. The mechanics described here are unaffected by which name is attached.

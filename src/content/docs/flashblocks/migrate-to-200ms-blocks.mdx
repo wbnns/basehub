@@ -1,27 +1,29 @@
 ---
 title: Migrate to 200ms Blocks
-description: Move a Flashblocks integration onto canonical 200ms blocks ahead of the Cobalt upgrade, with a replacement for every subscription and pending-tag RPC call.
+description: Move a Flashblocks integration onto canonical 200ms blocks ahead of the Denim upgrade, with a replacement for every subscription and pending-tag RPC call.
 sources:
 - base/docs:docs/upgrades/cobalt/migrate-from-flashblocks.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Read this page if your application consumes Flashblocks. The [Cobalt](/specifications/cobalt-200ms-blocks/) upgrade swaps Flashblocks for canonical 200ms blocks. Once it activates, Flashblocks subscriptions and the pending state behind them stop being available.
+Read this page if your application consumes Flashblocks. The [Denim](/specifications/denim-200ms-blocks/) upgrade swaps Flashblocks for canonical 200ms blocks. Once it activates, Flashblocks subscriptions and the pending state behind them stop being available.
 
 <Aside type="caution">
 200ms native blocks run on [Vibenet](/introduction/connecting-to-base/) today, for experimental developer testing only. That deployment can still change, so keep it out of production decisions.
 
-Neither Base Sepolia nor Base Mainnet runs Cobalt. Upstream lists late October 2026 as a planning target for both, but no timestamp is fixed for either network, and the client versions operators will need are still open. This migration was tied to Denim until early September 2026, when upstream moved 200ms blocks to Cobalt.
+Neither Base Sepolia nor Base Mainnet runs Denim. Upstream lists October 2026 as a planning target for both, but no timestamp is fixed for either network, and the client versions operators will need are still open. The fork name moved to Cobalt for about a week in early September 2026 and has since moved back to Denim, which is where the node source had it throughout.
 </Aside>
 
 ## Where to start
 
-Take an inventory before Cobalt lands. Two things belong on that list: every Flashblocks subscription your application opens, and every RPC request it makes with the `"pending"` block tag. Work through the table below and pair each one with its replacement.
+Take an inventory before Denim lands. Two things belong on that list: every Flashblocks subscription your application opens, and every RPC request it makes with the `"pending"` block tag. Work through the table below and pair each one with its replacement.
+
+Flashblocks integrations are not the only thing Denim touches. If you also own contracts, check them for durations expressed as block counts: `block.number` advances ten times faster afterwards, so timelocks, cooldowns, vesting schedules, and governance windows written that way shrink to a tenth of their intended length. [Block-number contract logic](/specifications/denim-200ms-blocks/#block-number-contract-logic) has the pattern table.
 
 ## Replacements by integration
 
-| Flashblocks integration | Update for Cobalt |
+| Flashblocks integration | Update for Denim |
 | --- | --- |
 | `eth_subscribe("newFlashblocks")` | Use `eth_subscribe("newHeads")`. |
 | `eth_subscribe("pendingLogs")` | Use `eth_subscribe("logs")`. |
@@ -36,11 +38,11 @@ Take an inventory before Cobalt lands. Two things belong on that list: every Fla
 | `eth_getBlockTransactionCountByNumber("pending")` | Use normal RPC calls to read the latest canonical block. |
 
 <Aside type="caution">
-These replacements are not equivalents. After Cobalt, nothing maps directly onto the `"pending"` block tag or onto Flashblocks preconfirmation state. The calls above hand back settled data out of 200ms blocks. They do not hand back a preconfirmation.
+These replacements are not equivalents. After Denim, nothing maps directly onto the `"pending"` block tag or onto Flashblocks preconfirmation state. The calls above hand back settled data out of 200ms blocks. They do not hand back a preconfirmation.
 </Aside>
 
 The practical difference is one of timing rather than shape. A preconfirmation used to arrive ahead of the block that contained it. A 200ms canonical block arrives at the same cadence but already settled, so the read you make after migrating is a read of committed state.
 
 ## Try it on Vibenet
 
-Point your migrated integration at [Vibenet](/introduction/connecting-to-base/) and exercise it there. For the protocol design behind the change, along with the RPC behaviour it produces, see [Cobalt 200ms Native Blocks](/specifications/cobalt-200ms-blocks/).
+Point your migrated integration at [Vibenet](/introduction/connecting-to-base/) and exercise it there. For the protocol design behind the change, along with the RPC behaviour it produces, see [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/).
