@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-11T03:08:23Z
+Generated 2026-09-12T03:05:47Z
 
-### base/base @ 2fdb1e0
+### base/base @ 9469da2
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
@@ -14,7 +14,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 16eea8f34478db4cb0a286b897dd77050a25318e  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 92c1f0d
+### base/docs @ bf24e23
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx

@@ -37,6 +37,10 @@ Eligibility is not a reservation. A matching predicate set earns a place in the 
 | 1 | A signed, serialized transaction (legacy, EIP-2930, or EIP-1559) |
 | 2 | An object containing a non-empty `validity` array |
 
+The second parameter takes `validity` and nothing else. An unrecognised key fails the whole request, so a misspelled field name surfaces as a rejection rather than as a silently ignored setting.
+
+Every submission also needs a `block_number` upper bound. The example below pairs the condition it actually cares about with that mandatory bound:
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -55,12 +59,31 @@ Eligibility is not a reservation. A matching predicate set earns a place in the 
             "op": "=",
             "value": "0x2a"
           }
+        },
+        {
+          "type": "block_number",
+          "params": {
+            "op": "<=",
+            "value": "0x1e8493"
+          }
         }
       ]
     }
   ]
 }
 ```
+
+### Limits
+
+| Limit | Value |
+| --- | --- |
+| Predicates per submission | 1 to 64 |
+| Lifetime window | 60 seconds by default |
+| Unknown top-level fields | Rejected |
+
+The predicate ceiling is a wire limit rather than a policy an operator can raise. Decoding stops at the 65th entry, so an oversized batch is refused before the node allocates room for it. An operator can lower the ceiling with `--experimental-validity-max-predicates`, but a value above 64 is refused at startup instead of being quietly clamped.
+
+An empty `validity` array is also rejected. A submission with no conditions carries nothing to enforce, so it is not accepted as a plain private transaction.
 
 ### Returns
 
@@ -109,7 +132,17 @@ Fees follow the normal rules for the transaction type. For EIP-1559 set `maxFeeP
 
 A transaction that never becomes eligible costs nothing onchain. One that is included pays normal execution fees, and it pays them even if it reverts.
 
-**Expiry** is something you build rather than something you get. Add a `block_number` predicate with an upper bound to cap a transaction's lifetime, and pair it with `flashblock_index` to tighten that bound to a position within the block.
+**Expiry is mandatory, and it is bounded on both sides.** Every submission has to carry a `block_number` predicate with an upper bound, written with `<`, `<=`, or `=`. Leave it out and the node refuses the transaction outright. Pair it with `flashblock_index` to tighten the bound to a position within the block.
+
+Only an upper bound counts. A `>`, `>=`, or `!=` comparison on `block_number` does not establish expiry, and neither does a `balance`, `storage`, or `flashblock_index` predicate. State conditions can recover after failing, and the flashblock index restarts every block, so none of them puts a ceiling on how long a transaction can wait. When several `block_number` predicates carry upper bounds, the tightest one decides the lifetime.
+
+Two further checks apply once a canonical head exists. A bound already behind the block being built is rejected, because every block it still permits has been sealed. A bound past the node's configured window is rejected as well. That window is 60 seconds of wall-clock time by default, which the node converts into a block count using the current full-block cadence: roughly 30 blocks on two-second blocks, and roughly 300 once Denim's 200ms cadence is active. Operators set it with `--experimental-validity-max-expiry-secs`.
+
+A bound equal to the block currently being built is fine. The transaction can still land in a later Flashblock of that same block.
+
+<Aside type="caution">
+Compute the bound at submission time, not at signing time. A bound derived from a stale head can fall behind the build target while you are still preparing the request, and the node rejects it rather than holding it.
+</Aside>
 
 **Replacement** works the way it does for ordinary transactions: sign again with the same sender and nonce. If the node answers with an underpriced-replacement error, raise the fee fields, re-sign, and retry.
 
@@ -205,7 +238,18 @@ Start by separating "not accepted" from "accepted but not included". A returned 
 
 **The method is unavailable.** The endpoint does not support `base_sendRawTransactionValidity`. Vibenet is currently the only network that does.
 
-**Submission fails.** Check that the first parameter really is a signed legacy, EIP-2930, or EIP-1559 transaction, and that the second parameter carries a non-empty `validity` array. Then check each predicate's type, operator, and that every value is `0x`-prefixed hex.
+**Submission fails.** Check that the first parameter really is a signed legacy, EIP-2930, or EIP-1559 transaction, and that the second parameter carries a non-empty `validity` array and no other key. Then check each predicate's type, operator, and that every value is `0x`-prefixed hex.
+
+Four rejections come from the expiry and batch rules rather than from malformed input. Each arrives as an invalid-parameters error naming the predicate's position in the array:
+
+| Message | Cause |
+| --- | --- |
+| `validity transactions require a block-number predicate with an upper bound` | No `block_number` predicate uses `<`, `<=`, or `=` |
+| `block-number predicate at index N already expired` | The bound sits behind the block being built |
+| `block-number predicate at index N expires too far in the future` | The bound is past the node's lifetime window |
+| `too many validity predicates` | The batch is over the 64-entry ceiling |
+
+The first is the one to check first when a request that previously worked starts failing. A bounded lifetime is required on every submission, so a predicate set that only describes state conditions is no longer sufficient on its own.
 
 **It stays pending.** Four ordinary explanations: a predicate is still false, other transactions are outbidding it, a replacement superseded it, or its `block_number` or `flashblock_index` bound has passed.
 
