@@ -1,6 +1,6 @@
 ## Upstream snapshot
 
-Generated 2026-09-12T03:05:47Z
+Generated 2026-09-13T03:04:41Z
 
 ### base/base @ 9469da2
 
@@ -14,7 +14,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 16eea8f34478db4cb0a286b897dd77050a25318e  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ bf24e23
+### base/docs @ 746f0e8
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -62,6 +62,7 @@ f1c15ed0cb9488f232277f277d87c37c4d1c9190  docs/base-chain/quickstart/connecting-
 4c632817ff7bb49709ecf0ef06de472024fb6afc  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize.mdx
 987ab3ca7d3e613d1b6a199c6b679cc917861051  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20asset-multiplier.mdx
 0390e5c645c366256fda20bb3a0bc359dbf056af  docs/base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy.mdx
+a24b7e48c9f9bead96e5b2a325fb1d4eb2379fde  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
 5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
 d3dc5c3c3f36470002952f27c12c99596825b24c  docs/specifications/b20/reference/constants-addresses.mdx
 207fcbe45d16367df427bab6da68c4a8ae4be6b9  docs/specifications/b20/reference/errors-events.mdx
