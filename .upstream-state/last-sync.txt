@@ -1,6 +1,6 @@
 ## Upstream snapshot
 
-Generated 2026-09-13T03:04:41Z
+Generated 2026-09-14T03:06:08Z
 
 ### base/base @ 9469da2
 
@@ -62,7 +62,45 @@ f1c15ed0cb9488f232277f277d87c37c4d1c9190  docs/base-chain/quickstart/connecting-
 4c632817ff7bb49709ecf0ef06de472024fb6afc  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize.mdx
 987ab3ca7d3e613d1b6a199c6b679cc917861051  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20asset-multiplier.mdx
 0390e5c645c366256fda20bb3a0bc359dbf056af  docs/base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy.mdx
+487e3356ffd6f7078ce1060d28254044c9714915  docs/build-on-base/accept-payments/authorize-a-payment.mdx
+3478941aa6977df628d062c40dd7dc536879c8b3  docs/build-on-base/accept-payments/batch-high-frequency-payments.mdx
+f039d9a191be11f1d3a792be413ce1f00426b227  docs/build-on-base/accept-payments/call-a-paid-service.mdx
+7a037ec61bde03de9632c20f801c91177883748c  docs/build-on-base/accept-payments/capture-a-partial-amount.mdx
+716bbced3a08eb5e8538b4766ea96f2542a7e215  docs/build-on-base/accept-payments/capture-an-authorization.mdx
+4c5e6ba888dfa1959e91e23a892b1ff7f486238c  docs/build-on-base/accept-payments/charge-for-an-api.mdx
+0e57b99edaed8777299d4a8b02dd2586376ddd74  docs/build-on-base/accept-payments/charge-on-a-schedule.mdx
+41fbbb8ba0574ae0f8477c7480f93c06604bf58f  docs/build-on-base/accept-payments/reconcile-payments.mdx
+5846c8eae9e95d6cba6f45c470c98257a7d2ce07  docs/build-on-base/accept-payments/refund-a-payment.mdx
+e78a34c7b5a9555931a11a59723523329f7b8ac5  docs/build-on-base/accept-payments/request-a-payment.mdx
+31cb49cc4867553b1046684efb808a5146cae9a9  docs/build-on-base/accept-payments/send-a-payout.mdx
+96ca9980ecd28e297f17e2288d6e2215e568227a  docs/build-on-base/accept-payments/settle-usage-based-payments.mdx
+c230c9e071b712d4e71c018b8b3ec503f458da5a  docs/build-on-base/accept-payments/split-a-payment.mdx
+9a5435a5df5ac0e5f84b10c542d7473648ac9d53  docs/build-on-base/accept-payments/verify-a-payment.mdx
+9a0f770a9972b017cae22029c5d72f9c1acf5e6a  docs/build-on-base/accept-payments/void-an-authorization.mdx
+e4815e141f450dace444194e0e8306a48f78d381  docs/build-on-base/accept-payments/watch-for-payments.mdx
+ad1019bfd12a5984bd7fd01e4f20cc26715bde89  docs/build-on-base/assign-user-attributes.mdx
+fd0a1c8b664d90d82071a80d4eefcea2bc51b6a4  docs/build-on-base/integrate-defi/integrate-borrowing.mdx
+ffb3a4be833c767511f59a40cb6f69a9fa620d5d  docs/build-on-base/integrate-defi/integrate-earn-product.mdx
+684361746ab645eccd11982f617a3eee29ef4b2e  docs/build-on-base/integrate-defi/integrate-lending.mdx
+54578014d4e43346e4ebb368213bac64e369f432  docs/build-on-base/integrate-defi/integrate-trading.mdx
 a24b7e48c9f9bead96e5b2a325fb1d4eb2379fde  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
+5e564b4dd6adac8fd43cba1873490e3aef5182e4  docs/build-on-base/issue-rwa/announce-a-distribution.mdx
+319d28047b6e31c9936f56775032a2dc29acde6b  docs/build-on-base/issue-rwa/apply-a-multiplier.mdx
+aa5eb292e9d861c8fc3a094b24168f20ec172589  docs/build-on-base/issue-rwa/cancel-blocked-units.mdx
+d7054f39adcde71cad6f65f3c87e7e5722b100f3  docs/build-on-base/issue-rwa/create-an-asset-token.mdx
+cebda98824f5c71a3111c7f147fe858699c713f7  docs/build-on-base/issue-rwa/issue-units.mdx
+4591c73c9afa07e5785d6dd28a9f347461fb930f  docs/build-on-base/issue-rwa/pause-transfers.mdx
+07f73ef89cb33c2fa7b1e5b4b22031c1cfc8aa3a  docs/build-on-base/issue-rwa/restrict-eligible-holders.mdx
+3d8fca74e29298343045b646f10fe0c62b5d557c  docs/build-on-base/issue-stablecoins/block-an-account.mdx
+95194a78efac11c280867586cef1d1db1729bd03  docs/build-on-base/issue-stablecoins/burn-supply.mdx
+c48852706dc7edeb456697275534e1bd5a576e0a  docs/build-on-base/issue-stablecoins/issue-your-stablecoin.mdx
+42ae0a9a15c84fe9a95355e30cc8948ec5d253af  docs/build-on-base/issue-stablecoins/mint-supply.mdx
+0695effabda9bdfdb74ad0a0876bc8caab4388d5  docs/build-on-base/issue-stablecoins/pause-activity.mdx
+739e39553c160585f3251f4e96dc175e854700d7  docs/build-on-base/issue-stablecoins/reconcile-with-memos.mdx
+1a1e662d184a834f2c847e9a281c78107f47ee67  docs/build-on-base/issue-stablecoins/recover-funds.mdx
+9e1a67a3a7dfe6e34a661005ab56fddacbd519eb  docs/build-on-base/issue-stablecoins/restrict-who-can-hold.mdx
+5e472ac0a6d572bff1f77adb798ed2b952b8b027  docs/build-on-base/overview.mdx
+e7bc4c0403194f173924661e7818da5f8659f42e  docs/build-on-base/test-on-vibenet.mdx
 5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
 d3dc5c3c3f36470002952f27c12c99596825b24c  docs/specifications/b20/reference/constants-addresses.mdx
 207fcbe45d16367df427bab6da68c4a8ae4be6b9  docs/specifications/b20/reference/errors-events.mdx

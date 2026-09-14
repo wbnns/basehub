@@ -183,7 +183,22 @@ The memo-capable entrypoints are `transferWithMemo`, `transferFromWithMemo`, `mi
 
 ## Pause
 
-Pausing is fine-grained: the `PausableFeature` enum splits the token surface into operations that pause independently — `TRANSFER`, `MINT`, `BURN`, and `SEIZE`. That enum only ever grows. By design, `pause(features)` and `unpause(features)` answer to different roles (`PAUSE_ROLE` and `UNPAUSE_ROLE`).
+Pausing is fine-grained: the `PausableFeature` enum splits the token surface into operations that pause independently — `TRANSFER`, `MINT`, `BURN`, and `SEIZE`. That enum only ever grows. By design, `pause(features)` and `unpause(features)` answer to different roles (`PAUSE_ROLE` and `UNPAUSE_ROLE`), so you can hand out emergency-stop authority without also handing out the ability to lift it.
+
+Each feature covers every entrypoint in its family, and a pause outranks a role — a `MINT_ROLE` holder still cannot mint while `MINT` is paused. The attempted call reverts with `ContractPaused(feature)`.
+
+| Feature | Ordinal | Operations it stops |
+|---|---|---|
+| `TRANSFER` | 0 | `transfer`, `transferFrom`, and their memo variants |
+| `MINT` | 1 | `mint`, `mintWithMemo`, and `batchMint` |
+| `BURN` | 2 | `burn`, `burnWithMemo`, and the deprecated `burnBlocked` |
+| `SEIZE` | 3 | `seizeWithMemo` |
+
+<Aside type="caution">
+The ABI encodes `PausableFeature` as `uint8`, so the wire value is the ordinal above. Pass `0` for `TRANSFER` — never a scope-key style hash such as `keccak256("TRANSFER")`, which is how the policy constants are identified and does not apply here. Both arguments are arrays, and an empty one reverts with `EmptyFeatureSet` rather than doing nothing.
+</Aside>
+
+Re-pausing a feature that is already paused is a no-op and does not revert, which keeps an emergency runbook safe to run twice. Read the whole current set in one call with `pausedFeatures()`.
 
 ## ERC-2612 permit / EIP-712
 

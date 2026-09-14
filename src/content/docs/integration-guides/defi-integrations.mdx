@@ -1,0 +1,54 @@
+---
+title: DeFi Integrations
+description: Adding swaps, lending, borrowing, and vault-based earn to an app on Base — the 0x AllowanceHolder flow, approval hazards, and what a safe position UI has to show before a user signs.
+sources:
+- base/docs:docs/build-on-base/integrate-defi/integrate-trading.mdx
+- base/docs:docs/build-on-base/integrate-defi/integrate-lending.mdx
+- base/docs:docs/build-on-base/integrate-defi/integrate-borrowing.mdx
+- base/docs:docs/build-on-base/integrate-defi/integrate-earn-product.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Trading, lending, borrowing, and earn products on Base are built on third-party protocols rather than anything the chain provides. Your app's job is to prepare and simulate a call, show the user what it will do, and let them sign it from their own wallet. The position lives with the protocol, not with you.
+
+<Aside type="note">
+This page covers the integration shape and the failure modes, not any individual protocol's API. Market IDs, vault addresses, fee parameters, and risk settings change independently of Base, so take those from the protocol you are integrating: [0x](https://docs.0x.org/evm/0x-swap-api/introduction), [Morpho](https://docs.morpho.org), and [Aave](https://aave.com/docs). Two canonical Base addresses do stay put and appear throughout: USDC at `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` and WETH at `0x4200000000000000000000000000000000000006`.
+</Aside>
+
+## Swaps through an aggregator
+
+The 0x Swap API searches liquidity across exchanges and market makers and hands back a transaction the wallet can simulate, sign, and submit. The AllowanceHolder flow runs in four steps:
+
+1. Ask for an indicative `/price` while the user is still editing the trade.
+2. Ask for a firm `/quote` once they are ready to review and sign.
+3. If the quote reports `issues.allowance`, approve the returned `spender` — for the sell amount only.
+4. Take a fresh quote, simulate its `transaction`, submit, and wait for confirmation.
+
+Requests carry `chainId` `8453` for Base mainnet and an API key that belongs on your server, never in the client. The quote's own diagnostics are worth reading before you prompt anyone: `liquidityAvailable` tells you whether a route exists at all, and `issues.balance` catches an underfunded taker before the wallet does.
+
+<Aside type="danger">
+Approve only the address the API returns in `issues.allowance.spender` or `allowanceTarget` — the AllowanceHolder or Permit2 contract. Never approve the 0x Settler contract directly. Getting this wrong grants a standing allowance to the wrong contract, and the mistake is not visible in a successful swap.
+</Aside>
+
+Refreshing the quote after approval is not optional bookkeeping. Prices move between the quote and the signature, and `minBuyAmount` is what protects the user from the difference. Keep the quote request on your backend, return the reviewed transaction fields to the frontend, and submit from the connected wallet.
+
+## Supplying to a money market
+
+Lending is a supply call against a market the protocol defines. Your app prepares and simulates it; the user signs. What you owe them is an accurate picture of the terms at signing time.
+
+<Aside type="caution">
+Supply rates are variable, not quoted. Withdrawals depend on the market having liquidity when the user wants out, which is a condition no interface can promise. Every integration also inherits the protocol's own risk, its oracle's risk, and whatever the approval you requested allows. Display the current terms and simulate the exact transaction before asking for a signature.
+</Aside>
+
+## Borrowing against collateral
+
+Borrowing adds a liquidation surface, which makes the display requirement stricter rather than merely advisable. Show collateral value, outstanding debt, the liquidation parameters, and position health — both as they stand and as they would stand after the action.
+
+Health is not static between render and signature. Collateral prices move, oracles update, and interest accrues, so re-fetch immediately before the user signs rather than trusting a value fetched when the screen was drawn. If an action would leave the position unsafe, say so plainly before it is signed, not after.
+
+## Vault-based earn
+
+An earn product is the one-deposit case: the user deposits once and receives vault shares, and the vault handles allocation across its underlying markets. Morpho's vaults follow the ERC-4626 shape, so share accounting and redemption previews use the interface you already know.
+
+The abstraction is the selling point and also the thing to be careful about. Because the user sees one balance rather than a set of positions, your interface carries the whole burden of showing current redeemable value and the risk behind it. Shares are not a stable unit of account — quote value by converting through the vault, never by treating one share as one token.

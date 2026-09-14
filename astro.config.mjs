@@ -363,6 +363,8 @@ export default defineConfig({
 						{ label: 'Builder Codes', slug: 'integration-guides/builder-codes' },
 						{ label: 'Launch a B20 Token', slug: 'integration-guides/launch-a-b20-token' },
 						{ label: 'Tokenized Stocks', slug: 'integration-guides/tokenized-stocks' },
+						{ label: 'Accept Payments', slug: 'integration-guides/accept-payments' },
+						{ label: 'DeFi Integrations', slug: 'integration-guides/defi-integrations' },
 					],
 				},
 				{

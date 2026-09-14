@@ -1,0 +1,287 @@
+---
+title: Accept Payments
+description: The onchain payment lifecycle on Base — USDC and B20 checkout, EIP-3009 authorization and capture, permit-based partial capture, x402 for APIs and agents, refunds, payouts, and reconciliation.
+sources:
+- base/docs:docs/build-on-base/accept-payments/request-a-payment.mdx
+- base/docs:docs/build-on-base/accept-payments/authorize-a-payment.mdx
+- base/docs:docs/build-on-base/accept-payments/capture-an-authorization.mdx
+- base/docs:docs/build-on-base/accept-payments/capture-a-partial-amount.mdx
+- base/docs:docs/build-on-base/accept-payments/void-an-authorization.mdx
+- base/docs:docs/build-on-base/accept-payments/verify-a-payment.mdx
+- base/docs:docs/build-on-base/accept-payments/refund-a-payment.mdx
+- base/docs:docs/build-on-base/accept-payments/split-a-payment.mdx
+- base/docs:docs/build-on-base/accept-payments/send-a-payout.mdx
+- base/docs:docs/build-on-base/accept-payments/charge-for-an-api.mdx
+- base/docs:docs/build-on-base/accept-payments/settle-usage-based-payments.mdx
+- base/docs:docs/build-on-base/accept-payments/batch-high-frequency-payments.mdx
+- base/docs:docs/build-on-base/accept-payments/call-a-paid-service.mdx
+- base/docs:docs/build-on-base/accept-payments/charge-on-a-schedule.mdx
+- base/docs:docs/build-on-base/accept-payments/watch-for-payments.mdx
+- base/docs:docs/build-on-base/accept-payments/reconcile-payments.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Taking money on Base is an ERC-20 problem with a handful of extra primitives layered on top. The token moves, a `Transfer` event lands, and your backend decides whether that constitutes payment. Everything else on this page — authorizations, permits, HTTP negotiation, channels — exists to control *when* that transfer happens and *who* triggers it.
+
+Two rails carry almost all of it:
+
+| Rail | Best for | Integration |
+|---|---|---|
+| Direct USDC | Wallet-agnostic ERC-20 checkout | viem |
+| B20 with memo | Issuer tokens and onchain reconciliation | viem or Solidity |
+
+USDC lives at `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` on Base mainnet and `0x036CbD53842c5426634e7929541eC2318f3dCF7c` on Base Sepolia. [B20](/specifications/b20/) adds issuer policy controls and an order memo written onchain beside the transfer.
+
+<Aside type="caution">
+Testnet deployments get reset. Before you ask anyone to sign, confirm `eth_getCode` returns bytecode at the USDC address you configured, and that your faucet handed out that same asset. A stale address fails at signature time, in front of the user.
+</Aside>
+
+## Settle now, or approve now and settle later
+
+The first decision is whether the wallet interaction and the token movement happen together.
+
+**Auto-settle** is one prompt. The wallet approves and the transfer executes in the same flow. For plain USDC that is an ordinary `transfer`. For B20 the payer calls `transferWithMemo`, or a checkout contract pulls a pre-approved amount with `transferFromWithMemo` and refuses order IDs it has already seen:
+
+```solidity
+function pay(bytes32 orderId, uint256 amount) external {
+    if (paid[orderId]) revert OrderAlreadyPaid(orderId);
+    paid[orderId] = true;
+    bool transferred = token.transferFromWithMemo(msg.sender, merchant, amount, orderId);
+    require(transferred, "B20 transfer failed");
+}
+```
+
+That Solidity path has two prerequisites people miss: the payer has to approve the checkout contract, and any `TRANSFER_EXECUTOR_POLICY` on the token has to authorize it as well. Verifying the amount before you ship remains your job either way.
+
+**Deferred settlement** splits the two. The buyer signs offchain; you submit the transaction when you are ready to fulfil. Which primitive to reach for depends on what you know at signing time:
+
+| Need | Primitive | Section |
+|---|---|---|
+| Exact wallet payment captured later | EIP-3009 | [Authorize and capture](#authorize-and-capture-eip-3009) |
+| Variable total known later | EIP-2612 plus a constrained checkout | [Capture a partial amount](#capture-a-partial-amount) |
+| Repeated scheduled charges | Smart-account spend permission | [Charge on a schedule](#charge-on-a-schedule) |
+| Payment negotiated over HTTP | x402 | [Paying for APIs with x402](#paying-for-apis-with-x402) |
+
+## Authorize and capture (EIP-3009)
+
+An EIP-3009 signature commits the payer, recipient, amount, a validity window, and a single-use nonce. No transaction is sent, so nothing hits the chain until you capture.
+
+| Field | Purpose |
+|---|---|
+| `value` | Exact amount that can settle |
+| `validAfter` | Earliest valid capture time |
+| `validBefore` | Capture deadline |
+| `nonce` | One-time identifier consumed by capture or cancellation |
+
+Generate the nonce from a cryptographic random source — 32 bytes, fresh for every attempt, never recycled across orders. Store the payload and the signature against the order server-side.
+
+<Aside type="caution">
+A signature is permission to collect, not a reservation of funds. The payer can spend the balance elsewhere before you capture, and token policy can still refuse settlement. Only a mined, successful capture means you were paid.
+</Aside>
+
+Capture with `receiveWithAuthorization` rather than `transferWithAuthorization`. The difference matters: the token requires `msg.sender` to equal `to`, so an unrelated account cannot front-run your capture by submitting the signature first.
+
+```typescript
+const simulation = await publicClient.simulateContract({
+  account,
+  address: USDC,
+  abi: usdcAbi,
+  functionName: "receiveWithAuthorization",
+  args: [
+    authorization.from,
+    authorization.to,
+    authorization.value,
+    authorization.validAfter,
+    authorization.validBefore,
+    authorization.nonce,
+    Number(v),
+    r,
+    s,
+  ],
+});
+```
+
+Read `authorizationState(payer, nonce)` before you submit — it stays `false` until the authorization is either captured or cancelled. Check the payer's balance too. Both reads cut down on avoidable reverts, but neither one reserves anything, so keep fulfilment idempotent and drive it off the receipt.
+
+### Voiding an authorization
+
+Walking away is free. No funds were held, so a merchant that simply stops using a signature and lets `validBefore` pass has cancelled it in every practical sense. Making the nonce unusable *immediately* costs one transaction, and only the buyer can authorize it.
+
+| Path | Cost | Use when |
+|---|---|---|
+| Mark void and let `validBefore` pass | No transaction | The short validity window is acceptable |
+| Submit `cancelAuthorization` | One transaction | You need the nonce to become unusable immediately |
+
+The buyer signs a `CancelAuthorization` typed-data message; you or any relayer submits it. Afterwards the original transfer authorization reverts on capture.
+
+<Aside type="caution">
+`authorizationState` returns `true` for a captured nonce and for a cancelled one alike — it cannot tell you which happened. Keep your own order state and move it atomically, or a cancel racing a capture will leave you guessing.
+</Aside>
+
+## Capture a partial amount
+
+EIP-3009 pins one exact value, so it has no partial path. When the final total is not known until fulfilment — an open tab, a tip added afterwards, shipping worked out during packing — sign a capped EIP-2612 permit instead and charge the real amount underneath the cap.
+
+The cap only means something if the spender is a contract that cannot do anything else with it. The checkout below takes the permit and moves the actual amount in a single transaction. It has no general-purpose transfer function, it insists on the merchant as caller, and it burns each order ID once:
+
+```solidity
+function capture(
+    bytes32 orderId,
+    address payer,
+    uint256 actualAmount,
+    uint256 authorizedMaximum,
+    uint256 permitDeadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+) external {
+    if (msg.sender != merchant) revert NotMerchant();
+    if (captured[orderId]) revert OrderAlreadyCaptured(orderId);
+    if (actualAmount > authorizedMaximum) revert AmountExceedsMaximum();
+    captured[orderId] = true;
+
+    token.permit(payer, address(this), authorizedMaximum, permitDeadline, v, r, s);
+    require(token.transferFrom(payer, merchant, actualAmount), "transfer failed");
+    emit PaymentCaptured(orderId, payer, actualAmount, authorizedMaximum);
+}
+```
+
+<Aside type="caution">
+The permit deadline bounds when the *signature* can be submitted. It does not expire the allowance that submitting it creates. Whatever is left over after a partial capture stays spendable until something clears it. Use a reviewed, immutable checkout with no route to the residual allowance, keep deadlines short, and never make a merchant EOA the capped spender.
+</Aside>
+
+## Verify before you fulfil
+
+A wallet prompt that returned cleanly is not a payment. Verify against confirmed chain data on the backend, then claim the transaction hash exactly once in durable storage, and only then reserve inventory, issue credentials, or return a paid resource.
+
+The check itself is rail-agnostic. Direct `transfer`, an EIP-3009 capture, and a `transferFrom` after a permit all emit the same ERC-20 `Transfer` event. What differs is how you bind that event back to an order:
+
+| Rail | Bind the order with |
+|---|---|
+| Direct USDC | Stored transaction hash and expected checkout fields |
+| EIP-3009 capture | Stored authorization nonce plus the capture hash |
+| Permit checkout | Checkout contract's order event plus the token transfer |
+| B20 | Adjacent `Memo` event containing the order reference |
+
+For B20 the memo is emitted directly after its `Transfer`, so the join is `logIndex + 1` — an ordering guarantee, not a search.
+
+<Aside type="caution">
+The claim step needs a uniqueness constraint in the database and has to sit inside the same durable workflow as fulfilment. An in-process `Set` survives neither a restart nor a second worker, and replay is exactly the failure it was supposed to stop.
+</Aside>
+
+Pick a confirmation depth against the value at stake and how hard fulfilment is to undo. The [transaction finality](/specifications/transactions/) stages describe what each depth actually buys you.
+
+## Refunds
+
+Refund the address the chain says paid you, taken from the verified `Transfer` log — never an address supplied by the client. ERC-20 tokens keep no order-level refundable balance, so `captured - refunded` is a number your ledger has to track.
+
+Reserve before you broadcast. The reservation must atomically create the pending refund and decrement the refundable balance, so that concurrent requests cannot together exceed what you captured. If a worker dies after broadcasting and loses the receipt, reconcile that pending row against chain data — releasing it invites a second transfer for the same refund.
+
+B20 can carry the original order ID into the refund itself via `transferWithMemo`. Plain USDC uses `transfer`, and the linkage between order ID, capture hash, refund hash, and amount lives entirely in your records.
+
+## Payouts and splits
+
+Both use a purpose-built contract that pulls each amount straight from the sender to its recipient. Nothing pools in the contract between transactions, which keeps the contract from becoming a balance worth attacking.
+
+A payout batch is a list of recipients and amounts under one `batchId`, replay-guarded and length-bounded:
+
+```solidity
+function sendPayouts(bytes32 batchId, address[] calldata recipients, uint256[] calldata amounts) external {
+    if (processed[batchId]) revert BatchAlreadyProcessed(batchId);
+    if (recipients.length == 0 || recipients.length != amounts.length) revert InvalidArrayLengths();
+    if (recipients.length > MAX_RECIPIENTS) revert TooManyRecipients();
+    processed[batchId] = true;
+
+    for (uint256 i; i < recipients.length; ++i) {
+        require(token.transferFrom(msg.sender, recipients[i], amounts[i]), "transfer failed");
+        emit PayoutSent(batchId, msg.sender, recipients[i], amounts[i]);
+    }
+}
+```
+
+Size batches from measured gas and respect `MAX_RECIPIENTS`. One failing token transfer reverts the whole batch.
+
+A split is the same shape with proportions instead of amounts. Shares are basis points, they must total `10_000`, and integer division leaves a remainder that goes to one nominated recipient — so the legs sum to the input exactly and no dust is stranded. Every leg emits `PayoutSent` under a shared `splitId`, which gives both USDC and B20 an order reference without depending on token-level memo support.
+
+<Aside type="danger">
+Never approve the public `Multicall3` contract as an ERC-20 spender. Token calls made through it see Multicall3 as `msg.sender`, and it will invoke `transferFrom` on behalf of anyone who asks — so any caller can drain an allowance you granted it. Use a contract that fixes who may initiate a payout and how recipients are chosen.
+</Aside>
+
+Who gets the rounding remainder is a commercial question. Settle it in your terms, not implicitly in the loop.
+
+## Paying for APIs with x402
+
+x402 moves the negotiation into HTTP. An unpaid request gets `402 Payment Required` carrying the scheme, network, token, price, and recipient. The client signs what was advertised and retries with a `PAYMENT-SIGNATURE` header. Seller middleware verifies before your handler runs, and a facilitator settles. On Base USDC, the thing being carried through that handshake is an EIP-3009 authorization.
+
+Three schemes cover three billing shapes:
+
+- **`exact`** — the price is known before the work. A fixed-price route.
+- **`upto`** — you advertise a ceiling, then set the real charge after the handler succeeds. This is the agentic twin of the capped permit checkout above. Apply the settlement override only once you have computed successful usage, and keep it at or below the advertised maximum.
+- **`batch-settlement`** — for many small requests where per-request settlement would cost more than the requests. Each call advances a cumulative voucher; the channel manager claims, settles, or refunds the latest state later. Onchain transactions happen only at those points.
+
+```typescript
+app.use(paymentMiddleware({
+  "GET /metered": {
+    accepts: [{ scheme: "upto", price: "$0.10", network, payTo }],
+    description: "Usage-priced inference",
+    mimeType: "application/json",
+  },
+}, resourceServer));
+app.get("/metered", (_request, response) => {
+  setSettlementOverrides(response, { amount: "$0.04" });
+  response.json({ tokens: 812, result: "Generated response" });
+});
+```
+
+<Aside type="caution">
+Do not emit billable output before the middleware has verified the authorization. And decide up front how failures, timeouts, and partial work map to a charge — that policy is much harder to add once the endpoint is public.
+</Aside>
+
+Treat the facilitator's response and your own fulfilment record as two separate facts. A retried paid request must not deliver a one-time resource twice.
+
+### The buyer side
+
+An agent wraps its HTTP client so it can read a 402, pick a scheme it supports, sign, and retry. The important part is that policy runs *before* any signature exists — network, asset, per-request cap, and a session-cumulative cap:
+
+```typescript
+client.onBeforePaymentCreation(async ({ selectedRequirements }) => {
+  if (selectedRequirements.network !== "eip155:84532") return { abort: true, reason: "Wrong network" };
+  if (selectedRequirements.asset.toLowerCase() !== baseSepoliaUsdc.toLowerCase()) return { abort: true, reason: "Wrong asset" };
+  const amount = BigInt(selectedRequirements.amount);
+  if (amount > 100_000n || authorizedThisSession + amount > 1_000_000n) {
+    return { abort: true, reason: "Spend limit exceeded" };
+  }
+  authorizedThisSession += amount;
+});
+```
+
+The wrapper automates negotiation, not trust. Whatever the service returns is untrusted input: validate the schema and the content, and never let anything in the response steer wallet policy.
+
+<Aside type="caution">
+The public x402.org facilitator is a testnet facility. Mainnet needs a production facilitator, protected signing keys, spend caps that hold durably across processes rather than per-process counters, and outright rejection of schemes or assets you did not plan for.
+</Aside>
+
+## Charge on a schedule
+
+Recurring charges use a smart-account spend permission. The permission bounds the spender, the token, the amount per period, and the start and end times. When each charge fires is your backend's decision.
+
+Check status at every billing point before preparing calls — confirm the connected account is the approved spender, that the permission is active rather than revoked or expired, and that `remainingSpend` covers the charge. Three outcomes are ordinary billing states rather than errors:
+
+- **Revoked or expired** — stop retrying and ask for a new permission.
+- **Insufficient balance** — notify the buyer and retry on your billing policy.
+- **Period allowance exhausted** — wait for `nextPeriodStart`, or collect a new permission.
+
+<Aside type="caution">
+A spend permission is an allowance, not a scheduler. Run billing from a durable queue with one idempotency key per period, and reconcile the emitted transfer before you mark an invoice paid.
+</Aside>
+
+## Watching and reconciling
+
+A WebSocket subscription gives you low-latency wakeups. It is not the source of truth. `eth_getLogs` across an overlapping window is, because it survives disconnects and reorgs — so use the subscription only to trigger a backfill, and let the backfill decide what is real.
+
+Make the overlap replacement one database transaction: delete the previously indexed rows in the window, insert the canonical logs returned now, and advance the cursor only if both succeed. Key rows on `(blockHash, transactionHash, logIndex)` so retries stay idempotent.
+
+For reporting, run accounting over a finalized range only. If you also surface recent activity, label it provisional and replace it after a reorg.
+
+One reconciliation trap worth naming: an outgoing `Transfer` from the merchant address is ambiguous on its face. It could be a refund, a payout leg, a split leg, or a treasury movement. Join it to your refund ledger or to the `PayoutSent` reference — direction alone does not classify it. On the incoming side, B20 memos join back through `(transactionHash, logIndex - 1)`, the mirror of the adjacency rule used during verification. USDC has no memo, so those rows join on the transaction hash, the authorization nonce, or a contract event you emitted yourself.
