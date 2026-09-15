@@ -17,7 +17,7 @@ A validity transaction is an ordinary signed transaction handed to Base together
 The method accepts legacy, EIP-2930, and EIP-1559 transactions. EIP-1559 is the recommended type.
 
 <Aside type="caution">
-This is experimental. `base_sendRawTransactionValidity` is available on Vibenet only. Mainnet and Base Sepolia availability are unconfirmed, error codes and messages are not stable, and the production API contract is not settled. Arriving in the [Cobalt](/specifications/cobalt-overview/) upgrade.
+This is still experimental, but it now has a date. `base_sendRawTransactionValidity` runs on Vibenet only today, and it reaches the public networks with [Cobalt](/specifications/cobalt-overview/): Base Sepolia on September 23, 2026 and Mainnet on September 30, 2026. Treat the shape of the API as unsettled until then. Upstream has not published the final specification, error codes and messages are not stable, and the production contract can still move.
 </Aside>
 
 ## How it works

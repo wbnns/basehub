@@ -75,14 +75,18 @@ The PolicyRegistry's state-changing functions are gated by the ActivationRegistr
 
 ### Policy types
 
-| Type | Default | Behavior |
-|------|---------|----------|
-| `BLOCKLIST` | Authorized | All accounts authorized by default; explicitly listed accounts are denied. |
-| `ALLOWLIST` | Denied | All accounts denied by default; explicitly listed accounts are authorized. |
+| Type | Value | Default | Behavior |
+|------|-------|---------|----------|
+| `BLOCKLIST` | `0` | Authorized | All accounts authorized by default; explicitly listed accounts are denied. |
+| `ALLOWLIST` | `1` | Denied | All accounts denied by default; explicitly listed accounts are authorized. |
+| `UNION` | `2` | Denied | Authorized when any child policy authorizes. Added at Cobalt. |
+| `INTERSECT` | `3` | Authorized | Authorized only when every child policy authorizes. Added at Cobalt. |
+
+The first two are simple policies: they hold a membership set of their own. The last two are composites, added at [Cobalt](/specifications/cobalt-overview/); they hold no members and instead reference 2 to 4 simple policies, which are evaluated live on each check. A composite's children must be simple, so evaluation never exceeds depth 1. The enum is append-only, so the two new values do not disturb the packed-ID encoding below. Call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
 
 ### Policy IDs
 
-A policy ID is a `uint64`. Its top byte holds the `PolicyType`; the remaining 56 bits are a global counter that begins at `2`.
+A policy ID is a `uint64`. Its top byte holds the `PolicyType`; the remaining 56 bits are a global counter that begins at `2`, since `0` and `1` are reserved. Composites draw from that same counter rather than a separate one, so a policy ID is unique across all four types.
 
 Two reserved IDs work without being created first:
 
@@ -91,10 +95,19 @@ Two reserved IDs work without being created first:
 | `ALWAYS_ALLOW` | `0` | Authorizes every account unconditionally. Default scope value on new B20 tokens. |
 | `ALWAYS_BLOCK` | `(uint64(ALLOWLIST) << 56) \| 1` | Denies every account unconditionally. |
 
-`isAuthorized` won't revert when handed a policy ID that doesn't exist — it falls back to empty-set behavior, so a missing `BLOCKLIST` authorizes everyone and a missing `ALLOWLIST` denies everyone.
+`isAuthorized` won't revert when handed a policy ID that doesn't exist. It reads whatever the ID points at and applies empty-set behavior, which each type resolves differently:
+
+| Type | Nonexistent ID resolves to |
+|------|----------------------------|
+| `BLOCKLIST` | Authorizes everyone (nobody is listed as denied) |
+| `ALLOWLIST` | Denies everyone (nobody is listed as allowed) |
+| `UNION` | Denies everyone (no child authorizes) |
+| `INTERSECT` | **Authorizes everyone** (no child declines) |
+
+A malformed ID — one whose type byte exceeds `INTERSECT` — is treated as unauthorized rather than reverting.
 
 <Aside type="caution">
-Any consumer that stores a policy ID (for example via `updatePolicy`) MUST check `policyExists(policyId)` at write time; skip it and the token can quietly bind to an unintended empty-set policy.
+Any consumer that stores a policy ID (for example via `updatePolicy`) MUST check `policyExists(policyId)` at write time; skip it and the token can quietly bind to an unintended empty-set policy. `INTERSECT` is the worst version of that mistake: an ID that was never created authorizes every account, so a slot meant to restrict behaves like `ALWAYS_ALLOW` and nothing reverts to signal it.
 </Aside>
 
 ### Admin model

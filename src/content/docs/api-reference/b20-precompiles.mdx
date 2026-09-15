@@ -439,7 +439,7 @@ The variant is encoded into the address, so you can read it off the prefix.
 | Bitmask with every feature paused | `15` — `TRANSFER`, `MINT`, `BURN`, `SEIZE` together |
 ## Availability by hardfork
 
-Every selector on this page is final, but not all of them are dialable today. [Beryl](/specifications/beryl-overview/) shipped the standard and is live on Mainnet and Sepolia. A second group arrives with [Cobalt](/specifications/cobalt-overview/), which has no activation timestamp yet — call any of it before then and there is nothing at the address to answer.
+Every selector on this page is final, but not all of them are dialable today. [Beryl](/specifications/beryl-overview/) shipped the standard and is live on Mainnet and Sepolia. A second group arrives with [Cobalt](/specifications/cobalt-overview/), now booked for Sepolia on September 23, 2026 and Mainnet on September 30, 2026 — call any of it before your target network reaches its date and there is nothing at the address to answer.
 
 Cobalt adds no breaking change. Every Beryl function, event topic, and error keeps the exact four-byte selector or `topic0` it has now, and keeps its behaviour.
 
@@ -464,7 +464,7 @@ Three groups are specified and documented above, but undialable until Cobalt act
 
 ## What changes for integrators at Cobalt
 
-Nothing you call today stops working, so none of this is urgent. Each item is a path worth moving to before Cobalt is live.
+Nothing you call today stops working, so none of this is a forced migration. The timing has tightened, though: Sepolia activates on September 23, 2026 and Mainnet a week later, so each item below is now a path worth moving to on a schedule rather than eventually.
 
 ### Seizure replaces `burnBlocked`
 
@@ -507,9 +507,22 @@ Indexers only need to follow `UIMultiplierUpdated`. The instant setter emits it 
 
 A composite authorizes by combining 2 to 4 existing simple policies under `UNION` (OR) or `INTERSECT` (AND). Build one with `createCompositePolicy(admin, policyType, childPolicyIds)`; change it with `updateComposite(policyId, childPolicyIds)`, which replaces the child set **in full** — there is no partial update and no way to clear the list.
 
+The problem this solves is duplication. A B20 token stores one policy ID per scope, so combining a shared KYC allowlist with a token-specific one previously meant copying both member lists into a third, flattened policy and running infrastructure to keep that copy in step with its sources. Every such copy has a window in which it is wrong: an account added upstream cannot transact until the copy catches up, and an account removed upstream keeps its access until then. A composite stores references instead of members, so there is no copy to drift.
+
 Evaluation is live and shallow. `isAuthorized` calls each child's own `isAuthorized` at read time rather than working from a set captured at creation, `UNION` short-circuits on the first child that authorizes, and `INTERSECT` short-circuits on the first that does not. Recursion never passes depth 1, because write-time validation rejects any child that is itself a composite or a built-in sentinel with `InvalidChildPolicy`. Nesting is impossible by construction.
 
-One existing behaviour shifts. `createPolicy` and `createPolicyWithAccounts` gain a revert path that was previously unreachable: passing `UNION` or `INTERSECT` to a simple constructor now reverts `IncompatiblePolicyType`, checked right after `ZeroAddress`.
+The registry stores the child list exactly as given. It does not sort it and does not reject duplicates, so ordering is yours to choose. That choice cannot change the answer, since both gates are order-independent, but it does change what you pay: each child actually evaluated costs a membership read, and short-circuiting stops the walk early. Put the child most likely to decide the outcome first — the broadest allowlist under `UNION`, the narrowest under `INTERSECT`.
+
+Two adjacent behaviours are easy to guess wrong:
+
+- **A renounced child keeps working.** `renounceAdmin` on a child policy only clears its admin and freezes its membership; the policy still exists and still answers `isAuthorized`, so the parent composite evaluates it exactly as before.
+- **`compositePolicyChildIds` never reverts.** Handed a simple policy or an ID that was never created, it returns an empty array rather than an error, so an empty result does not distinguish "not a composite" from "does not exist".
+
+<Aside type="caution">
+Check `policyExists(policyId)` before you write any ID into a B20 policy slot, and treat an `INTERSECT` ID as the case that punishes skipping it. Authorization reads the stored child list rather than a creation record, so an ID that was never created simply resolves to an empty list. Under `UNION` an empty list denies everyone, which fails closed and shows up immediately. Under `INTERSECT` the same empty list means no child ever declines, so the gate returns `true` for every account — a slot you believed was restrictive behaves like `ALWAYS_ALLOW`, and nothing reverts to tell you. A typo in a policy ID is enough to reach it.
+</Aside>
+
+Two existing behaviours shift. `createPolicy` and `createPolicyWithAccounts` gain a revert path that was previously unreachable: passing `UNION` or `INTERSECT` to a simple constructor now reverts `IncompatiblePolicyType`, checked right after `ZeroAddress`. And the registry now carries two independent size limits — keep `ChildPoliciesOutsideOfRange`, which guards the `[2, 4]` child count, separate from `BatchSizeTooLarge`, which guards the 64-account membership batch. They are different errors on different call paths, and one tells you nothing about the other.
 
 ## Selector stability
 

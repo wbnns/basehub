@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-14T03:06:08Z
+Generated 2026-09-15T03:06:21Z
 
-### base/base @ 9469da2
+### base/base @ fdca447
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
@@ -14,7 +14,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 16eea8f34478db4cb0a286b897dd77050a25318e  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 746f0e8
+### base/docs @ 1947f82
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -61,7 +61,7 @@ f1c15ed0cb9488f232277f277d87c37c4d1c9190  docs/base-chain/quickstart/connecting-
 618da3e81b3e8fd34af4447b11f13306fbc6694d  docs/base-chain/specs/protocol/overview.mdx
 4c632817ff7bb49709ecf0ef06de472024fb6afc  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize.mdx
 987ab3ca7d3e613d1b6a199c6b679cc917861051  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20asset-multiplier.mdx
-0390e5c645c366256fda20bb3a0bc359dbf056af  docs/base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy.mdx
+20561b3097591307dd61b8262f7a0f9b785240d4  docs/base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy.mdx
 487e3356ffd6f7078ce1060d28254044c9714915  docs/build-on-base/accept-payments/authorize-a-payment.mdx
 3478941aa6977df628d062c40dd7dc536879c8b3  docs/build-on-base/accept-payments/batch-high-frequency-payments.mdx
 f039d9a191be11f1d3a792be413ce1f00426b227  docs/build-on-base/accept-payments/call-a-paid-service.mdx
@@ -224,7 +224,7 @@ eca6d45c1452cfd46865e852b93a2f2101f23d14  docs/specifications/base-protocol/brid
 77b1bcc18ae2d1e9807cd14e1df942831c700cf0  docs/specifications/base-protocol/consensus/p2p.mdx
 e0f19e7ce233ad8d156cccff38295db59abb2755  docs/specifications/base-protocol/consensus/rpc.mdx
 b88995a3b0d0f1e0ad9f8b84e0c660c35951107f  docs/specifications/base-protocol/consensus/specification.mdx
-99e86ddcfae298590960063b77234c750a8c95db  docs/specifications/base-protocol/design-goals.mdx
+45c9180dcebc38413f475d0a5d0c62d121995072  docs/specifications/base-protocol/design-goals.mdx
 5bf6770d6b0c21c0d3578a72d996bc7238dffe7c  docs/specifications/base-protocol/execution/l2-execution-engine.mdx
 d8da1defd320a7fda451c2531911f5246291b2f8  docs/specifications/base-protocol/execution/precompiles.mdx
 3f9864c2370057880851df98dd95ed17ab2c568b  docs/specifications/base-protocol/execution/predeploys.mdx
@@ -246,7 +246,7 @@ e0172c65782c08da1d2836f1e160d171b9254294  docs/specifications/build-transaction/
 44feec93b9affcdd7c78b85ae1709a531acbcd66  docs/specifications/builder-codes/for-agent-developers.mdx
 3ac3cabe8d44b3de57f50e2d79a03dc4b2955f92  docs/specifications/builder-codes/for-app-developers.mdx
 5c1de8e0205afb9b592a6c6b9bd1f02fc6b403b7  docs/specifications/builder-codes/for-wallet-developers.mdx
-31c9106e7a491d2f05301836258547812f7b1090  docs/specifications/builder-codes/overview.mdx
+819a013a921f5ec56977fed2c5fdab3f268aacae  docs/specifications/builder-codes/overview.mdx
 a7c6104bde5629d7445fa71dc53d893bb519fece  docs/specifications/flashblocks.mdx
 9349a2deee160d5ad3d65af1571b58b00fdb2612  docs/specifications/native-account-abstraction.mdx
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
@@ -263,7 +263,7 @@ d8f9fe3ab2cd80903564d6851802412d7ffed931  docs/specifications/reference/smart-co
 74696e15a38f9ce0cb0774cd2a3738fc3fc5c8b3  docs/specifications/security/security-council-for-base.mdx
 f0f4d4487d6a4e9e0fa9a5dc10dfab17c680339a  docs/specifications/transactions/network-fees.mdx
 3fbdea1e2fd907825c17deda9b8022f6fc301cb9  docs/specifications/transactions/throughput-and-limits.mdx
-3f1ee411d0810462ebb0125a93d063bc7de1f93b  docs/specifications/transactions/transaction-finality.mdx
+7143c8776580d591c57d1c596a54025b4836fa25  docs/specifications/transactions/transaction-finality.mdx
 38b6e18452ef65990456712822b12145b7b2bf57  docs/specifications/transactions/transaction-ordering.mdx
 8ae26ac41e7331af9e320884287d32b31ff491ed  docs/specifications/transactions/troubleshooting-transactions.mdx
 b80b94e1fb819ec146d5c6628f4dbe0fa9bd9edc  docs/upgrades/azul/exec-engine.mdx
@@ -276,7 +276,7 @@ a7eba9b780b478f15cd76a3d085c567faace2678  docs/upgrades/azul/node-upgrade.mdx
 10b0310e81b09d825dad83c375190bd6e229fac1  docs/upgrades/beryl/reth-v2.mdx
 b9d7a4042bf4c144c219b38c77f15e374bc08f57  docs/upgrades/canyon/overview.mdx
 61dc070864e29e703328809c237cf1c7285ad643  docs/upgrades/cobalt/dynamic-upgrades.mdx
-41de20392a5442b69d0dc31c9b076be7a7b0949c  docs/upgrades/cobalt/overview.mdx
+30f31def7dbde2c67392d03c876226b3c2c5e6ae  docs/upgrades/cobalt/overview.mdx
 46c538631428ca45a48807e89ad69ac36c30fafb  docs/upgrades/delta/overview.mdx
 5c37cd1086e69bcdf8167bb5e579109483187fcb  docs/upgrades/delta/span-batches.mdx
 c04b58722141da29c204de6961efe0cecd39499f  docs/upgrades/denim/200ms-blocks.mdx

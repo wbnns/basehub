@@ -9,17 +9,19 @@ sources:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its scope settled in mid-September 2026 after two rounds of reshuffling, and it now carries four things: a batch of B20 additions, conditional transactions that only become eligible when chain state matches, a first step toward lifting fork timestamps out of the node binary, and a move of Base infrastructure into a trusted execution environment.
+Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its scope settled in mid-September 2026 after two rounds of reshuffling, and it is now booked for Sepolia on September 23, 2026 and Mainnet on September 30, 2026. It carries four things: a batch of B20 additions, conditional transactions that only become eligible when chain state matches, a first step toward lifting fork timestamps out of the node binary, and a move of Base infrastructure into a trusted execution environment.
 
 ## Status
 
-| Network | Status | Target |
+| Network | Status | Date |
 |---|---|---|
-| Base Sepolia | Planning | September 2026 |
-| Base Mainnet | Planning | September 2026 |
+| Base Sepolia | Shipping | September 23, 2026 |
+| Base Mainnet | Shipping | September 30, 2026 |
+
+Upstream moved Cobalt off planning status on 2026-09-15 and named both dates. That is a week out for Sepolia and two for Mainnet, so the scope on this page is no longer expected to move.
 
 <Aside type="caution">
-September is a target under a planning status, not a booked activation. Cobalt has no activation timestamp on Mainnet or Sepolia, and the node source matches that: `cobalt_timestamp` is unset on every canonical network. The fork's contents have also moved more than once. Treat both the date and the scope as provisional until timestamps appear.
+A published date and an onchain activation timestamp are two different things, and right now Cobalt has the first but not the second. Do not read that gap as a slipped schedule. `cobalt_timestamp` is unset on every canonical network in the node source, and it stays unset, because Cobalt is one of the upgrades that carries its own schedule onchain. The client registers Cobalt as contract-backed under the fork alias `v3` and reads its activation from the L1 registry at runtime. So no client release will arrive carrying these dates compiled in, and waiting for one is the wrong signal to watch.
 </Aside>
 
 ## What Cobalt ships
@@ -44,7 +46,7 @@ Account abstraction is the murkier of the two. It has no fork of its own now. It
 
 ## Required software
 
-Node requirements get published once Cobalt has real activation timestamps, so there is nothing for operators to install ahead of time. To follow the work as it lands, point a client at [vibenet](/introduction/connecting-to-base/) instead.
+Upstream has not published a minimum client version for Cobalt yet, so there is still nothing specific to install. Watch for that announcement rather than for a release that hardcodes the fork times: because Cobalt activates from the onchain registry, a node can reach the date on a build that predates it. To exercise the new surface before either date, point a client at [vibenet](/introduction/connecting-to-base/).
 
 ## B20 improvements
 
