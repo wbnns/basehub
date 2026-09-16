@@ -109,10 +109,10 @@ Transaction data in the [`diff.transactions`](/api-reference/flashblocks/flashbl
 
 ### Why am I getting rate limited on the WebSocket?
 
-The public WebSocket caps the number of connections. For production use:
+Whatever socket you are connected to belongs to somebody, and it enforces their limits. Base publishes no free WebSocket RPC on Mainnet or Sepolia, so every `wss://` endpoint that works for Flashblocks is either your own node or a provider's, and each sets its own ceiling on connections and messages. There is no shared public allowance to be throttled against. For production use:
 
-1. Run your own [Flashblocks-aware RPC node](/node-operations/run-a-base-node/#enable-flashblocks).
-2. Use a third-party node provider with Flashblocks support.
+1. Run your own [Flashblocks-aware RPC node](/node-operations/run-a-base-node/#enable-flashblocks), where the limits are yours to set.
+2. Use a third-party node provider with Flashblocks support, and size the plan to your subscription count.
 
 ---
 

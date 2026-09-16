@@ -1,20 +1,20 @@
 ## Upstream snapshot
 
-Generated 2026-09-15T03:06:21Z
+Generated 2026-09-16T03:06:15Z
 
-### base/base @ fdca447
+### base/base @ 73bc1c5
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ef63e9b3798c0f89a367731c93c4bb8e49f28e5c  docs/guides/P2P.md
 6c3d1127d29bcb240139088a2c96f74d74c184cc  docs/guides/RELEASE.md
-cff94f2c1fd27cae1c4a9c1c97132e3256b6ba6a  docs/guides/SNAPSHOT_BENCHMARKS.md
+b7034939b2298f1ed5ccb58c87b7906fa3dac6bd  docs/guides/SNAPSHOT_BENCHMARKS.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 16eea8f34478db4cb0a286b897dd77050a25318e  docs/transaction-events/README.md
 2c3e22c78bef7bc563ba7ede45fade17d4f76fe7  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 1947f82
+### base/docs @ c2d9876
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -50,8 +50,8 @@ c1da387e792ba25fdb44d8a1da1405d8d116f211  docs/base-chain/api-reference/ethereum
 526abc24a9bf7268d91bb97eddd0479ac1059827  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 cb2f10f48e1ed1143247816c541f6fc31cb1df7e  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
 81845a980f490f1697c93ac4508a0364a8512c4c  docs/base-chain/api-reference/flashblocks-api/newFlashblockTransactions.mdx
-689a99c1b08987e85d2538190a778884debf80b6  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
-92212c8fd5a2f03db54ce440aedc76d082a00d45  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
+18aa9304ed44154ba4b6d16c53d012fe9a0dc818  docs/base-chain/api-reference/flashblocks-api/newFlashblocks.mdx
+9b4dea1eb38c1a0fdb25d3edd336eccce1dda7fb  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 de9db6ea116ef3d26365baa522edb2940ede868b  docs/base-chain/api-reference/rpc-overview.mdx
 b321d1ac3f8e208e382502c7b18bb50c81e57731  docs/base-chain/network-information/bridging-and-withdrawals.mdx
 e62537023c5af29dc74e951b748ec4bfc7cb3b99  docs/base-chain/network-information/configuration-changelog.mdx
@@ -100,7 +100,7 @@ c48852706dc7edeb456697275534e1bd5a576e0a  docs/build-on-base/issue-stablecoins/i
 1a1e662d184a834f2c847e9a281c78107f47ee67  docs/build-on-base/issue-stablecoins/recover-funds.mdx
 9e1a67a3a7dfe6e34a661005ab56fddacbd519eb  docs/build-on-base/issue-stablecoins/restrict-who-can-hold.mdx
 5e472ac0a6d572bff1f77adb798ed2b952b8b027  docs/build-on-base/overview.mdx
-e7bc4c0403194f173924661e7818da5f8659f42e  docs/build-on-base/test-on-vibenet.mdx
+66c042cc6ff5dcad9d96747e217080a6f10fbe6b  docs/build-on-base/test-on-vibenet.mdx
 5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
 d3dc5c3c3f36470002952f27c12c99596825b24c  docs/specifications/b20/reference/constants-addresses.mdx
 207fcbe45d16367df427bab6da68c4a8ae4be6b9  docs/specifications/b20/reference/errors-events.mdx
@@ -247,7 +247,7 @@ e0172c65782c08da1d2836f1e160d171b9254294  docs/specifications/build-transaction/
 3ac3cabe8d44b3de57f50e2d79a03dc4b2955f92  docs/specifications/builder-codes/for-app-developers.mdx
 5c1de8e0205afb9b592a6c6b9bd1f02fc6b403b7  docs/specifications/builder-codes/for-wallet-developers.mdx
 819a013a921f5ec56977fed2c5fdab3f268aacae  docs/specifications/builder-codes/overview.mdx
-a7c6104bde5629d7445fa71dc53d893bb519fece  docs/specifications/flashblocks.mdx
+0e2be1d3854576f1a08e7f72e282c5a464e008dc  docs/specifications/flashblocks.mdx
 9349a2deee160d5ad3d65af1571b58b00fdb2612  docs/specifications/native-account-abstraction.mdx
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
 2ee643819bc715741e050e24d57e08ae111e2298  docs/specifications/node-operators/run-a-node.mdx
@@ -276,7 +276,8 @@ a7eba9b780b478f15cd76a3d085c567faace2678  docs/upgrades/azul/node-upgrade.mdx
 10b0310e81b09d825dad83c375190bd6e229fac1  docs/upgrades/beryl/reth-v2.mdx
 b9d7a4042bf4c144c219b38c77f15e374bc08f57  docs/upgrades/canyon/overview.mdx
 61dc070864e29e703328809c237cf1c7285ad643  docs/upgrades/cobalt/dynamic-upgrades.mdx
-30f31def7dbde2c67392d03c876226b3c2c5e6ae  docs/upgrades/cobalt/overview.mdx
+4cca28a3295012c00c35074fd2bd4fc9de030687  docs/upgrades/cobalt/overview.mdx
+e43432b4cfd33c3c514a4fba778ec658c36cca6d  docs/upgrades/cobalt/validity-transactions.mdx
 46c538631428ca45a48807e89ad69ac36c30fafb  docs/upgrades/delta/overview.mdx
 5c37cd1086e69bcdf8167bb5e579109483187fcb  docs/upgrades/delta/span-batches.mdx
 c04b58722141da29c204de6961efe0cecd39499f  docs/upgrades/denim/200ms-blocks.mdx
@@ -360,3 +361,4 @@ https://base-l2.statuspage.io/incidents/3qtvwp60xfb8	Base Mainnet minimum base f
 https://base-l2.statuspage.io/incidents/wf93c6q4xjl6	Sepolia block building issue	Wed, 18 Feb 2026 16:56:51 +0000
 https://base-l2.statuspage.io/incidents/xf39x32bm8ms	Base Mainnet Upgrade 18	Tue, 10 Feb 2026 18:00:09 +0000
 https://base-l2.statuspage.io/incidents/tlvzszwdy2z3	Mempool upgrade	Thu, 05 Feb 2026 20:00:21 +0000
+

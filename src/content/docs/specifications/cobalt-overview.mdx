@@ -20,15 +20,19 @@ Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/
 
 Upstream moved Cobalt off planning status on 2026-09-15 and named both dates. That is a week out for Sepolia and two for Mainnet, so the scope on this page is no longer expected to move.
 
+Sepolia now has an exact activation moment. `cobalt_timestamp` for chain `84532` is set to `1790186400`, which is **September 23, 2026 at 18:00 UTC**. Mainnet is a different case: its `cobalt_timestamp` is still `None`, so the September 30 date is published but not yet pinned in the source.
+
 <Aside type="caution">
-A published date and an onchain activation timestamp are two different things, and right now Cobalt has the first but not the second. Do not read that gap as a slipped schedule. `cobalt_timestamp` is unset on every canonical network in the node source, and it stays unset, because Cobalt is one of the upgrades that carries its own schedule onchain. The client registers Cobalt as contract-backed under the fork alias `v3` and reads its activation from the L1 registry at runtime. So no client release will arrive carrying these dates compiled in, and waiting for one is the wrong signal to watch.
+The Sepolia timestamp reached `main` on 2026-09-15, one day after `v1.3.2` was tagged. No published release carries it. A Sepolia node running `v1.3.2` or earlier does not know Cobalt exists, and the fork is a week away, so operators need a build newer than `v1.3.2` before the date.
 </Aside>
+
+This corrects guidance this page carried until 2026-09-16. Cobalt does ship the onchain upgrade registry, but that mechanism runs in metrics-only mode at this fork and does not replace the compiled-in schedule yet. Both networks still take their Cobalt activation from the timestamp built into the client, so a node release remains the thing to watch.
 
 ## What Cobalt ships
 
 - **B20 improvements** — fees payable in B20, scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
 - **Validity transactions** — a signed transaction paired with conditions on chain state, which Base holds back until every condition matches. See [Validity Transactions](/api-reference/validity-transactions/).
-- **Dynamic upgrades** — an L1 contract holds the fork schedule, so activation no longer depends on shipping a binary with the timestamps compiled in.
+- **Dynamic upgrades** — an L1 contract holds the fork schedule, groundwork for activation that does not depend on shipping a binary with the timestamps compiled in. Cobalt itself still activates from the compiled-in schedule; the registry runs alongside it in metrics-only mode.
 - **TEE migration** — Base infrastructure moves inside a trusted execution environment. Upstream has not published the specification yet.
 
 ## What moved out of Cobalt
@@ -46,7 +50,9 @@ Account abstraction is the murkier of the two. It has no fork of its own now. It
 
 ## Required software
 
-Upstream has not published a minimum client version for Cobalt yet, so there is still nothing specific to install. Watch for that announcement rather than for a release that hardcodes the fork times: because Cobalt activates from the onchain registry, a node can reach the date on a build that predates it. To exercise the new surface before either date, point a client at [vibenet](/introduction/connecting-to-base/).
+Upstream has not named a minimum version yet, and the newest release, `v1.3.2` from 2026-09-10, predates the Sepolia schedule landing in the source. So there is no build to install today that recognises Cobalt on Sepolia. Watch the [releases page](https://github.com/base/base/releases) for the first tag cut after 2026-09-15 and move Sepolia nodes onto it ahead of September 23.
+
+Mainnet is under less pressure: its timestamp is still unset in the source, so that schedule has to land in a commit before any release can carry it. To exercise the new surface before either date, point a client at [vibenet](/introduction/connecting-to-base/).
 
 ## B20 improvements
 

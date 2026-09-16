@@ -36,12 +36,18 @@ Connect to Base mainnet or the Sepolia testnet using public RPC endpoints, your 
 
 ## Public RPC endpoints
 
-Base provides public RPC endpoints for general use:
+Base provides public RPC endpoints for general use. They serve HTTP only:
 
-| Network | HTTP Endpoint | WebSocket Endpoint |
-|---------|---------------|-------------------|
-| Mainnet | `https://mainnet.base.org` | `wss://mainnet.base.org` |
-| Sepolia | `https://sepolia.base.org` | `wss://sepolia.base.org` |
+| Network | HTTP Endpoint | WebSocket |
+|---------|---------------|-----------|
+| Mainnet | `https://mainnet.base.org` | none |
+| Sepolia | `https://sepolia.base.org` | none |
+
+:::caution[There is no free public WebSocket on Mainnet or Sepolia]
+Base does not run a public WebSocket RPC endpoint on either network. A `wss://` handshake against `mainnet.base.org` or `sepolia.base.org` is refused with `405 Method Not Allowed`, while the same host answers HTTP JSON-RPC normally. Anything that needs `eth_subscribe`, `newHeads`, or log streaming has to come from your own node or a WebSocket-capable provider.
+
+Base Vibenet is the exception. It publishes an open WebSocket at `wss://rpc.vibes.base.org/ws`, which makes it the cheapest place to prototype subscription code.
+:::
 
 :::note
 Public endpoints are rate-limited and intended for development and light usage. For production, run your own node or use a third-party provider.
