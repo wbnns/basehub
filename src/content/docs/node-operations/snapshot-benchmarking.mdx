@@ -70,6 +70,12 @@ One invocation starts the builder and validator, funds a throwaway load-test acc
 
 That last part is deliberate rather than a rough edge. Tearing down cleanly costs time and buys nothing here, because the run assumes its snapshot datadirs are disposable writable clones you discard afterwards. Point the command at a datadir you intend to keep and the abrupt exit becomes a real hazard, since the databases are left however the process abandoned them. If you need the previous bounded graceful teardown, pass a nonzero `--shutdown-timeout-seconds`, for example `10`.
 
+The local sequencer picks its block gas limit from the cadence. A 2-second workload gets 10 Ggas per block; a 200ms workload gets 1 Ggas. Those two numbers are chosen to be the same thing said twice: both leave theoretical block capacity at 5 Ggas/s, so a cadence comparison is not quietly also a capacity comparison. Pass `--block-gas-limit <gas>` to override the cadence default for one run.
+
+<Aside type="caution">
+The load-test YAML has a `block_gas_limit` setting of its own, and it is not this flag. That one paces the load generator and supplies the denominator for utilisation metrics. It never reaches the node, so the blocks your sequencer produces keep the cadence default no matter what you put there. Only `--block-gas-limit` changes produced blocks.
+</Aside>
+
 Each `--output-dir` comes out self-contained, ready to hand to `base/benchmark`:
 
 ```text
@@ -100,7 +106,7 @@ This writes `results/metadata.json` atomically. For each unique set of report ta
 
 ## Choose comparable runs
 
-Four flags and one environment variable look similar and do different jobs. Using them interchangeably is the fastest way to produce a comparison that means nothing.
+Five flags and one environment variable look similar and do different jobs. Using them interchangeably is the fastest way to produce a comparison that means nothing.
 
 | Field | Purpose | Comparison rule |
 |---|---|---|
@@ -109,6 +115,7 @@ Four flags and one environment variable look similar and do different jobs. Usin
 | `--run-id` | Immutable artifact identifier | Keep it unique. It does not group runs. |
 | `--output-dir` | Complete local artifact directory | Keep it unique. Never allow two runs to write to the same directory. |
 | `BASE_BENCH_CLIENT_VERSION` | Binary/build label | Keep it equal for cadence comparisons; deliberately vary it only for client-version comparisons. |
+| `--block-gas-limit` | Produced-block gas ceiling | Leave it unset for cadence comparisons, so both sides keep the matched 5 Ggas/s capacity. Set it only when the ceiling itself is the variable. |
 
 ### A fair 2-second against 200ms comparison
 

@@ -153,7 +153,23 @@ blocks_v3_topic: IdentTopic::new(format!("/optimism/{chain_id}/2/blocks")),
 blocks_v4_topic: IdentTopic::new(format!("/optimism/{chain_id}/3/blocks")),
 ```
 
-For Base Mainnet (chain ID 8453), these resolve to `/optimism/8453/0/blocks` through `/optimism/8453/3/blocks`. The version is selected based on the active hardfork (a protocol upgrade that changes network rules, activated at a specific timestamp) at the block's timestamp. V1 covers pre-Canyon blocks, V2 Canyon/Delta, V3 Ecotone, and V4 Isthmus. Each version uses a slightly different encoding for the execution payload envelope. When a node subscribes to gossip, it subscribes to all four topics simultaneously so it can handle blocks from any active version.
+For Base Mainnet (chain ID 8453), these resolve to `/optimism/8453/0/blocks` through `/optimism/8453/3/blocks`. The version is selected based on the active hardfork (a protocol upgrade that changes network rules, activated at a specific timestamp) at the block's timestamp. V1 covers pre-Canyon blocks, V2 Canyon/Delta, V3 Ecotone, and V4 Isthmus. Each version uses a slightly different encoding for the execution payload envelope.
+
+A node does not hold all four subscriptions forever. Topics retire as forks age out. `BlockHandler::MAX_BLOCK_AGE` is 60 seconds, and it does double duty: it caps how old a gossip block can be, and it sets the retirement grace period. Once a replacement fork has been active for longer than that window, no block on the older topic can still be inside the accepted age range, so the subscription serves no purpose and the driver drops it:
+
+```rust
+pub const MAX_BLOCK_AGE: u64 = 60;
+```
+
+`topics_at()` computes the live set by finding the topic that would carry a block from 60 seconds ago and discarding everything older. Two properties of that calculation are worth holding onto. It reads the **local** clock, never a timestamp a peer claims, so a peer cannot talk a node into reviving a dead topic. And it keeps future topics joined ahead of their activation, so the mesh for the next fork is already warm when the fork lands. `GossipDriver` re-evaluates the set every 5 seconds (`TOPIC_RETIREMENT_INTERVAL`) whether or not traffic is arriving, and skips topics that are already retired when it starts up.
+
+Retirement binds in both directions, and cheaply. Inbound, the handler discards a message on a retired topic before it decompresses or SSZ-decodes anything, so a flood of obsolete-topic traffic costs almost nothing to refuse. Outbound, a retired topic cannot be encoded for publication — relevant because gossipsub will happily publish to a topic you are not subscribed to, and this closes that path. Only v1 through v3 are ever retired; v4 is the newest topic and always stays.
+
+<Aside type="caution">
+Retirement is one-way within a process. If the local clock jumps backwards, topics already dropped are **not** rejoined. A node whose time source corrects itself downward past a fork boundary will therefore sit without the subscription it now needs, and nothing in the node reports this. Restart it after any large backwards clock correction.
+</Aside>
+
+With the `metrics` feature on, the live set is observable. `base_node_block_topic_subscribed`, `base_node_block_topic_peers`, and `base_node_block_topic_mesh_peers` are each labelled by version, and `base_node_block_topic_blocked_total` counts refusals with an `inbound` or `outbound` direction label. The three gauges are sampled at startup and on every retirement check, including while the network is idle, and they publish explicit zeroes for retired topics rather than dropping the series. Watch `peers` against `subscribed`: `peers` counts neighbours still advertising a topic even after the local node has retired it, so the two diverging is the expected shape during a fork transition, not a fault.
 
 The `BlockHandler` implements the [`Handler`](https://github.com/base/base/blob/main/crates/consensus/gossip/src/handler.rs) trait, with two methods: `handle()` for processing incoming messages and `topics()` for declaring which topics it cares about. When a gossip message arrives, the handler first checks the topic to choose the decoder, then decodes the payload, then validates it:
 
@@ -225,14 +241,18 @@ The [`Behaviour`](https://github.com/base/base/blob/main/crates/consensus/gossip
 ```rust
 #[derive(NetworkBehaviour)]
 pub struct Behaviour {
+    pub connection_limits: libp2p::connection_limits::Behaviour,
     pub ping: libp2p::ping::Behaviour,
     pub gossipsub: libp2p::gossipsub::Behaviour,
     pub identify: libp2p::identify::Behaviour,
-    pub sync_req_resp: libp2p_stream::Behaviour,
 }
 ```
 
-`ping` sends periodic keepalive pings and measures round-trip times. `gossipsub` handles block gossip. `identify` exchanges capability information when peers first connect (Base advertises its agent version as `"base"`). `sync_req_resp` supports a legacy request-response protocol called `payload_by_number` that is part of the OP Stack spec. It is being deprecated and the Base implementation responds "not found" to all requests, but it is still present so op-nodes do not penalize Base nodes for missing it.
+Field order carries meaning here. libp2p calls each behaviour's connection hooks in declaration order, so `connection_limits` sits first: it turns away surplus connections before any other behaviour allocates a handler for them. Its caps default to 5 pending inbound, 16 pending outbound, 30 established in each direction and in total, and 1 established connection per peer. This is a different layer from the `ConnectionGater` above. The gater decides whether a given peer is allowed to connect at all. These limits bound how many connections exist, whoever they belong to.
+
+`ping` sends periodic keepalive pings and measures round-trip times. `gossipsub` handles block gossip. `identify` exchanges capability information when peers first connect (Base advertises its agent version as `"base"`).
+
+Notice what is absent. Base neither advertises nor implements `payload_by_number`, the legacy op-node request-response protocol. Earlier releases carried a `sync_req_resp` stub that answered every such request with "not found", purely so op-nodes would not penalize Base for the gap. That stub is gone, and a test now asserts no advertised protocol begins with `/opstack/req/payload_by_number/`. Nothing about block delivery regresses as a result: gossipsub moves consensus-layer blocks, the execution layer syncs over its own path, and follow mode fetches payloads over HTTP. Any tooling that reached for this protocol on a Base node was already getting "not found" and must use one of those three paths instead.
 
 The `GossipDriver` ([`gossip/src/driver.rs`](https://github.com/base/base/blob/main/crates/consensus/gossip/src/driver.rs)) wraps the swarm and provides higher-level operations. Its `start()` method binds the swarm to a TCP address (default `0.0.0.0:9222`), waits for the `NewListenAddr` event confirming the listener is up, and returns. Its `publish()` method takes an execution payload envelope (the signed wrapper around a block's contents — transactions, state root, gas used, and so on), selects the appropriate topic based on the block's timestamp and active hardfork, encodes it with version-appropriate serialization, and publishes it to gossipsub. Its `dial()` method takes an ENR from discovery, validates the chain ID, extracts the TCP multiaddr (a self-describing network address format used by libp2p, e.g. `/ip4/192.168.1.1/tcp/9222`), checks the connection gate, and initiates the connection.
 

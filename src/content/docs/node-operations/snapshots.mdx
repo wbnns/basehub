@@ -30,6 +30,12 @@ These steps assume you're working from the cloned `node` directory — the one t
 Downloads are driven by the `base-reth-node` CLI. If you don't already have it, install it first via the [installation instructions](https://github.com/base/base#install-binaries).
 </Aside>
 
+Whichever binary you use, the download resolves through `https://chain.base.org`, from which the CLI derives its own manifest path. Per-chain archives then come from `mainnet-v2-snapshots.base.org`, `sepolia-v2-snapshots.base.org`, and `zeronet-v2-snapshots.base.org`, picked by your `--chain` value.
+
+<Aside type="caution">
+The unified `base` binary did not register these defaults until recently. On an older build, `base snapshot download` quietly fell through to the upstream Reth snapshot service rather than Base's buckets — it reported success while fetching data that does not belong to your chain. Nothing surfaced an error, so a stale binary is the only symptom. `base-reth-node` and `base-builder` were never affected. If you snapshot through the unified binary, upgrade before trusting a download, or use `base-reth-node` instead.
+</Aside>
+
 1. **Prepare the data directory.**
    - **Before launching Docker for the first time**, create the host directory that will be mapped into the container. The path must match the `volumes` entry in `docker-compose.yml`:
 
@@ -39,12 +45,15 @@ Downloads are driven by the `base-reth-node` CLI. If you don't already have it, 
 
    - If a previous run left an existing data directory, **stop the node first** (`docker compose down`), wipe the contents (for example, `rm -rf ./reth-data/*`), then continue.
 
-2. **Choose the chain.** Select the network with the `--chain` flag:
+2. **Choose the chain.** Select the network with the `--chain` flag. Base parsers accept two naming surfaces, and either one resolves the same chain:
 
-   | Network       | `--chain` value |
-   |---------------|-----------------|
-   | Base Mainnet  | `base`          |
-   | Base Sepolia  | `base-sepolia`  |
+   | Network      | Namespaced name | Operator selector | Chain ID |
+   |--------------|-----------------|-------------------|----------|
+   | Base Mainnet | `base`          | `mainnet`         | 8453     |
+   | Base Sepolia | `base-sepolia`  | `sepolia`         | 84532    |
+   | Base Zeronet | `base-zeronet`  | `zeronet`         | 763360   |
+
+   The namespaced column keeps its `base-` prefix so these values cannot be confused with the Ethereum L1 chain names that share the same ecosystem. The selector column is the short form the unified `base` binary exposes. Read `mainnet` carefully: within Base tooling it resolves to Base Mainnet, never to Ethereum Mainnet. The two sets are kept deliberately separate, so a parser that only understood one of them used to reject the other. Every Base entry point now resolves both, which means a `--chain` value you learned from one command carries over to the rest. `base_sepolia` with an underscore also still works as a legacy alias, and `dev` selects the local devnet.
 
 3. **Download the snapshot.** V2 snapshots are no longer a single archive — they're broken into many small, segmented files. The CLI advertises just one `archive` snapshot because it holds every file; `full` and `minimal` simply pull progressively smaller subsets of it. Pick the configuration that fits your node from the table below.
 
