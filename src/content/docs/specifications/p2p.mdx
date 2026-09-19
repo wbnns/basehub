@@ -372,7 +372,7 @@ pub enum BaseOrdering<T> {
 
 A node that is not the sequencer cannot include transactions itself, so whatever lands in its mempool has to be relayed onward to the sequencer. The reader/forwarder pipeline that handles this now lives in a dedicated `tx-forwarding` crate, split out of `txpool`.
 
-The [`DestinationReader`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/reader/task.rs) polls the transaction pool for pending transactions and queues them onto a bounded `tokio::mpsc` channel. The [`DestinationForwarder`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/forwarder/task.rs) drains that queue and relays each transaction to the configured builder endpoints through a custom JSON-RPC method (`base_insertValidatedTransactions`). A separate forwarder task is spawned for each builder URL, so several downstream builders can be fed at once. Both halves of the pipeline run in the background, scheduled on the node's task executor.
+The [`DestinationReader`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/reader/task.rs) polls the transaction pool for pending transactions and queues them onto a bounded `tokio::mpsc` channel. The [`DestinationForwarder`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/forwarder/task.rs) drains that queue and relays each transaction to the configured builder endpoints through a custom JSON-RPC method (`base_insertValidatedTransaction`). A separate forwarder task is spawned for each builder URL, so several downstream builders can be fed at once. Both halves of the pipeline run in the background, scheduled on the node's task executor.
 
 ### EL P2P configuration flags
 
