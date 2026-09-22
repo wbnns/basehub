@@ -5,7 +5,7 @@ description: Kafka-to-S3 audit log archival service with configurable worker poo
 
 import { LinkCard } from '@astrojs/starlight/components';
 
-`audit-archiver` consumes audit log messages from the Kafka topics that `ingress-rpc` writes to and archives them to S3-compatible storage for long-term retention, debugging, and compliance.
+`audit-archiver` archives audit log messages to S3-compatible storage for long-term retention, debugging, and compliance. Its Kafka producer used to be `ingress-rpc`, which was removed from `base/base` on 2026-09-21; the archiver itself stayed, and it still ingests transaction events over HTTP from Vector.
 
 ## Package
 

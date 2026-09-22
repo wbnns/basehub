@@ -22,7 +22,7 @@ User / Application
        ▼
 ┌─────────────────┐
 │  JSON-RPC        │   eth_sendRawTransaction
-│  (ingress-rpc)   │
+│  (proxy layer)   │
 └────────┬────────┘
          │
          ▼
@@ -44,7 +44,7 @@ User / Application
 └─────────────────┘
 ```
 
-1. **Ingress** -- transactions arrive via `eth_sendRawTransaction` through the ingress RPC.
+1. **Ingress** -- transactions arrive via `eth_sendRawTransaction` through the proxy layer in front of the node. This used to be the `ingress-rpc` service, which was retired on 2026-09-21; the stage is the same, and nothing about the pool behaviour below depends on which component fronts it.
 2. **Validation** -- each transaction is validated: signature verification, nonce ordering, sufficient balance for gas and value, gas price meets the minimum.
 3. **Pool insertion** -- valid transactions enter the pool. Transactions with the next expected nonce go into the **pending** sub-pool (ready for inclusion). Transactions with a future nonce go into the **queued** sub-pool (waiting for the gap to be filled).
 4. **Promotion** -- when a pending transaction is included in a block or flashblock, queued transactions from the same sender may be promoted to pending if the nonce gap is closed.

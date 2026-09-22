@@ -12,7 +12,7 @@ The dependency graph flows downward: higher-level groups depend on lower-level o
 ```
 ┌─────────────────────────────────────────────────────┐
 │                       infra                          │
-│  based, basectl, ingress-rpc, websocket-proxy, ...   │
+│  based, basectl, roxy, websocket-proxy, ...          │
 └───────────┬──────────┬──────────┬───────────────────┘
             │          │          │
             v          v          v
@@ -174,7 +174,7 @@ The proof group is intentionally isolated from the rest of the workspace. It mus
 infra/
   ├── based                    ← depends on: client, builder, consensus, shared
   ├── basectl-cli              ← depends on: shared (base-cli-utils, base-primitives)
-  ├── ingress-rpc-lib          ← depends on: shared (base-jwt, base-primitives)
+  ├── ingress-rpc-lib          ← retired 2026-09-21 (was: shared — base-jwt, base-primitives)
   ├── websocket-proxy          ← depends on: shared (base-primitives)
   ├── mempool-rebroadcaster    ← depends on: shared (base-primitives, base-txpool-rpc)
   ├── audit-archiver-lib       ← depends on: shared (base-primitives)

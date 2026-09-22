@@ -1,16 +1,31 @@
 ---
 title: "infra/ingress-rpc"
-description: "Ingress JSON-RPC server that forwards transactions to the builder and writes a Kafka audit trail."
+description: "Retired ingress JSON-RPC service, removed from base/base on 2026-09-21. Kept here for readers working with older tags or archived audit rows."
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
 
+:::caution[Retired crate]
+`ingress-rpc` was deleted from `base/base` on 2026-09-21. Both `crates/infra/ingress-rpc` and `bin/ingress-rpc` are gone, and the crate is no longer a workspace member. This page stays up because the last tag that contains it, `v1.4.0`, is still the current stable release, and because archived audit records still reference the service.
+:::
+
 ## Overview
 
-The `infra/ingress-rpc` sub-crate (`ingress-rpc-lib`) is part of the [infra crate group](/crates/infra/overview/).
+The `infra/ingress-rpc` sub-crate (`ingress-rpc-lib`) was part of the [infra crate group](/crates/infra/overview/).
 
-It runs the ingress JSON-RPC server, forwarding incoming transactions to the builder and writing each one to Kafka for the audit trail.
+It ran an ingress JSON-RPC server that forwarded incoming transactions to the builder and wrote each one to Kafka for the audit trail.
+
+## What replaced it
+
+There is no drop-in successor crate. The removal took out the whole forwarding hop rather than reassigning it:
+
+- The proxy layer is now the entry point. `proxyd` no longer forwards to an ingress service, and the devnet observability stack was renamed from `ingress` to `tx-observability` in the same change. See [Transaction Event Journal](/specifications/transaction-events/#local-devnet-verification).
+- `roxy`, under `crates/infra/roxy`, is the in-house Rust reverse proxy meant to displace the `proxyd` fork. It is not a replacement for this crate, and its own README still describes it as scaffolding with no proxying implemented, so do not plan around it yet.
+
+The transaction-event vocabulary kept its `ingress-rpc` producer value and its `INGRESS_*` event types on purpose, so that rows written before the removal still parse. Read those values; never emit them.
 
 ## Source
 
-<LinkCard title="View source on GitHub" href="https://github.com/base/base/tree/main/crates/infra/ingress-rpc" />
+The crate no longer exists on `main`. This link points at `v1.4.0`, the last release that carries it.
+
+<LinkCard title="View source on GitHub (v1.4.0)" href="https://github.com/base/base/tree/v1.4.0/crates/infra/ingress-rpc" />

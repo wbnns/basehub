@@ -95,21 +95,25 @@ On the Rust side, the `TransactionEvent::validate` helper rejects a mismatched s
 
 ## Local Devnet Verification
 
-Journaling is split across two devnet layers. The core devnet — `just devnet up` or `just devnet up-single` — switches on durable node journals for `base-client` and `base-builder`, which write their JSONL under `.devnet/transaction-events/`. The ingress overlay then layers the collection side on top: a Vector shipper, a local Postgres, the `audit-archiver` ingest path, and the ingress/proxyd producers. That overlay never touches the node journal configuration — it only consumes what the core layer already emits.
+Journaling is split across two devnet layers. The core devnet — `just devnet up` or `just devnet up-single` — switches on durable node journals for `base-client` and `base-builder`, which write their JSONL under `.devnet/transaction-events/`. The tx-observability overlay then layers the collection side on top: a Vector shipper, a local Postgres, the `audit-archiver` ingest path, and the proxyd producer. That overlay never touches the node journal configuration — it only consumes what the core layer already emits.
 
 ```bash
-just devnet ingress
+just devnet tx-observability
 just devnet tx-observability-smoke
 ```
 
 To exercise proxyd transaction events before that code ships in the default proxyd image, point `BASE_ROUTING_CONTEXT` at a local `protocols/base-routing` checkout:
 
 ```bash
-BASE_ROUTING_CONTEXT=/path/to/base-routing just devnet ingress
+BASE_ROUTING_CONTEXT=/path/to/base-routing just devnet tx-observability
 just devnet tx-observability-smoke
 ```
 
-The smoke test pushes a single transaction through ingress, waits for Vector to deliver the JSONL records from the ingress, proxyd, txpool-tracing, and builder producers, and then confirms `audit-archiver` can read the stored events back out of Postgres by transaction hash.
+The smoke test pushes a single transaction through proxyd, waits for Vector to deliver the JSONL records from the proxyd, txpool-tracing, and builder producers, and then confirms `audit-archiver` can read the stored events back out of Postgres by transaction hash.
+
+:::caution
+This overlay was called `ingress` until 2026-09-21, when the `ingress-rpc` service was deleted from `base/base`. The recipe was renamed rather than aliased, so `just devnet ingress` no longer resolves — along with `tx-observability`, the working recipes are now `tx-observability-down` and `tx-observability-logs`. The compose file moved to `etc/docker/docker-compose.tx-observability.yml`.
+:::
 
 To keep an eye on the local shipper, alert on or inspect the `component_discarded_events_total` metric. Two transforms account for what it counts: `parse_transaction_events` sheds malformed JSONL lines, while `validate_transaction_events` discards already-parsed records whose `data` keys are flagged unsafe.
 
@@ -117,8 +121,10 @@ To keep an eye on the local shipper, alert on or inspect the `component_discarde
 
 - `base-reth-node`
 - `base-builder`
-- `ingress-rpc`
 - `base-routing/proxyd`
+- `ingress-rpc` (retired; the value stays defined so archived events remain readable)
+
+Nothing emits `ingress-rpc` any more. The service was removed on 2026-09-21, but its producer value and event types were deliberately left in the vocabulary, because `audit-archiver` rows written before that date still carry them and would otherwise fail to parse. Treat it as a value you may read and must never write.
 
 ## Txpool Tracing Example
 
@@ -139,11 +145,11 @@ Edge/proxy:
 - `PROXY_ROUTED_TO_BACKEND`
 - `PROXY_BACKEND_SUCCESS`
 - `PROXY_BACKEND_FAILURE`
-- `PROXY_INGRESS_RPC_ATTEMPT`
-- `PROXY_INGRESS_RPC_SUCCESS`
-- `PROXY_INGRESS_RPC_FAILURE`
+- `PROXY_INGRESS_RPC_ATTEMPT` (retired)
+- `PROXY_INGRESS_RPC_SUCCESS` (retired)
+- `PROXY_INGRESS_RPC_FAILURE` (retired)
 
-Ingress/audit:
+Ingress/audit (retired producer; the types are retained so historical events remain readable):
 
 - `INGRESS_RECEIVED`
 - `SIMULATION_STARTED`
@@ -388,7 +394,6 @@ The journal feeds the audit-archiver/Postgres query path that backs the TIPS UI.
 **Operational checks:**
 
 - On `audit-archiver`, `TIPS_AUDIT_POSTGRES_URL` is configured, and the audit service port answers both JSON-RPC and transaction-event HTTP ingest — that same port is where Vector delivers NDJSON, at `/v1/transaction-events/batch`.
-- `ingress-rpc` carries `TIPS_INGRESS_TRANSACTION_EVENTS_ENABLED=true` in the test environment alone, its JSONL path aligned with the Vector sidecar mount.
 - On the UI side, `TIPS_UI_QUERY_BACKEND=audit` is set with `TIPS_UI_AUDIT_RPC_URL` aimed at the audit service.
 - Writes to S3 keep flowing across the whole comparison window.
 - Nothing in the rollout drops a Kafka, S3, or existing RPC persistence path.

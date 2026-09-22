@@ -12,7 +12,7 @@ The `infra` crate group runs the operational services around the Base node. It p
 | [audit](/crates/infra/audit/) | `audit-archiver-lib` | Audit log archival |
 | [basectl](/crates/infra/basectl/) | `basectl-cli` | Node management utility |
 | [based](/crates/infra/based/) | `based` | Base daemon service |
-| [ingress-rpc](/crates/infra/ingress-rpc/) | `ingress-rpc-lib` | RPC ingress proxy (Kafka-based) |
+| [ingress-rpc](/crates/infra/ingress-rpc/) | `ingress-rpc-lib` | RPC ingress proxy (Kafka-based) — **retired 2026-09-21** |
 | [mempool-rebroadcaster](/crates/infra/mempool-rebroadcaster/) | `mempool-rebroadcaster` | Transaction rebroadcasting service |
 | [system-tests](/crates/infra/system-tests/) | `system-tests` | End-to-end system test framework |
 | [websocket-proxy](/crates/infra/websocket-proxy/) | `websocket-proxy` | WebSocket proxy for flashblock streaming |
@@ -23,7 +23,7 @@ The infra crates provide the operational tooling around the core node:
 
 - **basectl** — A management utility for configuring and inspecting Base nodes. Supports mainnet, sepolia, and devnet configurations.
 - **based** — The Base daemon that orchestrates node services.
-- **ingress-rpc** — An RPC proxy that routes incoming JSON-RPC requests, using Kafka for message queuing.
+- **ingress-rpc** — An RPC proxy that routed incoming JSON-RPC requests, using Kafka for message queuing. Removed from the workspace on 2026-09-21; the proxy layer is the entry point now, and no crate took the forwarding hop over.
 - **websocket-proxy** — Proxies WebSocket connections for flashblock streaming with Brotli compression.
 - **mempool-rebroadcaster** — Rebroadcasts transactions from the mempool to ensure propagation.
 - **audit** — Archives audit logs for operational monitoring.

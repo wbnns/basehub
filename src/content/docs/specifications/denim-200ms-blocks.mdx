@@ -118,7 +118,9 @@ Contracts that need the current millisecond part read it from a predeploy.
 | Millisecond-part getter | `timestampMillisPart()` |
 | Full-timestamp getter | `timestampMs()` |
 
-Ordering is what makes the value trustworthy inside a block. BaseTime executes ahead of L1 user deposits and ahead of user transactions, so everything that runs later already sees the current value.
+Ordering is what makes the value trustworthy inside a block, and it also bounds where the value can be trusted. The deposit sits at `tx[1]`, immediately after the L1-info deposit and ahead of both user deposits and sequencer transactions. Everything from `tx[2]` onward therefore reads the current block's millisecond part.
+
+`tx[0]` is the exception, and it is a real one. The L1-info deposit executes before BaseTime updates, so a `timestampMs()` read during `tx[0]` returns the current block's seconds combined with the *previous* block's stored millisecond part. For a run of consecutive 200ms blocks that value is 200ms behind inside the same second, and 800ms ahead at the second rollover — so it is not merely stale, it can read later than the block it belongs to. The L1-info execution path is specified not to depend on the current block's millisecond part for this reason. Treat `tx[0]` as having no trustworthy millisecond source.
 
 A chain starting fresh gets the linked predeploy in genesis. On a chain that already exists, the reserved address holds the canonical proxy runtime under the Base ProxyAdmin, but with no implementation set — calls to it revert until Denim activates. Activation installs the canonical implementation and links the proxy before any transaction executes, and it leaves both the proxy admin and any implementation that governance already set in place.
 

@@ -300,7 +300,7 @@ Reverse lookup for revert selectors. A few names appear more than once — `NonP
 | `InsufficientAllowance` | `0x192b9e4e` | The `transferFrom` asked for more than `spender` is allowed to move. |
 | `InsufficientBalance` | `0xdb42144d` | The transfer or burn asked for more than `sender` holds. |
 | `InvalidSender` | `0x4c14f64c` | The source address on the transfer is not valid, typically `address(0)`. |
-| `InvalidReceiver` | `0x9cfea583` | The destination address on the transfer is not valid, typically `address(0)`. |
+| `InvalidReceiver` | `0x9cfea583` | The destination address on the transfer is not valid — `address(0)`, or from Denim the address of the token being credited. |
 | `InvalidApprover` | `0x8bc146c4` | The `owner` on the approval is not valid, typically `address(0)`. |
 | `InvalidSpender` | `0x4e15efda` | The `spender` on the approval is not valid, typically `address(0)`. |
 | `InvalidAmount` | `0x2c5211c6` | An amount came through as zero where a nonzero one is required. ERC-20 amount arguments are exempt. |
@@ -462,6 +462,18 @@ Three groups are specified and documented above, but undialable until Cobalt act
 
 **Composite policies on `IPolicyRegistry`.** `createCompositePolicy`, `updateComposite`, `compositePolicyChildIds`, the two bound getters, the `CompositePolicyUpdated` event, and the `ChildPoliciesOutsideOfRange` and `InvalidChildPolicy` errors. The `PolicyType` enum gains `UNION = 2` and `INTERSECT = 3` by appending, so the existing values and the packed-ID top-byte encoding do not move.
 
+### Arriving with Denim
+
+One behavioural change is already in the node source, gated behind [Denim](/specifications/denim-overview/) rather than Cobalt. It adds no selector and removes none.
+
+**A token can no longer be credited to itself.** `transfer`, `transferFrom`, `mint` and `seizeWithMemo` all reject a `to` equal to the address of the token being credited, reverting `InvalidReceiver`. Asset and Stablecoin enforce it identically. The zero address was already refused; this extends the same treatment to the token's own address, which previously accepted the credit and stranded the balance where nothing could move it.
+
+The rule is narrower than it first sounds, and the distinction is the part worth getting right:
+
+- Only the token *being credited* is refused. Sending B20 token A to the address of a different B20 token B is still a valid transfer. An earlier revision of this change rejected every B20-prefixed recipient; it was narrowed before landing, so do not build on the broader reading.
+- On `transferFrom` the recipient is validated before the allowance is touched, so a call that trips this rule leaves the allowance unspent rather than consuming it on a revert.
+- For seizure, this closes a disguised-burn path: because seize leaves `totalSupply` alone, seizing into the token address used to remove a balance from circulation without recording it as a burn.
+
 ## What changes for integrators at Cobalt
 
 Nothing you call today stops working, so none of this is a forced migration. The timing has tightened, though: Sepolia activates on September 23, 2026 and Mainnet a week later, so each item below is now a path worth moving to on a schedule rather than eventually.
@@ -472,7 +484,7 @@ Nothing you call today stops working, so none of this is a forced migration. The
 
 The two are not interchangeable, and swapping the selector alone will not reproduce the old outcome:
 
-- **Seize is a transfer, not a burn.** It moves `amount` from `from` to `to` and leaves `totalSupply` alone. To get the old result, seize into a treasury or self address and then call `burn`.
+- **Seize is a transfer, not a burn.** It moves `amount` from `from` to `to` and leaves `totalSupply` alone. To get the old result, seize into a treasury address you control and then call `burn`. Do not seize into the token's own address: that reverts `InvalidReceiver` from Denim onward, and before Denim it strands the balance instead of burning it.
 - **They read different policies.** `seizeWithMemo` consults `SEIZE_EXEMPT_POLICY`; `burnBlocked` consults `TRANSFER_SENDER_POLICY`. A token can define a seizable set that has nothing to do with its transfer-blocked set. Under both, "eligible" means *not* authorized by the relevant policy.
 - **They sit in different role and pause domains.** `SEIZE_ROLE` and `BURN_BLOCKED_ROLE` are separate grants, and `SEIZE` (ordinal 3) and `BURN` (ordinal 2) are separate pause bits. Pausing one leaves the other running.
 

@@ -18,12 +18,12 @@ Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/
 | Base Sepolia | Shipping | September 23, 2026 |
 | Base Mainnet | Shipping | September 30, 2026 |
 
-Upstream moved Cobalt off planning status on 2026-09-15 and named both dates. Sepolia is now inside its final week, and the status page has published a formal scheduled-event notice for it, so the scope on this page is no longer expected to move.
+Upstream moved Cobalt off planning status on 2026-09-15 and named both dates. Both are now pinned in the node source rather than merely announced, and the status page has published a formal scheduled-event notice for Sepolia, so the scope on this page is no longer expected to move.
 
-Sepolia now has an exact activation moment. `cobalt_timestamp` for chain `84532` is set to `1790186400`, which is **September 23, 2026 at 18:00 UTC**. Mainnet is a different case: its `cobalt_timestamp` is still `None`, so the September 30 date is published but not yet pinned in the source.
+Both networks now have an exact activation moment compiled into the node. `cobalt_timestamp` for chain `84532` is `1790186400`, which is **September 23, 2026 at 18:00 UTC**. Chain `8453` is `1790791200`, which is **September 30, 2026 at 18:00 UTC**. The two sit exactly seven days apart, and the Mainnet value landed on 2026-09-21, six days after the dates were first announced.
 
 <Aside type="caution">
-`v1.4.0`, tagged 2026-09-16, is the first release that carries the Sepolia schedule. A Sepolia node on `v1.3.2` or earlier does not know Cobalt exists and will not follow the fork. Upgrade before September 23.
+The two networks have different minimum releases, and the Mainnet one is not a published release yet. `v1.4.0` covers Sepolia. For Mainnet you need a build at or after `v1.4.1-rc.9` — see [Required software](#required-software) before September 30.
 </Aside>
 
 This corrects guidance this page carried until 2026-09-16. Cobalt does ship the onchain upgrade registry, but that mechanism runs in metrics-only mode at this fork and does not replace the compiled-in schedule yet. Both networks still take their Cobalt activation from the timestamp built into the client, so a node release remains the thing to watch.
@@ -52,7 +52,13 @@ Account abstraction is the murkier of the two. It has no fork of its own now. It
 
 Sepolia now has a named minimum: [`v1.4.0`](https://github.com/base/base/releases/tag/v1.4.0) of `github.com/base/base`, or anything later. Upstream published that requirement alongside the scheduled-event notice on 2026-09-16, and the tag went out the same evening. It is the first build whose compiled-in schedule contains the Sepolia activation, so it is the floor rather than a recommendation — an older node does not recognise the fork at all.
 
-Mainnet has no version requirement yet, and it cannot have one while its `cobalt_timestamp` reads `None` in the source. That schedule has to land in a commit before any release can carry it, so expect a later tag for the September 30 date. Watch the [releases page](https://github.com/base/base/releases) for it.
+Mainnet now has a schedule in the source, but no stable release carries it. The commit that set chain `8453` to `1790791200` landed on 2026-09-21 at 15:24 UTC. `v1.4.0` was tagged five days earlier, so it ships Mainnet `cobalt_timestamp: None` — a Mainnet node on `v1.4.0` recognises no Cobalt activation and will not follow the fork on September 30.
+
+The first tag containing the Mainnet timestamp is `v1.4.1-rc.9`, cut nine minutes after that commit; `v1.4.1-rc.8` and everything before it still read `None`. As of this writing there is no `v1.4.1` final release, only candidates. So the Mainnet floor is a real version boundary but not yet an installable stable build, and the gap has to close inside the nine days before activation. Watch the [releases page](https://github.com/base/base/releases) for `v1.4.1`.
+
+<Aside type="caution">
+Do not read "`v1.4.0` or later" as sufficient for both networks. It is the published floor for Sepolia only. The Mainnet schedule was added after that tag, so upgrading to `v1.4.0` satisfies September 23 and leaves September 30 unmet.
+</Aside>
 
 One packaging note worth repeating, because the September 23 window is the first fork where it bites: the public node images and binaries now come from `github.com/base/base`. The retired `base/node` repository stopped receiving them at `v1.3.0`, so there is no `v1.4.0` on the old path to pull. To exercise the new surface before either date, point a client at [vibenet](/introduction/connecting-to-base/).
 

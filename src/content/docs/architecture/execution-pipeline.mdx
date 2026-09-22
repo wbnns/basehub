@@ -47,7 +47,7 @@ Transactions enter the system through JSON-RPC endpoints. The Base node exposes 
 
 **Relevant crates:**
 
-- [`ingress-rpc-lib`](https://github.com/base/base/tree/main/crates/infra/ingress-rpc) -- in production deployments, an ingress proxy sits in front of the node. It handles rate limiting, authentication (via `base-jwt`), and request routing. The proxy forwards validated requests to the node's internal RPC server.
+- In production deployments a proxy sits in front of the node, handling rate limiting, authentication (via `base-jwt`), and request routing before forwarding validated requests to the node's internal RPC server. The crate that did this, [`ingress-rpc-lib`](https://github.com/base/base/tree/v1.4.0/crates/infra/ingress-rpc), was removed on 2026-09-21 and the link points at `v1.4.0`, the last release containing it. The stage itself is unchanged; only the component that fills it moved out of this repository.
 - [`base-reth-rpc-types`](https://github.com/base/base/tree/main/crates/shared/rpc-types) -- defines the request and response types for Base-specific RPC methods.
 
 When the node receives `eth_sendRawTransaction`, it:
