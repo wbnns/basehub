@@ -3,6 +3,9 @@ title: B20 Native Token Standard
 description: Base's native token standard, serving creators of long-tail tokens, stablecoin issuers, and issuers of real-world assets (RWAs) and equities.
 sources:
 - base/docs:docs/base-chain/specs/upgrades/beryl/b20.mdx
+- base/docs:docs/specifications/b20/specification-overview.mdx
+- base/docs:docs/specifications/b20/architecture.mdx
+- base/docs:docs/specifications/b20/concepts/policies.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -105,6 +108,8 @@ Two reserved IDs work without being created first:
 | `INTERSECT` | **Authorizes everyone** (no child declines) |
 
 A malformed ID — one whose type byte exceeds `INTERSECT` — is treated as unauthorized rather than reverting.
+
+From [Denim](/specifications/denim-overview/), bit 63 gains a meaning of its own: it inverts the policy. An ID with that bit set authorizes exactly the accounts its base rejects, and it reads as `false` when the base does not exist. `invertedPolicyId(policyId)` toggles the bit. Until Denim activates, the same ID is simply malformed and denies everyone, so a slot bound to one changes behaviour at the fork. The [precompile reference](/api-reference/b20-precompiles/#arriving-with-denim) has the details.
 
 <Aside type="caution">
 Any consumer that stores a policy ID (for example via `updatePolicy`) MUST check `policyExists(policyId)` at write time; skip it and the token can quietly bind to an unintended empty-set policy. `INTERSECT` is the worst version of that mistake: an ID that was never created authorizes every account, so a slot meant to restrict behaves like `ALWAYS_ALLOW` and nothing reverts to signal it.
@@ -211,7 +216,9 @@ Each feature covers every entrypoint in its family, and a pause outranks a role 
 The ABI encodes `PausableFeature` as `uint8`, so the wire value is the ordinal above. Pass `0` for `TRANSFER` — never a scope-key style hash such as `keccak256("TRANSFER")`, which is how the policy constants are identified and does not apply here. Both arguments are arrays, and an empty one reverts with `EmptyFeatureSet` rather than doing nothing.
 </Aside>
 
-Re-pausing a feature that is already paused is a no-op and does not revert, which keeps an emergency runbook safe to run twice. Read the whole current set in one call with `pausedFeatures()`.
+Re-pausing a feature that is already paused is a no-op and does not revert, which keeps an emergency runbook safe to run twice. Read the whole current set in one call with `pausedFeatures()`. As a bitmask, `B20Constants.ALL_FEATURES_PAUSED` is `15` (`0b1111`), every feature bit set.
+
+No feature covers `approve`. A fully paused token still accepts new allowances, and those become spendable the moment `TRANSFER` is lifted.
 
 ## ERC-2612 permit / EIP-712
 
@@ -326,6 +333,27 @@ The supporting precompiles sit at the same fixed addresses on every network wher
 | [B20Factory](#factory) | `0xB20f000000000000000000000000000000000000` |
 | Activation Registry | `0x8453000000000000000000000000000000000001` |
 | [Policy registry](#policy-registry) | `0x8453000000000000000000000000000000000002` |
+
+## How B20 executes
+
+None of this is Solidity. The factory, both registries, and every token are precompiles: native code inside the node, sitting at reserved addresses. On each `CALL`, `STATICCALL`, or related opcode, the EVM consults its precompile table before loading bytecode. If the target is registered, native code runs and no bytecode is ever read. It is the same table that holds `ecrecover` and `sha256`. B20 adds entries to it rather than routing around it.
+
+The difference from those classic precompiles is state. B20 is the first stateful precompile on Base. Each one keeps storage and emits real logs, and it writes that storage into the ordinary account slots at its own address. There is no side database, so `eth_getStorageAt` on a token address returns exactly what a `transfer` wrote.
+
+Without an interpreter in the path, the native code does its own gas metering. It charges calldata, `SLOAD`, `SSTORE`, and logs at the prices those opcodes would cost, and it fails the ways a contract fails: out of gas, revert, or a custom error. A revert unwinds state exactly like a contract revert.
+
+The three singletons live in the node's static table. Tokens cannot, because they are created at runtime. The node recognises a token address by decoding its prefix and variant byte instead (see [Address derivation](#address-derivation)).
+
+### Versions are frozen per fork
+
+Changing B20 behaviour takes a hardfork. A fork can add a precompile, or ship a new logic version for an existing address. The address stays the same; what changes is which native implementation answers it after activation.
+
+Old versions are never edited. Each fork maps to one frozen implementation, and the node resolves that mapping on every call. A Beryl block always runs Beryl logic, even on a node that also knows Cobalt, and that is what lets a node syncing from genesis reach the same state as one that has run all along. If no version resolves for the active fork, the call reverts. There is no fallback to whatever is newest.
+
+Two practical consequences:
+
+- **Before a precompile's first fork**, its address holds no bytecode and no table entry, so it behaves like an empty account. A raw call to it succeeds and returns no data, which a caller expecting a return value will fail to decode. Tooling that checks for code at the target rejects it outright.
+- **Before a new selector's fork**, the precompile already exists but its active version does not know the selector, so the call reverts. `invertedPolicyId` before [Denim](/api-reference/b20-precompiles/#arriving-with-denim) is a live example.
 
 ## Roadmap
 

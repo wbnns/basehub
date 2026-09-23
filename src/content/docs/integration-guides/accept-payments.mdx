@@ -1,7 +1,8 @@
 ---
 title: Accept Payments
-description: The onchain payment lifecycle on Base — USDC and B20 checkout, EIP-3009 authorization and capture, permit-based partial capture, x402 for APIs and agents, refunds, payouts, and reconciliation.
+description: The onchain payment lifecycle on Base — direct USDC and B20 checkout, the Commerce Payments Protocol for charge, authorize, capture, void, and refund, x402 for APIs and agents, payouts, and reconciliation.
 sources:
+- base/docs:docs/build-on-base/accept-payments/make-a-simple-payment.mdx
 - base/docs:docs/build-on-base/accept-payments/request-a-payment.mdx
 - base/docs:docs/build-on-base/accept-payments/authorize-a-payment.mdx
 - base/docs:docs/build-on-base/accept-payments/capture-an-authorization.mdx
@@ -22,7 +23,7 @@ sources:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Taking money on Base is an ERC-20 problem with a handful of extra primitives layered on top. The token moves, a `Transfer` event lands, and your backend decides whether that constitutes payment. Everything else on this page — authorizations, permits, HTTP negotiation, channels — exists to control *when* that transfer happens and *who* triggers it.
+Taking money on Base is an ERC-20 problem with a handful of extra primitives layered on top. The token moves, a `Transfer` event lands, and your backend decides whether that constitutes payment. Everything else on this page — escrow, collectors, HTTP negotiation, channels — exists to control *when* that transfer happens and *who* triggers it.
 
 Two rails carry almost all of it:
 
@@ -41,7 +42,9 @@ Testnet deployments get reset. Before you ask anyone to sign, confirm `eth_getCo
 
 The first decision is whether the wallet interaction and the token movement happen together.
 
-**Auto-settle** is one prompt. The wallet approves and the transfer executes in the same flow. For plain USDC that is an ordinary `transfer`. For B20 the payer calls `transferWithMemo`, or a checkout contract pulls a pre-approved amount with `transferFromWithMemo` and refuses order IDs it has already seen:
+**A plain transfer** is the floor. The sender calls `transfer` on USDC, pays the gas, and the recipient holds the funds once it confirms. There is no escrow behind it, no authorization to revoke, and no protocol refund path, so check the network and the recipient before anyone signs. Treat it as paid only after the receipt succeeds and its `Transfer` event matches the sender, recipient, and amount you expected.
+
+**B20 with a memo** keeps the one-prompt shape but writes an order reference onchain. The payer calls `transferWithMemo`, or a checkout contract pulls a pre-approved amount with `transferFromWithMemo` and refuses order IDs it has already seen:
 
 ```solidity
 function pay(bytes32 orderId, uint256 amount) external {
@@ -54,114 +57,169 @@ function pay(bytes32 orderId, uint256 amount) external {
 
 That Solidity path has two prerequisites people miss: the payer has to approve the checkout contract, and any `TRANSFER_EXECUTOR_POLICY` on the token has to authorize it as well. Verifying the amount before you ship remains your job either way.
 
-**Deferred settlement** splits the two. The buyer signs offchain; you submit the transaction when you are ready to fulfil. Which primitive to reach for depends on what you know at signing time:
+**Anything with terms attached** — a charge you may refund, a hold you capture after shipping, a recurring bill — now goes through the [Commerce Payments Protocol](https://github.com/base/commerce-payments). The rest of this page covers it.
 
-| Need | Primitive | Section |
-|---|---|---|
-| Exact wallet payment captured later | EIP-3009 | [Authorize and capture](#authorize-and-capture-eip-3009) |
-| Variable total known later | EIP-2612 plus a constrained checkout | [Capture a partial amount](#capture-a-partial-amount) |
-| Repeated scheduled charges | Smart-account spend permission | [Charge on a schedule](#charge-on-a-schedule) |
-| Payment negotiated over HTTP | x402 | [Paying for APIs with x402](#paying-for-apis-with-x402) |
+## The Commerce Payments Protocol
 
-## Authorize and capture (EIP-3009)
+The protocol puts one contract, `AuthCaptureEscrow`, between payer and merchant. It keeps per-payment accounting onchain, so the questions a merchant ledger used to answer on its own — how much is still capturable, how much can still be refunded — become contract state you can read.
 
-An EIP-3009 signature commits the payer, recipient, amount, a validity window, and a single-use nonce. No transaction is sent, so nothing hits the chain until you capture.
-
-| Field | Purpose |
+| v1.1.0 contract | Address |
 |---|---|
-| `value` | Exact amount that can settle |
-| `validAfter` | Earliest valid capture time |
-| `validBefore` | Capture deadline |
-| `nonce` | One-time identifier consumed by capture or cancellation |
+| `AuthCaptureEscrow` | `0xf96815976523E00e65Be8f34cA5e64b4f41EB19c` |
+| `ERC3009PaymentCollector` | `0x8612dfdc421f80336cd14E8EF9cb1E765dB5ab88` |
+| `Permit2PaymentCollector` | `0xD69831Aed5bfe262067ec4c751f4F830EcdD446e` |
+| `PreApprovalPaymentCollector` | `0xF1F9C408C787B2bC6CAEB91e5BbEc434a5c8d2Ea` |
+| `SpendPermissionPaymentCollector` | `0xB508c1C0a13849693DC175307667653C5977a408` |
+| `OperatorRefundCollector` | `0x7a03443724d14798c4AB4622F1DAAcA761Fea486` |
 
-Generate the nonce from a cryptographic random source — 32 bytes, fresh for every attempt, never recycled across orders. Store the payload and the signature against the order server-side.
+These are CREATE2 deployments, so each address is identical on Base and Base Sepolia. The escrow holds bytecode at that address on both chains.
 
-<Aside type="caution">
-A signature is permission to collect, not a reservation of funds. The payer can spend the balance elsewhere before you capture, and token policy can still refuse settlement. Only a mined, successful capture means you were paid.
+<Aside type="danger">
+v1.0.0 lives at different addresses — its escrow is `0xBdEA0D1bcC5966192B070Fdf62aB4EF5b4420cff` — and it is not event-compatible. v1.1.0 replaced the `feeBps` field with an absolute `uint256 feeAmount`, which changed the topic of `PaymentCharged` and `PaymentCaptured`. Pair the v1.1.0 address with the v1.1.0 ABI. An indexer holding the old ABI against the new escrow does not error; it just never matches a charge or capture.
 </Aside>
 
-Capture with `receiveWithAuthorization` rather than `transferWithAuthorization`. The difference matters: the token requires `msg.sender` to equal `to`, so an unrelated account cannot front-run your capture by submitting the signature first.
+### Payment terms
+
+Every payment starts from a `PaymentInfo` struct that never changes once used. Every later operation takes the whole struct and rehashes it, so store it exactly as submitted:
+
+| Field | Role |
+|---|---|
+| `operator` | The only account that may submit charge, authorize, capture, void, and refund |
+| `payer` | Where funds come from, and where refunds and returned holds go |
+| `receiver` | Where captured value goes, minus fees |
+| `token` | The ERC-20 being moved |
+| `maxAmount` | Ceiling on what this payment can collect |
+| `preApprovalExpiry` | Last moment the payer's approval can be used to collect |
+| `authorizationExpiry` | Last moment a hold can be captured; the payer can reclaim from here on |
+| `refundExpiry` | Last moment a refund can be issued |
+| `minFeeBps`, `maxFeeBps` | Bounds each fee is checked against |
+| `feeReceiver` | Where fees go |
+| `salt` | Makes the hash unique |
+
+The three expiries must satisfy `preApprovalExpiry <= authorizationExpiry <= refundExpiry`; otherwise the escrow reverts with `InvalidExpiries`. A payment can be collected exactly once. Draw a fresh random `salt` for every checkout attempt, and that includes the retry after a void or a reclaim.
+
+### How the payer approves
+
+The escrow never pulls tokens itself. A collector contract does it, and you choose which one per payment:
+
+| Collector | Use when |
+|---|---|
+| ERC-3009 | The token supports native transfer authorizations, as USDC does |
+| Permit2 | You need general ERC-20 coverage and the payer has approved Permit2 |
+| Pre-approval | A standard allowance plus a pre-approval scoped to this payment |
+| Spend permission | A wallet has granted a spend permission for repeat billing |
+
+B20 tokens and other ERC-20s can go through Permit2 or the pre-approval collector, but only when their transfer policies admit every party involved: the collector, the operator's token store, the receiver, and the fee receiver.
+
+<Aside type="caution">
+The payer's signature grants permission to collect. It is not settlement and it holds nothing back. Until a `charge` or `authorize` transaction succeeds, the payer can move those funds elsewhere.
+</Aside>
+
+## Charge immediately
+
+`charge` collects, pays out, and records the result in one transaction. The operator submits it with the terms, an amount, the collector, the collector's data, and a fee:
 
 ```typescript
 const simulation = await publicClient.simulateContract({
   account,
-  address: USDC,
-  abi: usdcAbi,
-  functionName: "receiveWithAuthorization",
+  address: AUTH_CAPTURE_ESCROW,
+  abi: authCaptureEscrowAbi,
+  functionName: "charge",
   args: [
-    authorization.from,
-    authorization.to,
-    authorization.value,
-    authorization.validAfter,
-    authorization.validBefore,
-    authorization.nonce,
-    Number(v),
-    r,
-    s,
+    payment.paymentInfo,
+    payment.paymentInfo.maxAmount,
+    ERC3009_PAYMENT_COLLECTOR,
+    payment.collectorData,
+    0n,
+    zeroAddress,
   ],
 });
 ```
 
-Read `authorizationState(payer, nonce)` before you submit — it stays `false` until the authorization is either captured or cancelled. Check the payer's balance too. Both reads cut down on avoidable reverts, but neither one reserves anything, so keep fulfilment idempotent and drive it off the receipt.
+The receiver gets `amount - feeAmount`, the fee receiver gets the fee, and `refundableAmount` rises by the full gross amount. Look for `PaymentCharged`, match its `paymentInfoHash` to the order, and claim it once before you fulfil. Keep `maxFeeBps` tight, and pin `feeReceiver` in the terms unless your operator genuinely needs to swap out a recipient that has been denylisted.
 
-### Voiding an authorization
+## Authorize and capture
 
-Walking away is free. No funds were held, so a merchant that simply stops using a signature and lets `validBefore` pass has cancelled it in every practical sense. Making the nonce unusable *immediately* costs one transaction, and only the buyer can authorize it.
+Use this path when fulfilment comes after checkout. It differs from the old signature-only hold in one decisive way: a successful `authorize` pulls the tokens into the operator's escrow token store *right away*. The payer spending the balance afterwards cannot break a later capture.
 
-| Path | Cost | Use when |
-|---|---|---|
-| Mark void and let `validBefore` pass | No transaction | The short validity window is acceptable |
-| Submit `cancelAuthorization` | One transaction | You need the nonce to become unusable immediately |
-
-The buyer signs a `CancelAuthorization` typed-data message; you or any relayer submits it. Afterwards the original transfer authorization reverts on capture.
-
-<Aside type="caution">
-`authorizationState` returns `true` for a captured nonce and for a cancelled one alike — it cannot tell you which happened. Keep your own order state and move it atomically, or a cancel racing a capture will leave you guessing.
-</Aside>
-
-## Capture a partial amount
-
-EIP-3009 pins one exact value, so it has no partial path. When the final total is not known until fulfilment — an open tab, a tip added afterwards, shipping worked out during packing — sign a capped EIP-2612 permit instead and charge the real amount underneath the cap.
-
-The cap only means something if the spender is a contract that cannot do anything else with it. The checkout below takes the permit and moves the actual amount in a single transaction. It has no general-purpose transfer function, it insists on the merchant as caller, and it burns each order ID once:
-
-```solidity
-function capture(
-    bytes32 orderId,
-    address payer,
-    uint256 actualAmount,
-    uint256 authorizedMaximum,
-    uint256 permitDeadline,
-    uint8 v,
-    bytes32 r,
-    bytes32 s
-) external {
-    if (msg.sender != merchant) revert NotMerchant();
-    if (captured[orderId]) revert OrderAlreadyCaptured(orderId);
-    if (actualAmount > authorizedMaximum) revert AmountExceedsMaximum();
-    captured[orderId] = true;
-
-    token.permit(payer, address(this), authorizedMaximum, permitDeadline, v, r, s);
-    require(token.transferFrom(payer, merchant, actualAmount), "transfer failed");
-    emit PaymentCaptured(orderId, payer, actualAmount, authorizedMaximum);
-}
+```typescript
+const simulation = await publicClient.simulateContract({
+  account,
+  address: AUTH_CAPTURE_ESCROW,
+  abi: authCaptureEscrowAbi,
+  functionName: "authorize",
+  args: [
+    payment.paymentInfo,
+    payment.paymentInfo.maxAmount,
+    ERC3009_PAYMENT_COLLECTOR,
+    payment.collectorData,
+  ],
+});
 ```
 
+Once `PaymentAuthorized` is emitted, the state reads:
+
+| State field | Value |
+|---|---|
+| `hasCollectedPayment` | `true`, forever |
+| `capturableAmount` | Everything held in escrow |
+| `refundableAmount` | `0`, until something is captured |
+
+Record `paymentInfoHash`, the full terms, the collector, the authorization transaction hash, and `PaymentAuthorized.amount` against the order.
+
+To settle, read `paymentState(paymentInfoHash)` and call `capture` with an amount that is nonzero and no more than `capturableAmount`:
+
+```typescript
+const simulation = await publicClient.simulateContract({
+  account,
+  address: AUTH_CAPTURE_ESCROW,
+  abi: authCaptureEscrowAbi,
+  functionName: "capture",
+  args: [payment.paymentInfo, amount, 0n, zeroAddress],
+});
+```
+
+The fee argument is an absolute `feeAmount` in raw token units, not basis points. The escrow checks it against `minFeeBps` and `maxFeeBps` from the terms. Each capture moves its gross amount out of `capturableAmount` and into `refundableAmount`. Confirm `PaymentCaptured(paymentInfoHash, amount, feeAmount, feeReceiver)` and the matching transfers before you mark that piece of the order settled.
+
 <Aside type="caution">
-The permit deadline bounds when the *signature* can be submitted. It does not expire the allowance that submitting it creates. Whatever is left over after a partial capture stays spendable until something clears it. Use a reviewed, immutable checkout with no route to the residual allowance, keep deadlines short, and never make a merchant EOA the capped spender.
+Capture must land strictly before `authorizationExpiry`. At that timestamp the escrow reverts with `AfterAuthorizationExpiry`, and the payer becomes free to reclaim. Enforce the deadline against chain time; your server clock is not the one the contract reads.
+</Aside>
+
+### Capture a partial amount
+
+There is no separate function. Call `capture` again for each increment — a split shipment, or a final bill that came in lower. Successful captures can sum to at most `PaymentAuthorized.amount`, and fee bounds are checked on every one individually. Capture 64 from a 100 USDC hold, and 36 stays capturable while 64 becomes refundable. From there you can capture again or void the rest.
+
+<Aside type="caution">
+Per-capture fee checks use integer division. On a token with few decimals, splitting one settlement into many tiny captures can drive the total minimum fee below what one capture would owe. If that matters to you, set a minimum capture size offchain.
+</Aside>
+
+Re-read `capturableAmount` and `refundableAmount` after each capture, before any other worker moves the order forward.
+
+### Void or reclaim what is left
+
+| Path | Caller | Available |
+|---|---|---|
+| `void(paymentInfo)` | Operator | Whenever a capturable balance remains |
+| `reclaim(paymentInfo)` | Payer | At or after `authorizationExpiry` |
+
+`void` hands back the *entire* `capturableAmount`. Nothing voids part of a hold, so capture the fulfilled amount first and void afterwards. Both paths zero `capturableAmount` and leave any `refundableAmount` from earlier captures alone. Match `PaymentVoided` or `PaymentReclaimed` against the capturable balance just before it fired.
+
+<Aside type="caution">
+Once `authorizationExpiry` passes, the operator and the payer can both go after the same remainder. Whoever lands second reverts with `ZeroAuthorization`. Treat either event as the terminal return and process it idempotently.
 </Aside>
 
 ## Verify before you fulfil
 
-A wallet prompt that returned cleanly is not a payment. Verify against confirmed chain data on the backend, then claim the transaction hash exactly once in durable storage, and only then reserve inventory, issue credentials, or return a paid resource.
+A wallet prompt that returned cleanly is not a payment, and neither is a transaction hash the client hands you. Decode confirmed `AuthCaptureEscrow` events on the backend, match their `paymentInfoHash` to the order, claim each one exactly once in durable storage, and only then reserve inventory, issue credentials, or return a paid resource.
 
-The check itself is rail-agnostic. Direct `transfer`, an EIP-3009 capture, and a `transferFrom` after a permit all emit the same ERC-20 `Transfer` event. What differs is how you bind that event back to an order:
+`PaymentAuthorized` and `PaymentCharged` carry the complete `PaymentInfo`. Every later lifecycle event carries only the hash, so join those to the terms you stored at order creation.
+
+The check should pass only for the first confirmed event with the right chain, escrow address, payment hash, operation, amount, and fee. Outside the protocol, bind orders like this:
 
 | Rail | Bind the order with |
 |---|---|
 | Direct USDC | Stored transaction hash and expected checkout fields |
-| EIP-3009 capture | Stored authorization nonce plus the capture hash |
-| Permit checkout | Checkout contract's order event plus the token transfer |
+| Commerce Payments | `paymentInfoHash` from the escrow event |
 | B20 | Adjacent `Memo` event containing the order reference |
 
 For B20 the memo is emitted directly after its `Transfer`, so the join is `logIndex + 1` — an ordering guarantee, not a search.
@@ -174,11 +232,34 @@ Pick a confirmation depth against the value at stake and how hard fulfilment is 
 
 ## Refunds
 
-Refund the address the chain says paid you, taken from the verified `Transfer` log — never an address supplied by the client. ERC-20 tokens keep no order-level refundable balance, so `captured - refunded` is a number your ledger has to track.
+Protocol refunds run up to `refundExpiry` and always go to `paymentInfo.payer`; there is no argument for a different destination. The escrow enforces the ceiling: every charge or capture adds its gross amount to `refundableAmount`, fees do not reduce it, and every refund subtracts what it returned.
 
-Reserve before you broadcast. The reservation must atomically create the pending refund and decrement the refundable balance, so that concurrent requests cannot together exceed what you captured. If a worker dies after broadcasting and loses the receipt, reconcile that pending row against chain data — releasing it invites a second transfer for the same refund.
+What the escrow does not supply is the money. Captured funds already left for the receiver, so the refund has to be funded fresh. The `OperatorRefundCollector` draws from `paymentInfo.operator`, which means the operator approves that collector for the refund amount first:
 
-B20 can carry the original order ID into the refund itself via `transferWithMemo`. Plain USDC uses `transfer`, and the linkage between order ID, capture hash, refund hash, and amount lives entirely in your records.
+```typescript
+await walletClient.writeContract({
+  address: payment.paymentInfo.token,
+  abi: refundApprovalAbi,
+  functionName: "approve",
+  args: [OPERATOR_REFUND_COLLECTOR, refundAmount],
+});
+// then
+const refund = await publicClient.simulateContract({
+  account,
+  address: AUTH_CAPTURE_ESCROW,
+  abi: authCaptureEscrowAbi,
+  functionName: "refund",
+  args: [payment.paymentInfo, refundAmount, OPERATOR_REFUND_COLLECTOR, "0x"],
+});
+```
+
+Confirm `PaymentRefunded(paymentInfoHash, amount, tokenCollector)`, the transfer to the stored payer, and the lowered `refundableAmount` before closing the return.
+
+<Aside type="caution">
+Refund accounting is not refund liquidity. The operator, or some other source with its own authorization, has to put up the tokens. Never fund a refund by reusing whatever is left of the payer's authorization.
+</Aside>
+
+Outside the protocol nothing tracks this for you. Refund the address the chain says paid you, taken from the verified `Transfer` log, and reserve before you broadcast: atomically create the pending refund and decrement your own refundable balance so concurrent requests cannot overshoot. B20 can carry the original order ID into the refund via `transferWithMemo`.
 
 ## Payouts and splits
 
@@ -264,24 +345,40 @@ The public x402.org facilitator is a testnet facility. Mainnet needs a productio
 
 ## Charge on a schedule
 
-Recurring charges use a smart-account spend permission. The permission bounds the spender, the token, the amount per period, and the start and end times. When each charge fires is your backend's decision.
+Recurring billing runs through the `SpendPermissionPaymentCollector`. It rebuilds a spend permission out of the payment terms: the payer is the account, the collector is the spender, the token and allowance come from `PaymentInfo`, and `preApprovalExpiry` is where the permission ends. Pass the permission signature, plus an optional MagicSpend withdrawal request, as `collectorData`.
 
-Check status at every billing point before preparing calls — confirm the connected account is the approved spender, that the permission is active rather than revoked or expired, and that `remainingSpend` covers the charge. Three outcomes are ordinary billing states rather than errors:
+Each billing period is its own protocol payment with a fresh `PaymentInfo` and a fresh `salt`, because a payment collects only once. Key each one durably — `subscriptionId:periodStart` works — before you submit `charge`. The resulting `PaymentCharged` gives that period its own `refundableAmount`. Keep the billing key, `paymentInfoHash`, charge transaction, amount, and permission usage together in one durable workflow.
 
-- **Revoked or expired** — stop retrying and ask for a new permission.
+Some outcomes at a billing point are ordinary states, not errors:
+
+- **Revoked or expired permission** — stop retrying and ask for a new one.
 - **Insufficient balance** — notify the buyer and retry on your billing policy.
 - **Period allowance exhausted** — wait for `nextPeriodStart`, or collect a new permission.
 
 <Aside type="caution">
-A spend permission is an allowance, not a scheduler. Run billing from a durable queue with one idempotency key per period, and reconcile the emitted transfer before you mark an invoice paid.
+The protocol has no scheduler. Your backend decides when each charge fires. Guard the operator key, serialise retries, and never reuse an earlier period's `PaymentInfo` or `salt`.
 </Aside>
 
 ## Watching and reconciling
 
 A WebSocket subscription gives you low-latency wakeups. It is not the source of truth. `eth_getLogs` across an overlapping window is, because it survives disconnects and reorgs — so use the subscription only to trigger a backfill, and let the backfill decide what is real.
 
-Make the overlap replacement one database transaction: delete the previously indexed rows in the window, insert the canonical logs returned now, and advance the cursor only if both succeed. Key rows on `(blockHash, transactionHash, logIndex)` so retries stay idempotent.
+For protocol payments, watch the v1.1.0 escrow for `PaymentAuthorized`, `PaymentCharged`, `PaymentCaptured`, `PaymentVoided`, `PaymentReclaimed`, and `PaymentRefunded`. All six index `paymentInfoHash`, which becomes the key of your ledger.
+
+Make the overlap replacement one database transaction: delete the previously indexed rows in the window, insert the canonical logs returned now, rebuild the payment state they touch, and advance the cursor only if every write succeeds. Key rows on `(blockHash, transactionHash, logIndex)` so retries stay idempotent.
+
+The ledger arithmetic per charge or capture is:
+
+```text
+merchant net = gross amount - fee amount
+refundable balance += gross amount
+```
+
+A refund lowers the refundable balance by its gross amount. A void or reclaim lowers only the capturable balance and never unwinds an earlier capture. Two identities should hold for every payment:
+
+- Authorized amount = captures + voided or reclaimed amount + current `capturableAmount`.
+- Total charged and captured = refunds + current `refundableAmount`.
 
 For reporting, run accounting over a finalized range only. If you also surface recent activity, label it provisional and replace it after a reorg.
 
-One reconciliation trap worth naming: an outgoing `Transfer` from the merchant address is ambiguous on its face. It could be a refund, a payout leg, a split leg, or a treasury movement. Join it to your refund ledger or to the `PayoutSent` reference — direction alone does not classify it. On the incoming side, B20 memos join back through `(transactionHash, logIndex - 1)`, the mirror of the adjacency rule used during verification. USDC has no memo, so those rows join on the transaction hash, the authorization nonce, or a contract event you emitted yourself.
+One reconciliation trap worth naming: an outgoing `Transfer` from the merchant address is ambiguous on its face. It could be a refund, a payout leg, a split leg, or a treasury movement. Join it to your refund ledger, to `PaymentRefunded`, or to the `PayoutSent` reference — direction alone does not classify it. On the incoming side, B20 memos join back through `(transactionHash, logIndex - 1)`, the mirror of the adjacency rule used during verification. Direct USDC has no memo, so those rows join on the transaction hash or a contract event you emitted yourself.

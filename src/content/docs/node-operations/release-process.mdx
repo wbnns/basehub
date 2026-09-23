@@ -31,7 +31,7 @@ From here the branch builds itself. **Create RC** runs on every push to it and:
 - Works out the next number in the RC series and tags it — `v0.6.0-rc.1`, then `v0.6.0-rc.2`, and so on — against the commit that triggered the run.
 - Hands that tag to **Build RC** as a separate dispatch, then reports success without waiting to see what the build does.
 
-**Build RC** is what actually produces the artifacts, delegating to `Build Release` for multi-arch Docker images and native binaries. Images go out under the RC tag alone; `latest` stays where it is until a final release. Because each candidate builds inside its own run, a fresh merge no longer cancels or queues behind the artifacts of the candidate before it — runner capacity permitting, the two build side by side.
+**Build RC** is what actually produces the artifacts, delegating to `Build Release` for multi-arch Docker images and native binaries. The compatibility `node` image and each of the single-binary images all receive the RC tag and nothing else; `latest` stays where it is until a final release. Because each candidate builds inside its own run, a fresh merge no longer cancels or queues behind the artifacts of the candidate before it — runner capacity permitting, the two build side by side.
 
 That split is worth internalising before you read a green checkmark. A passing **Create RC** tells you a tag was allocated and a build was requested, and nothing more. Artifact success lives in the **Build RC** run, so that is the one to open when you want to know whether a candidate is installable.
 
@@ -44,10 +44,35 @@ When a candidate holds up, run `Actions → Publish Release → Run workflow` an
 Before doing anything, the workflow confirms the release branch is really there and that `Cargo.toml` has moved off `0.0.0`. Then it:
 
 - Tags the release branch `vX.Y.Z`.
-- Compiles the `base` image a single time under `PROFILE=maxperf`, and hangs four tags off that one image on `ghcr.io/base/node`: `vX.Y.Z`, `X.Y`, `X`, and `latest`.
+- Builds seven images under `PROFILE=maxperf`, each for both amd64 and arm64: the compatibility `node` image plus the single-binary `base`, `base-reth-node`, `base-consensus`, `base-builder`, `basectl`, and `base-snapshotter` images.
+- Gives every one of them the same four tags: `vX.Y.Z`, `X.Y`, `X`, and `latest`.
 - Drafts a GitHub release, writes its changelog automatically, and attaches the binaries.
 
 The draft is the last manual gate. Read it over on GitHub and publish it yourself.
+
+### Which image to pull
+
+Every image lands under the `ghcr.io/base/` namespace, and the names are easy to confuse. The one to watch is `base`.
+
+| Image | Bake target | What it holds |
+|-------|-------------|---------------|
+| `ghcr.io/base/node` | `base` | The compatibility image: `base`, `base-reth-node`, `base-consensus`, and `snapshotter`, plus `supervisord`, which is the default command and runs the execution and consensus entrypoints together. The root `docker-compose.yml` pulls this one. |
+| `ghcr.io/base/base` | `unified` | Only the `base` binary, with `ENTRYPOINT ["./base"]`. |
+| `ghcr.io/base/base-reth-node` | `execution` | Only `base-reth-node`. |
+| `ghcr.io/base/base-consensus` | `consensus` | Only `base-consensus`. |
+| `ghcr.io/base/base-builder` | `builder` | Only `base-builder`. |
+| `ghcr.io/base/basectl` | `basectl` | Only `basectl`. |
+| `ghcr.io/base/base-snapshotter` | `snapshotter` | Only `snapshotter`. |
+
+The bake target called `base` publishes as `node`, while the image called `base` comes from a different target. So `ghcr.io/base/base` is not a renamed `ghcr.io/base/node`. Swap one for the other and the container starts a lone `./base` binary, with no `supervisord` and none of the entrypoint scripts the operator default relies on.
+
+The split arrived after `v1.4.1-rc.11` was cut, so no tag published so far carries the single-binary images. Until a release built from it ships, `ghcr.io/base/node` is still the only image path you can pull.
+
+Each image is published on its own, so one failure does not stop the rest. If neither architecture builds for an image, the workflow skips that image with a warning. If only one builds, it publishes that one with a warning. A final release can therefore exist on one image path but not another, or exist as amd64 only. Before you pin a tag on arm64 hardware, check that the manifest actually lists your platform:
+
+```bash
+docker buildx imagetools inspect ghcr.io/base/node:vX.Y.Z
+```
 
 ## Why RC builds sometimes do nothing
 

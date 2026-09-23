@@ -1,12 +1,12 @@
 ## Upstream snapshot
 
-Generated 2026-09-22T03:09:33Z
+Generated 2026-09-23T03:06:51Z
 
-### base/base @ 9780173
+### base/base @ 70517e2
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
-c2611e63ac14fc2857314b620af504a577746127  docs/guides/RELEASE.md
+a19f2054c31cbbbca8ba06e16bfb4569c2cbe529  docs/guides/RELEASE.md
 5ca0fb2420ea5f793489785b2fa61dcdd41864d4  docs/guides/SNAPSHOT_BENCHMARKS.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
@@ -14,7 +14,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 4c9090cbbcac91a7888e44ddcb4df07adc1ee48e  docs/transaction-events/README.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ cec9155
+### base/docs @ 6274e6e
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -62,22 +62,23 @@ f1c15ed0cb9488f232277f277d87c37c4d1c9190  docs/base-chain/quickstart/connecting-
 4c632817ff7bb49709ecf0ef06de472024fb6afc  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize.mdx
 987ab3ca7d3e613d1b6a199c6b679cc917861051  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20asset-multiplier.mdx
 20561b3097591307dd61b8262f7a0f9b785240d4  docs/base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy.mdx
-487e3356ffd6f7078ce1060d28254044c9714915  docs/build-on-base/accept-payments/authorize-a-payment.mdx
+5deca13b67d8d806b745c09807a0bfc7ec731ec4  docs/build-on-base/accept-payments/authorize-a-payment.mdx
 3478941aa6977df628d062c40dd7dc536879c8b3  docs/build-on-base/accept-payments/batch-high-frequency-payments.mdx
 f039d9a191be11f1d3a792be413ce1f00426b227  docs/build-on-base/accept-payments/call-a-paid-service.mdx
-7a037ec61bde03de9632c20f801c91177883748c  docs/build-on-base/accept-payments/capture-a-partial-amount.mdx
-716bbced3a08eb5e8538b4766ea96f2542a7e215  docs/build-on-base/accept-payments/capture-an-authorization.mdx
+8c8266db66ed832d487d6d126c66a3d14c4ea820  docs/build-on-base/accept-payments/capture-a-partial-amount.mdx
+42cdcd51a8790d1ac47156c65d6ec77bba9c23bf  docs/build-on-base/accept-payments/capture-an-authorization.mdx
 4c5e6ba888dfa1959e91e23a892b1ff7f486238c  docs/build-on-base/accept-payments/charge-for-an-api.mdx
-0e57b99edaed8777299d4a8b02dd2586376ddd74  docs/build-on-base/accept-payments/charge-on-a-schedule.mdx
-41fbbb8ba0574ae0f8477c7480f93c06604bf58f  docs/build-on-base/accept-payments/reconcile-payments.mdx
-5846c8eae9e95d6cba6f45c470c98257a7d2ce07  docs/build-on-base/accept-payments/refund-a-payment.mdx
-e78a34c7b5a9555931a11a59723523329f7b8ac5  docs/build-on-base/accept-payments/request-a-payment.mdx
+f0ebedd01dfaab8ad178c455293ff58254267bdd  docs/build-on-base/accept-payments/charge-on-a-schedule.mdx
+50b47938713e14b33649a4c96a104a70871ec062  docs/build-on-base/accept-payments/make-a-simple-payment.mdx
+5c4f9754d6f5b01c6f4b9d7d0887e933b1cfdfa9  docs/build-on-base/accept-payments/reconcile-payments.mdx
+58efa47109390828a6e48797ec5317acc973da54  docs/build-on-base/accept-payments/refund-a-payment.mdx
+9ce1981e212ad073f86cf034b8ee598099a23889  docs/build-on-base/accept-payments/request-a-payment.mdx
 31cb49cc4867553b1046684efb808a5146cae9a9  docs/build-on-base/accept-payments/send-a-payout.mdx
 96ca9980ecd28e297f17e2288d6e2215e568227a  docs/build-on-base/accept-payments/settle-usage-based-payments.mdx
 c230c9e071b712d4e71c018b8b3ec503f458da5a  docs/build-on-base/accept-payments/split-a-payment.mdx
-9a5435a5df5ac0e5f84b10c542d7473648ac9d53  docs/build-on-base/accept-payments/verify-a-payment.mdx
-9a0f770a9972b017cae22029c5d72f9c1acf5e6a  docs/build-on-base/accept-payments/void-an-authorization.mdx
-e4815e141f450dace444194e0e8306a48f78d381  docs/build-on-base/accept-payments/watch-for-payments.mdx
+4792f9deb9e642662d49ea6355364e2a77a18fe3  docs/build-on-base/accept-payments/verify-a-payment.mdx
+7004789d555d9b10f77c576f675a20fe8fe5abe3  docs/build-on-base/accept-payments/void-an-authorization.mdx
+62c65111d985cb2dcc8af4f1798d4ace1b6984b5  docs/build-on-base/accept-payments/watch-for-payments.mdx
 ad1019bfd12a5984bd7fd01e4f20cc26715bde89  docs/build-on-base/assign-user-attributes.mdx
 fd0a1c8b664d90d82071a80d4eefcea2bc51b6a4  docs/build-on-base/integrate-defi/integrate-borrowing.mdx
 ffb3a4be833c767511f59a40cb6f69a9fa620d5d  docs/build-on-base/integrate-defi/integrate-earn-product.mdx
@@ -96,14 +97,22 @@ cebda98824f5c71a3111c7f147fe858699c713f7  docs/build-on-base/issue-rwa/issue-uni
 c48852706dc7edeb456697275534e1bd5a576e0a  docs/build-on-base/issue-stablecoins/issue-your-stablecoin.mdx
 42ae0a9a15c84fe9a95355e30cc8948ec5d253af  docs/build-on-base/issue-stablecoins/mint-supply.mdx
 0695effabda9bdfdb74ad0a0876bc8caab4388d5  docs/build-on-base/issue-stablecoins/pause-activity.mdx
-739e39553c160585f3251f4e96dc175e854700d7  docs/build-on-base/issue-stablecoins/reconcile-with-memos.mdx
+5b7103b759981797b0e65c0cff8e7fe52965f84c  docs/build-on-base/issue-stablecoins/reconcile-with-memos.mdx
 1a1e662d184a834f2c847e9a281c78107f47ee67  docs/build-on-base/issue-stablecoins/recover-funds.mdx
 9e1a67a3a7dfe6e34a661005ab56fddacbd519eb  docs/build-on-base/issue-stablecoins/restrict-who-can-hold.mdx
 5e472ac0a6d572bff1f77adb798ed2b952b8b027  docs/build-on-base/overview.mdx
 66c042cc6ff5dcad9d96747e217080a6f10fbe6b  docs/build-on-base/test-on-vibenet.mdx
+09ff5fa51b808b48fc661635b395d6cbb58663cb  docs/specifications/b20/architecture.mdx
 5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
-d3dc5c3c3f36470002952f27c12c99596825b24c  docs/specifications/b20/reference/constants-addresses.mdx
-207fcbe45d16367df427bab6da68c4a8ae4be6b9  docs/specifications/b20/reference/errors-events.mdx
+6b2bc099452867b6ef70caf852c3f1c33b628379  docs/specifications/b20/concepts/multipliers.mdx
+8696088d6232622684f7fd6db1959b0ad3981176  docs/specifications/b20/concepts/policies.mdx
+a4c1e2910f856a3ecda0450e688f69a6b6902a12  docs/specifications/b20/concepts/roles-and-pause.mdx
+0acda1f52eb1be452b5b8a6c39b9d775993f20ba  docs/specifications/b20/concepts/token-types.mdx
+4f323a5994c53d432293685374ebe61a385c22f8  docs/specifications/b20/index.mdx
+054bc182ade596a6320a6036c77e2e8f5d537bbe  docs/specifications/b20/reference/constants.mdx
+0642798c31f751d80108673c0bc8735abfa80f4c  docs/specifications/b20/reference/errors.mdx
+9b86872916caa576eaa2e73c9859422b2268450f  docs/specifications/b20/reference/events.mdx
+648a9d3aa5da9371a3ac4d6da43e789ac0a07fda  docs/specifications/b20/reference/interfaces.mdx
 5ea3c96abd6ea306e1f3faac9f656b9649c92492  docs/specifications/b20/reference/interfaces/i-activation-registry/activate.mdx
 2fb3cb93306b02b6da1af811797514a7800b79a6  docs/specifications/b20/reference/interfaces/i-activation-registry/admin.mdx
 ce53535b88a3eb80affcede0f1d6e6cc1b3e2b68  docs/specifications/b20/reference/interfaces/i-activation-registry/check-activated.mdx
@@ -212,8 +221,7 @@ efeb50b728a4f0d75dfe1de4c53b5e4ced77fe3f  docs/specifications/b20/reference/inte
 545b356d47b51b4d8e96272b87c5e91d5dc5a842  docs/specifications/b20/reference/interfaces/ib20/update-policy.mdx
 4668d1ba12088112240c556f4043318465cb52e6  docs/specifications/b20/reference/interfaces/ib20/update-supply-cap.mdx
 bbbf20826ac6d6cc7849c7ddc2239c4683c9c132  docs/specifications/b20/reference/interfaces/ib20/update-symbol.mdx
-0fafbfc473a751d08cac5aa882938ad223a607d0  docs/specifications/b20/reference/invariants-tests.mdx
-85c1a6f42aa46978ff99c8df33f643cf171cd73b  docs/specifications/b20/specification-overview.mdx
+21c6aedea92ee772eacc244e28df583597319e9e  docs/specifications/b20/specification-overview.mdx
 f5e60bf06138f0932e5818033a33a4876d2ac78f  docs/specifications/base-protocol/batcher.mdx
 eca6d45c1452cfd46865e852b93a2f2101f23d14  docs/specifications/base-protocol/bridging/base-solana-bridge.mdx
 6aea9922fa8c7bd69b8de5bcfc252f599519c0d6  docs/specifications/base-protocol/bridging/cross-domain-messengers.mdx

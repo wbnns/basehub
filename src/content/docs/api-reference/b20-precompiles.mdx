@@ -464,7 +464,7 @@ Three groups are specified and documented above, but undialable until Cobalt act
 
 ### Arriving with Denim
 
-One behavioural change is already in the node source, gated behind [Denim](/specifications/denim-overview/) rather than Cobalt. It adds no selector and removes none.
+Two changes are already in the node source, gated behind [Denim](/specifications/denim-overview/) rather than Cobalt. Denim has a target month but no activation timestamp yet.
 
 **A token can no longer be credited to itself.** `transfer`, `transferFrom`, `mint` and `seizeWithMemo` all reject a `to` equal to the address of the token being credited, reverting `InvalidReceiver`. Asset and Stablecoin enforce it identically. The zero address was already refused; this extends the same treatment to the token's own address, which previously accepted the credit and stranded the balance where nothing could move it.
 
@@ -473,6 +473,14 @@ The rule is narrower than it first sounds, and the distinction is the part worth
 - Only the token *being credited* is refused. Sending B20 token A to the address of a different B20 token B is still a valid transfer. An earlier revision of this change rejected every B20-prefixed recipient; it was narrowed before landing, so do not build on the broader reading.
 - On `transferFrom` the recipient is validated before the allowance is touched, so a call that trips this rule leaves the allowance unspent rather than consuming it on a revert.
 - For seizure, this closes a disguised-burn path: because seize leaves `totalSupply` alone, seizing into the token address used to remove a balance from circulation without recording it as a burn.
+
+**Inverted policy IDs.** Denim moves the policy registry to its third version, which treats bit 63 of a policy ID as a NOT flag. Setting it gives you the complement of an existing policy without building a second member set: bind the inverted ID to a token scope, or hand it to a composite as a child to express "A AND NOT X". It works on all four types. Membership stays on the base policy, so editing the base changes the inverse too. The one new selector is `invertedPolicyId(uint64 policyId) external pure returns (uint64)`, which flips the bit either way. You can also set it by hand.
+
+On an inverted ID, `isAuthorized` returns the negation of the base, except when the base does not exist: then it returns `false`. That fail-closed rule stops a mistyped inverted ID from turning into allow-everyone. `policyExists` and `policyAdmin` ignore bit 63 and answer for the base, because an inverted ID has no record of its own.
+
+<Aside type="caution">
+The same stored ID means two different things either side of Denim. Before the fork, bit 63 puts the type byte above `INTERSECT`, so the registry reads the ID as malformed: `isAuthorized` returns `false` for every account and `policyExists` returns `false`. After the fork, that ID authorizes everyone the base policy rejects. A slot bound to an inverted ID ahead of activation goes from deny-all to the complement at the fork block, with no transaction marking the change. And `invertedPolicyId` itself reverts with an unknown-selector error until then.
+</Aside>
 
 ## What changes for integrators at Cobalt
 
