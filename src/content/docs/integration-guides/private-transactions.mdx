@@ -1,0 +1,65 @@
+---
+title: Private Transactions (Base Ledgers)
+description: Base Ledgers keeps balances, transfers, and counterparties off the public chain while funds still settle on Base through one Portal contract. What each step exposes, and what stays hidden.
+sources:
+- base/docs:docs/get-started/private-transactions.mdx
+- base/docs:docs/build-on-base/ledgers/deposit.mdx
+- base/docs:docs/build-on-base/ledgers/transfer.mdx
+- base/docs:docs/build-on-base/ledgers/withdraw.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution">
+Base Ledgers is early access. To run a ledger of your own, [request access](https://www.coinbase.com/developer-platform/developer-interest). If you would rather not operate one, [Coinbase Managed](https://docs.cdp.coinbase.com/payments/overview) is a hosted service built on top of it.
+</Aside>
+
+A Base ledger is a private accounting layer that sits beside Base and settles through it. Money enters and leaves through a single `Portal` contract on Base. Everything that happens between those two calls stays off public block explorers: who holds what, who paid whom, and how much.
+
+The operator of a ledger owns the parts a public chain cannot provide. They run the KYC and compliance gate. They hold the funds in a contract they control, so custody stays with them. They also choose the logic that processes transactions inside the ledger, and the rule the `Portal` uses to release a withdrawal.
+
+Upstream has published the model and the privacy boundaries, but no contract address, ABI, or SDK yet. This page covers what is public so far.
+
+## Where it fits
+
+The use cases upstream names share one trait: the payment itself is routine, but the counterparty list or amounts are commercially sensitive.
+
+- **B2B payments.** Pay suppliers without publishing who your suppliers are.
+- **Payroll and payouts.** Pay staff and contractors onchain without exposing each person's pay.
+- **Treasury.** Shift balances between your own accounts, custodians, and counterparties out of public view.
+- **Cross-border remittance.** Run KYC-gated corridors where neither party nor the amount is visible.
+
+## The three steps
+
+Funds follow the same path every time: in through the `Portal`, around inside the ledger, and back out through the `Portal`. Each step reveals a different set of fields, so the privacy you get depends on which step an observer is watching.
+
+| Field | Deposit | Transfer inside the ledger | Withdraw |
+|---|---|---|---|
+| Asset | Public | Hidden | Public |
+| Amount | Public | Hidden | Public |
+| Sender | Public | Hidden | Hidden |
+| Recipient | Hidden | Hidden | Public |
+
+### Deposit
+
+A deposit is a call to the `Portal` on Base, so it settles in the open. Anyone can see the asset, the amount, and the address that sent it. The recipient is the exception. It is encrypted onchain, so a series of deposits into one ledger account cannot be tied together or traced to that account.
+
+The operator can also put a gate on deposits, such as requiring an attestation or a permission before a given address can fund the ledger.
+
+### Transfer inside the ledger
+
+After funds are inside, accounts can send to each other, swap, and earn yield with nothing written to Base. Sender, recipient, amount, and even the fact that activity happened stay inside the ledger. Only deposits and withdrawals touch the chain.
+
+The ledger does not dictate the offchain system behind it. The operator keeps their own books and writes their own transaction logic.
+
+### Withdraw
+
+A withdrawal is the mirror of a deposit. The `Portal` releases funds on Base, so the asset, the amount, and the receiving address are public. The ledger account the money came from is not revealed. Because deposits hide the recipient and withdrawals hide the sender, an observer cannot pair a deposit with the withdrawal that later drained it.
+
+The operator decides how strict the `Portal` is before it pays out. The range runs from a simple signature check to full state-transition proofs, which is the main trust decision a ledger operator makes.
+
+`withdraw()` is a normal Base contract call. You can bundle it with other Base actions in one atomic transaction, such as withdraw-and-swap, and the whole bundle either lands or reverts together. Deposits compose the same way, for example deposit-and-act.
+
+<Aside type="note">
+Privacy here covers the path through the ledger, not the edges. The deposit sender and the withdrawal recipient are ordinary public addresses. If one party deposits and later withdraws a distinctive amount to a known address, the amounts alone can still suggest a link. Unlinkability holds best when amounts are common and timing varies.
+</Aside>

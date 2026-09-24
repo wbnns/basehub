@@ -9,7 +9,14 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
-### 2026-09-23 — Sepolia Cobalt upgrade (scheduled)
+### 2026-09-30 — Mainnet Cobalt upgrade (scheduled)
+
+Base Mainnet is scheduled to activate the Cobalt hardfork on Wednesday, September 30th at 18:00 UTC (Unix timestamp `1790791200`), with a maintenance window running until 20:00 UTC. The notice went up on September 23 at 23:00 UTC, a few hours after the Sepolia window closed. Mainnet operators must run [`v1.4.2`](https://github.com/base/base/releases/tag/v1.4.2) of `github.com/base/base` or a later release. That is a higher floor than the compiled-in timestamp alone implies: `v1.4.1` already carries the Mainnet value, but `v1.4.2` adds a backport (#5260) that registers the validity transaction RPC ahead of Cobalt and switches it on from the live upgrade schedule. Details are in the [Cobalt Upgrade Overview](/specifications/cobalt-overview/#required-software).
+
+### 2026-09-23 — Sepolia Cobalt upgrade (completed)
+
+The maintenance window opened on time at 18:00 UTC and was marked complete at 20:00 UTC, with no incident reported against it.
+
 
 Base Sepolia is scheduled to activate the Cobalt hardfork on Wednesday, September 23rd at 18:00 UTC (Unix timestamp `1790186400`), with a maintenance window held open until 20:00 UTC. Operators of Sepolia nodes must be running the [`v1.4.0`](https://github.com/base/base/releases/tag/v1.4.0) release of `github.com/base/base` or later; earlier builds have no Cobalt timestamp compiled in and will not follow the fork. That floor applies to Sepolia only. The Mainnet activation timestamp was not added to the source until 2026-09-21, after `v1.4.0` was tagged, so Mainnet operators need a later build for their own September 30 window. The notice also restates where node software now comes from: `github.com/base/base` publishes the public node that used to ship from `base/node`. Scope and migration notes are in the [Cobalt Upgrade Overview](/specifications/cobalt-overview/#required-software).
 

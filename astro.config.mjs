@@ -365,6 +365,7 @@ export default defineConfig({
 						{ label: 'Tokenized Stocks', slug: 'integration-guides/tokenized-stocks' },
 						{ label: 'Accept Payments', slug: 'integration-guides/accept-payments' },
 						{ label: 'DeFi Integrations', slug: 'integration-guides/defi-integrations' },
+						{ label: 'Private Transactions', slug: 'integration-guides/private-transactions' },
 					],
 				},
 				{

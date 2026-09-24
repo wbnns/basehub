@@ -18,12 +18,12 @@ Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/
 | Base Sepolia | Shipping | September 23, 2026 |
 | Base Mainnet | Shipping | September 30, 2026 |
 
-Upstream moved Cobalt off planning status on 2026-09-15 and named both dates. Both are now pinned in the node source rather than merely announced, and the status page has published a formal scheduled-event notice for Sepolia, so the scope on this page is no longer expected to move.
+Upstream moved Cobalt off planning status on 2026-09-15 and named both dates. Both are now pinned in the node source rather than merely announced, and the status page has published scheduled-event notices for both networks. Sepolia activated on September 23 and the maintenance window closed cleanly at 20:00 UTC, so the scope on this page is no longer expected to move.
 
 Both networks now have an exact activation moment compiled into the node. `cobalt_timestamp` for chain `84532` is `1790186400`, which is **September 23, 2026 at 18:00 UTC**. Chain `8453` is `1790791200`, which is **September 30, 2026 at 18:00 UTC**. The two sit exactly seven days apart, and the Mainnet value landed on 2026-09-21, six days after the dates were first announced.
 
 <Aside type="caution">
-The two networks have different minimum releases, and the Mainnet one is not a published release yet. `v1.4.0` covers Sepolia. For Mainnet you need a build at or after `v1.4.1-rc.9` — see [Required software](#required-software) before September 30.
+The two networks have different minimum releases. `v1.4.0` covers Sepolia. Mainnet needs `v1.4.2` or later, not `v1.4.1` — see [Required software](#required-software) before September 30.
 </Aside>
 
 This corrects guidance this page carried until 2026-09-16. Cobalt does ship the onchain upgrade registry, but that mechanism runs in metrics-only mode at this fork and does not replace the compiled-in schedule yet. Both networks still take their Cobalt activation from the timestamp built into the client, so a node release remains the thing to watch.
@@ -52,15 +52,20 @@ Account abstraction is the murkier of the two. It has no fork of its own now. It
 
 Sepolia now has a named minimum: [`v1.4.0`](https://github.com/base/base/releases/tag/v1.4.0) of `github.com/base/base`, or anything later. Upstream published that requirement alongside the scheduled-event notice on 2026-09-16, and the tag went out the same evening. It is the first build whose compiled-in schedule contains the Sepolia activation, so it is the floor rather than a recommendation — an older node does not recognise the fork at all.
 
-Mainnet now has a schedule in the source, but no stable release carries it. The commit that set chain `8453` to `1790791200` landed on 2026-09-21 at 15:24 UTC. `v1.4.0` was tagged five days earlier, so it ships Mainnet `cobalt_timestamp: None` — a Mainnet node on `v1.4.0` recognises no Cobalt activation and will not follow the fork on September 30.
+Mainnet has a published floor too: [`v1.4.2`](https://github.com/base/base/releases/tag/v1.4.2), named in the status-page notice of 2026-09-23 and released the same evening. `v1.4.0` does not qualify. It was tagged before chain `8453` received `1790791200`, so it ships Mainnet `cobalt_timestamp: None` and will not follow the fork on September 30.
 
-The first tag containing the Mainnet timestamp is `v1.4.1-rc.9`, cut nine minutes after that commit; `v1.4.1-rc.8` and everything before it still read `None`. As of this writing there is no `v1.4.1` final release, only candidates. So the Mainnet floor is a real version boundary but not yet an installable stable build, and the gap has to close inside the nine days before activation. Watch the [releases page](https://github.com/base/base/releases) for `v1.4.1`.
+`v1.4.1` is the trap. It went final on 2026-09-23, and its compiled schedule already contains the Mainnet timestamp (the value first appears at `v1.4.1-rc.9`). So a `v1.4.1` node does activate Cobalt on time. It is still below the floor. `v1.4.2` is `v1.4.1` plus three commits, and the one that matters is a backport (#5260) of two validity RPC changes:
+
+- the node registers validity transaction ingress before Cobalt and turns it on from the live upgrade schedule, while keeping the experimental override
+- a regular RPC node proxies validity submissions to the sequencer through `SequencerClient`, keeping predicates, sequencer headers, and upstream rejection behavior intact
+
+Put simply, `v1.4.1` follows the fork, but its validity RPC is not tied to the live schedule and does not forward submissions to the sequencer. If your node takes public RPC traffic, callers of `base_sendRawTransactionValidity` will see that gap on September 30.
 
 <Aside type="caution">
-Do not read "`v1.4.0` or later" as sufficient for both networks. It is the published floor for Sepolia only. The Mainnet schedule was added after that tag, so upgrading to `v1.4.0` satisfies September 23 and leaves September 30 unmet.
+Do not read "`v1.4.0` or later" as sufficient for both networks, and do not stop at the first tag that carries the Mainnet timestamp. The Mainnet floor is `v1.4.2`. The upstream rollout note adds one more requirement for proxied setups: route and allowlist `base_sendRawTransactionValidity` to a validity-enabled ingress.
 </Aside>
 
-One packaging note worth repeating, because the September 23 window is the first fork where it bites: the public node images and binaries now come from `github.com/base/base`. The retired `base/node` repository stopped receiving them at `v1.3.0`, so there is no `v1.4.0` on the old path to pull. To exercise the new surface before either date, point a client at [vibenet](/introduction/connecting-to-base/).
+One packaging note worth repeating, because the September 23 window is the first fork where it bites: the public node images and binaries now come from `github.com/base/base`. The retired `base/node` repository stopped receiving them at `v1.3.0`, so there is no `v1.4.0` or `v1.4.2` on the old path to pull. To exercise the new surface before either date, point a client at [vibenet](/introduction/connecting-to-base/).
 
 ## B20 improvements
 

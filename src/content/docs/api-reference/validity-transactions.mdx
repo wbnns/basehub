@@ -17,7 +17,7 @@ A validity transaction is an ordinary signed transaction handed to Base together
 The method accepts legacy, EIP-2930, and EIP-1559 transactions. EIP-1559 is the recommended type.
 
 <Aside type="caution">
-`base_sendRawTransactionValidity` runs on Vibenet only today. It reaches the public networks with [Cobalt](/specifications/cobalt-overview/), and Sepolia's activation is now exact: `1790186400`, or September 23, 2026 at 18:00 UTC, compiled into the node source. Mainnet is pinned too, at `1790791200`, or September 30, 2026 at 18:00 UTC, added to the source on 2026-09-21. Note that the Mainnet value postdates the `v1.4.0` release, so reaching it needs a newer build than Sepolia does. Upstream promoted this feature from "specifications to follow" to a published specification on 2026-09-15, so the surface described below is the documented one rather than a preview of it. Error codes and messages are still not guaranteed stable.
+`base_sendRawTransactionValidity` arrives on each public network with [Cobalt](/specifications/cobalt-overview/). Sepolia crossed that line at `1790186400` (September 23, 2026 at 18:00 UTC), so the method is live there now. Mainnet is pinned too, at `1790791200`, or September 30, 2026 at 18:00 UTC, added to the source on 2026-09-21. Mainnet nodes need `v1.4.2` or later: `v1.4.1` carries the timestamp but not the validity RPC wiring. Upstream promoted this feature from "specifications to follow" to a published specification on 2026-09-15, so the surface described below is the documented one rather than a preview of it. Error codes and messages are still not guaranteed stable.
 </Aside>
 
 ## How it works
@@ -81,7 +81,7 @@ Every submission also needs a `block_number` upper bound. The example below pair
 | Lifetime window | 60 seconds by default |
 | Unknown top-level fields | Rejected |
 
-The predicate ceiling is a wire limit rather than a policy an operator can raise. Decoding stops at the 65th entry, so an oversized batch is refused before the node allocates room for it. An operator can lower the ceiling with `--experimental-validity-max-predicates`, but a value above 64 is refused at startup instead of being quietly clamped.
+The predicate ceiling is a wire limit rather than a policy an operator can raise. Decoding stops at the 65th entry, so an oversized batch is refused before the node allocates room for it. An operator can lower the ceiling with `--validity-max-predicates` (builders use `--builder.validity-max-predicates`), but a value above 64 is refused at startup instead of being quietly clamped.
 
 An empty `validity` array is also rejected. A submission with no conditions carries nothing to enforce, so it is not accepted as a plain private transaction.
 
@@ -136,7 +136,11 @@ A transaction that never becomes eligible costs nothing onchain. One that is inc
 
 Only an upper bound counts. A `>`, `>=`, or `!=` comparison on `block_number` does not establish expiry, and neither does a `balance`, `storage`, or `flashblock_index` predicate. State conditions can recover after failing, and the flashblock index restarts every block, so none of them puts a ceiling on how long a transaction can wait. When several `block_number` predicates carry upper bounds, the tightest one decides the lifetime.
 
-Two further checks apply once a canonical head exists. A bound already behind the block being built is rejected, because every block it still permits has been sealed. A bound past the node's configured window is rejected as well. That window is 60 seconds of wall-clock time by default, which the node converts into a block count using the current full-block cadence: roughly 30 blocks on two-second blocks, and roughly 300 once Denim's 200ms cadence is active. Operators set it with `--experimental-validity-max-expiry-secs`.
+Two further checks apply once a canonical head exists. A bound already behind the block being built is rejected, because every block it still permits has been sealed. A bound past the node's configured window is rejected as well. That window is 60 seconds of wall-clock time by default, which the node converts into a block count using the current full-block cadence: roughly 30 blocks on two-second blocks, and roughly 300 once Denim's 200ms cadence is active. Operators set it with `--validity-max-expiry-secs`.
+
+<Aside type="caution">
+These limit flags were renamed in `v1.4.2`, and the old names are gone rather than aliased. `--experimental-validity-max-predicates`, `--builder.experimental-validity-max-predicates`, and `--experimental-validity-max-expiry-secs` now stop the node at startup. The limits also no longer depend on `--enable-experimental-validity-transactions`, so you can set them ahead of Cobalt without turning the feature on early. Check your launch scripts before you upgrade for the September 30 Mainnet window.
+</Aside>
 
 A bound equal to the block currently being built is fine. The transaction can still land in a later Flashblock of that same block.
 

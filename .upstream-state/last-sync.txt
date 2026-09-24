@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-23T03:06:51Z
+Generated 2026-09-24T03:03:36Z
 
-### base/base @ 70517e2
+### base/base @ 7c1358f
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
@@ -14,7 +14,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 4c9090cbbcac91a7888e44ddcb4df07adc1ee48e  docs/transaction-events/README.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 6274e6e
+### base/docs @ 81aa675
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -65,8 +65,7 @@ f1c15ed0cb9488f232277f277d87c37c4d1c9190  docs/base-chain/quickstart/connecting-
 5deca13b67d8d806b745c09807a0bfc7ec731ec4  docs/build-on-base/accept-payments/authorize-a-payment.mdx
 3478941aa6977df628d062c40dd7dc536879c8b3  docs/build-on-base/accept-payments/batch-high-frequency-payments.mdx
 f039d9a191be11f1d3a792be413ce1f00426b227  docs/build-on-base/accept-payments/call-a-paid-service.mdx
-8c8266db66ed832d487d6d126c66a3d14c4ea820  docs/build-on-base/accept-payments/capture-a-partial-amount.mdx
-42cdcd51a8790d1ac47156c65d6ec77bba9c23bf  docs/build-on-base/accept-payments/capture-an-authorization.mdx
+f770b957332ccfee1c8239ddd4417e4a7f8b3e5d  docs/build-on-base/accept-payments/capture-an-authorization.mdx
 4c5e6ba888dfa1959e91e23a892b1ff7f486238c  docs/build-on-base/accept-payments/charge-for-an-api.mdx
 f0ebedd01dfaab8ad178c455293ff58254267bdd  docs/build-on-base/accept-payments/charge-on-a-schedule.mdx
 50b47938713e14b33649a4c96a104a70871ec062  docs/build-on-base/accept-payments/make-a-simple-payment.mdx
@@ -74,7 +73,7 @@ f0ebedd01dfaab8ad178c455293ff58254267bdd  docs/build-on-base/accept-payments/cha
 58efa47109390828a6e48797ec5317acc973da54  docs/build-on-base/accept-payments/refund-a-payment.mdx
 9ce1981e212ad073f86cf034b8ee598099a23889  docs/build-on-base/accept-payments/request-a-payment.mdx
 31cb49cc4867553b1046684efb808a5146cae9a9  docs/build-on-base/accept-payments/send-a-payout.mdx
-96ca9980ecd28e297f17e2288d6e2215e568227a  docs/build-on-base/accept-payments/settle-usage-based-payments.mdx
+24acd5b09ecb90942827410ae393967fa8c69ed6  docs/build-on-base/accept-payments/settle-usage-based-payments.mdx
 c230c9e071b712d4e71c018b8b3ec503f458da5a  docs/build-on-base/accept-payments/split-a-payment.mdx
 4792f9deb9e642662d49ea6355364e2a77a18fe3  docs/build-on-base/accept-payments/verify-a-payment.mdx
 7004789d555d9b10f77c576f675a20fe8fe5abe3  docs/build-on-base/accept-payments/void-an-authorization.mdx
@@ -100,7 +99,10 @@ c48852706dc7edeb456697275534e1bd5a576e0a  docs/build-on-base/issue-stablecoins/i
 5b7103b759981797b0e65c0cff8e7fe52965f84c  docs/build-on-base/issue-stablecoins/reconcile-with-memos.mdx
 1a1e662d184a834f2c847e9a281c78107f47ee67  docs/build-on-base/issue-stablecoins/recover-funds.mdx
 9e1a67a3a7dfe6e34a661005ab56fddacbd519eb  docs/build-on-base/issue-stablecoins/restrict-who-can-hold.mdx
-5e472ac0a6d572bff1f77adb798ed2b952b8b027  docs/build-on-base/overview.mdx
+a3199b2654e36f72ec69bbb2f29466a3f07ab773  docs/build-on-base/ledgers/deposit.mdx
+8e0261574ed63756ecd13481bfd9fc8d930ee4a4  docs/build-on-base/ledgers/transfer.mdx
+5af831d4487aaeeac40039874338e8aee66b6a36  docs/build-on-base/ledgers/withdraw.mdx
+19c9f9e38062855d2cb76ee903621d56acdf898e  docs/build-on-base/overview.mdx
 66c042cc6ff5dcad9d96747e217080a6f10fbe6b  docs/build-on-base/test-on-vibenet.mdx
 09ff5fa51b808b48fc661635b395d6cbb58663cb  docs/specifications/b20/architecture.mdx
 5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
@@ -262,7 +264,7 @@ e0172c65782c08da1d2836f1e160d171b9254294  docs/specifications/build-transaction/
 86ac9f88cf1941db06e486d3d9b78c1e8b31040d  docs/specifications/node-operators/snapshots.mdx
 123e2d6956f884b76b0379b0b76ff30d5ddc4cb0  docs/specifications/node-operators/troubleshooting.mdx
 1b4595b9ca4b17b59495fb198e40a7ff54557944  docs/specifications/overview.mdx
-154ab30c175fe807125789d33556933a274583a3  docs/specifications/reference/base-contracts.mdx
+f23ce15b730750998b04e2f01718f85dc6e895b5  docs/specifications/reference/base-contracts.mdx
 89819762a6efa35629053a641c18a445674eebbc  docs/specifications/reference/configuration.mdx
 3ca097acd11119f6aee25780b0b05fc18a452c29  docs/specifications/reference/glossary.mdx
 d8f9fe3ab2cd80903564d6851802412d7ffed931  docs/specifications/reference/smart-contracts.mdx
@@ -344,7 +346,8 @@ gHUvTluLQFAHmP76hmDZ	Benchmarking ZKP Systems for Passkey ECDSA Verification	Tue
 
 ### base-l2.statuspage.io RSS
 
-https://base-l2.statuspage.io/incidents/72b9wfwbn2yc	Sepolia Testnet: Base Cobalt Upgrade - September 23rd	Wed, 23 Sep 2026 18:00:00 +0000
+https://base-l2.statuspage.io/incidents/zctq4rtnmlxd	Mainnet: Base Cobalt Upgrade - September 30th	Wed, 30 Sep 2026 18:00:00 +0000
+https://base-l2.statuspage.io/incidents/72b9wfwbn2yc	Sepolia Testnet: Base Cobalt Upgrade - September 23rd	Wed, 23 Sep 2026 20:00:07 +0000
 https://base-l2.statuspage.io/incidents/j6y12tshwkcg	Base Mainnet Safe head delayed	Tue, 28 Jul 2026 15:13:23 +0000
 https://base-l2.statuspage.io/incidents/5lv261chmyvh	Reduced Capacity on Base Mainnet Flashblocks Websocket stream	Tue, 21 Jul 2026 19:30:00 +0000
 https://base-l2.statuspage.io/incidents/5c4gm1wzbjs4	Base Mainnet Chain Stall	Fri, 26 Jun 2026 20:03:41 +0000
@@ -368,4 +371,3 @@ https://base-l2.statuspage.io/incidents/kn3x59zv9ssz	Transaction Inclusion Delay
 https://base-l2.statuspage.io/incidents/f4kfgvb8nymc	Flashblock websocket connection errors	Mon, 09 Mar 2026 21:54:16 +0000
 https://base-l2.statuspage.io/incidents/3qtvwp60xfb8	Base Mainnet minimum base fee increase	Thu, 19 Feb 2026 20:30:07 +0000
 https://base-l2.statuspage.io/incidents/wf93c6q4xjl6	Sepolia block building issue	Wed, 18 Feb 2026 16:56:51 +0000
-https://base-l2.statuspage.io/incidents/xf39x32bm8ms	Base Mainnet Upgrade 18	Tue, 10 Feb 2026 18:00:09 +0000
