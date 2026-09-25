@@ -152,6 +152,7 @@ export default defineConfig({
 						{ label: 'Validity Transactions', slug: 'api-reference/validity-transactions' },
 						{ label: 'B20 Precompiles', slug: 'api-reference/b20-precompiles' },
 						{ label: 'B20 Invariants & Tests', slug: 'api-reference/b20-invariants' },
+						{ label: 'Tokenized Stocks API', slug: 'api-reference/tokenized-stocks-api' },
 						{
 							label: 'Ethereum JSON-RPC',
 							collapsed: true,

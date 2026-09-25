@@ -3,6 +3,7 @@ title: Tokenized Stocks
 description: Integrating tokenized equities on Base — B20 multipliers, transfer policies, corporate actions, Chainlink price feeds, and the deployed token addresses.
 sources:
 - base/docs:docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
+- base/docs:docs/sdks/tokenized-stocks/overview.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -15,6 +16,7 @@ From a wallet or indexer's point of view these behave like any ERC-20. Name, sym
 
 - Read metadata onchain through [`name`](/api-reference/b20-precompiles/), `symbol`, `decimals`, and `contractURI` — the last being [ERC-7572](https://eips.ethereum.org/EIPS/eip-7572) collection metadata. Logos are also carried in the canonical token list and by the usual market-data aggregators.
 - Watch the `B20Created` event to pick up new tokens as they appear.
+- Or skip the onchain reads: the public [Tokenized Stocks API](/api-reference/tokenized-stocks-api/) returns each token's address, symbol, name, decimals, icon URL, and ISIN in one request, with no key needed.
 
 <Aside type="caution">
 Key your records on the token address, never on the ticker or symbol. B20 metadata is mutable onchain — `updateName` and `updateSymbol` let an issuer track a change in the underlying without redeploying — so a symbol you cached last month is not a stable identifier. Index accordingly.
@@ -123,6 +125,8 @@ Two inputs come from Coinbase's onchain oracle registry: the multiplier, and a p
 Inside market hours the feed republishes on a 0.5% price move, or at least once every 24 hours as a heartbeat. Outside them it holds the last value, and `updatedAt` stops moving even though the contract answers as normal. That covers overnight, weekends, holidays, and any corporate-action pause. Read `updatedAt` and enforce a staleness bound before you act on the number. A frozen feed must not drive settlement or liquidation.
 </Aside>
 
+The [Tokenized Stocks API](/api-reference/tokenized-stocks-api/) exposes the same feed value as `nav_price`, next to `nav_price_updated_at` and the current `multiplier`. It inherits every limit above: it is a reference value, not a tradeable price, and `nav_price_updated_at` needs the same staleness bound as `updatedAt`.
+
 During a corporate action the pieces move separately:
 
 - Minting and redemption halt offchain. Onchain the token stays unpaused, so transfers continue.
@@ -162,6 +166,8 @@ If you are reconstructing a series from raw share prices, remember the published
 
 ## Deployed addresses
 
+The tables here are a snapshot. For a live copy, the [Tokenized Stocks API](/api-reference/tokenized-stocks-api/) serves the token contracts from its list endpoint and the protocol contracts from `/chains`.
+
 | Ticker | Contract address |
 |--------|------------------|
 | Onchain Registry | `0x3f3E8cf41cdd3b1D118c16471aB0113DfDDd5CaD` |
@@ -182,6 +188,7 @@ Three tickers — COINc, CRCLc, and INTCc — sat in the tables above until rece
 
 ## Related pages
 
+- [Tokenized Stocks API](/api-reference/tokenized-stocks-api/) — token records, supplies, multipliers, and NAV values over HTTP
 - [B20 Native Token Standard](/specifications/b20/) — how the standard behaves
 - [Launch a B20 Token](/integration-guides/launch-a-b20-token/) — creating and minting one end to end
 - [B20 Precompile Reference](/api-reference/b20-precompiles/) — selectors, `topic0` values, and revert codes

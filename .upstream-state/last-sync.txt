@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-24T03:03:36Z
+Generated 2026-09-25T03:02:16Z
 
-### base/base @ 7c1358f
+### base/base @ 30df2e0
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
@@ -14,7 +14,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 4c9090cbbcac91a7888e44ddcb4df07adc1ee48e  docs/transaction-events/README.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 81aa675
+### base/docs @ 3ba6c32
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -83,7 +83,7 @@ fd0a1c8b664d90d82071a80d4eefcea2bc51b6a4  docs/build-on-base/integrate-defi/inte
 ffb3a4be833c767511f59a40cb6f69a9fa620d5d  docs/build-on-base/integrate-defi/integrate-earn-product.mdx
 684361746ab645eccd11982f617a3eee29ef4b2e  docs/build-on-base/integrate-defi/integrate-lending.mdx
 54578014d4e43346e4ebb368213bac64e369f432  docs/build-on-base/integrate-defi/integrate-trading.mdx
-a24b7e48c9f9bead96e5b2a325fb1d4eb2379fde  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
+bf8635c6791dad11d62239387c79503bb9e243d3  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
 5e564b4dd6adac8fd43cba1873490e3aef5182e4  docs/build-on-base/issue-rwa/announce-a-distribution.mdx
 319d28047b6e31c9936f56775032a2dc29acde6b  docs/build-on-base/issue-rwa/apply-a-multiplier.mdx
 aa5eb292e9d861c8fc3a094b24168f20ec172589  docs/build-on-base/issue-rwa/cancel-blocked-units.mdx
@@ -104,6 +104,10 @@ a3199b2654e36f72ec69bbb2f29466a3f07ab773  docs/build-on-base/ledgers/deposit.mdx
 5af831d4487aaeeac40039874338e8aee66b6a36  docs/build-on-base/ledgers/withdraw.mdx
 19c9f9e38062855d2cb76ee903621d56acdf898e  docs/build-on-base/overview.mdx
 66c042cc6ff5dcad9d96747e217080a6f10fbe6b  docs/build-on-base/test-on-vibenet.mdx
+311237c275267fb74187f8704ca8c9198b2a6ba7  docs/sdks/tokenized-stocks/api-reference/get-token-total-supply.mdx
+6e7141024723da6ebb75a1a32e2d29335ec35c3f  docs/sdks/tokenized-stocks/api-reference/list-protocol-contract-addresses.mdx
+3c04f1e2b53d0b49cd7295193639eb22c9512e3a  docs/sdks/tokenized-stocks/api-reference/list-tokenized-stocks.mdx
+281cc1c58f4a212055f9e54267ca385acc8dd928  docs/sdks/tokenized-stocks/overview.mdx
 09ff5fa51b808b48fc661635b395d6cbb58663cb  docs/specifications/b20/architecture.mdx
 5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
 6b2bc099452867b6ef70caf852c3f1c33b628379  docs/specifications/b20/concepts/multipliers.mdx
@@ -286,7 +290,7 @@ a7eba9b780b478f15cd76a3d085c567faace2678  docs/upgrades/azul/node-upgrade.mdx
 10b0310e81b09d825dad83c375190bd6e229fac1  docs/upgrades/beryl/reth-v2.mdx
 b9d7a4042bf4c144c219b38c77f15e374bc08f57  docs/upgrades/canyon/overview.mdx
 61dc070864e29e703328809c237cf1c7285ad643  docs/upgrades/cobalt/dynamic-upgrades.mdx
-4cca28a3295012c00c35074fd2bd4fc9de030687  docs/upgrades/cobalt/overview.mdx
+b5a5824d343b19c4e4a0ee078606efa89d187d46  docs/upgrades/cobalt/overview.mdx
 e43432b4cfd33c3c514a4fba778ec658c36cca6d  docs/upgrades/cobalt/validity-transactions.mdx
 46c538631428ca45a48807e89ad69ac36c30fafb  docs/upgrades/delta/overview.mdx
 5c37cd1086e69bcdf8167bb5e579109483187fcb  docs/upgrades/delta/span-batches.mdx
@@ -319,7 +323,7 @@ cb0372c39a8410f5eababb2e10efe02e1a37c4e6  docs/upgrades/isthmus/predeploys.mdx
 66c3c3d24174e29f8472899c737703f533f7de98  docs/upgrades/jovian/l1-attributes.mdx
 5a38a6c5f7f87a44d70abb276c5b8c6fe1dd593f  docs/upgrades/jovian/overview.mdx
 d58753698a5d333b77751bfde6fc1991583d6bb7  docs/upgrades/jovian/system-config.mdx
-9dd629b1b6388a576310791beb7fb4260145896e  docs/upgrades/overview.mdx
+eec523898cf2fc7d95de8bb36dfc26ff2b15fe21  docs/upgrades/overview.mdx
 
 ### blog.base.dev RSS
 

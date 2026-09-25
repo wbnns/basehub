@@ -1,0 +1,102 @@
+---
+title: Tokenized Stocks API
+description: Reference for the public, read-only Coinbase Tokenized Stocks API — token records, protocol contract addresses, normalized supplies, multipliers, and Chainlink NAV values on Base.
+sources:
+- base/docs:docs/sdks/tokenized-stocks/overview.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/list-tokenized-stocks.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/list-protocol-contract-addresses.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/get-token-total-supply.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Coinbase runs a small HTTP API that hands back reference data for its [tokenized stocks on Base](/integration-guides/tokenized-stocks/). It is public and read-only, and it needs no API key. One request gets you what would otherwise take several onchain reads per token: the contract address, supply, current multiplier, pause state, and the latest Chainlink reference value.
+
+<Aside type="note">
+The API only reports data. It cannot trade, execute, issue, mint, redeem, or hold anything. Coinbase tokenized stocks are offered only to people in eligible jurisdictions outside the United States, and a token showing up in a response says nothing about whether a given user may trade it. Applying those restrictions is the integrator's job.
+</Aside>
+
+```text
+https://api.coinbase.com/v1/tokenized-stocks
+```
+
+## Endpoints
+
+| Method | Path | Returns |
+|--------|------|---------|
+| `GET` | `/` | Every tokenized-stock record the API currently exposes. |
+| `GET` | `/chains` | The tokenized-stocks protocol contracts, per supported chain. |
+| `GET` | `/total-supply/{contract_address}` | One token's total supply, normalized by its decimals. |
+
+The full schema lives upstream in `openapi/tokenized-equities.json`.
+
+## List tokenized stocks
+
+```bash
+curl https://api.coinbase.com/v1/tokenized-stocks
+```
+
+The response is a `tokens` array. Each entry is a `v1TokenizedEquityToken`:
+
+| Field | Type | Meaning |
+|-------|------|---------|
+| `contract_address` | string | The ERC-20 (B20) token contract on Base. |
+| `symbol` | string | Ticker symbol of the token. |
+| `name` | string | Name of the underlying equity. |
+| `decimals` | integer | Token decimals. |
+| `icon_url` | string | Icon for the underlying equity. |
+| `total_supply` | double | Supply in token units, already divided by `decimals`. |
+| `isin` | string | ISIN of the underlying equity. |
+| `multiplier` | double | Current token-to-share scaling factor. `1.0` means no adjustment. |
+| `paused_features` | integer[] | Feature flags currently paused on the token contract. |
+| `nav_price` | double | Latest Chainlink NAV/reference value, adjusted for the feed's decimals. |
+| `nav_price_updated_at` | date-time | When `nav_price` last changed onchain (the feed's `updatedAt`). |
+
+## List protocol contract addresses
+
+```bash
+curl https://api.coinbase.com/v1/tokenized-stocks/chains
+```
+
+Returns a `chains` array of `v1ChainContractAddresses` entries, each with `chain_id`, `chain`, `policy_registry_address`, `token_supply_manager_address`, and `token_factory_address`. On 2026-09-25 it listed one chain, Base (`8453`):
+
+| Field | Value |
+|-------|-------|
+| `policy_registry_address` | `0x8453000000000000000000000000000000000002` |
+| `token_supply_manager_address` | `0xD1Ca4dAcdf3231011D175351f1f02D15C7c5664C` |
+| `token_factory_address` | `0x4bA3E29E254F25E94E61C4c9d67b37027331534D` |
+
+The policy registry is the B20 [PolicyRegistry precompile](/api-reference/b20-precompiles/), not a separate deployment. Treat the live response as authoritative over this table.
+
+## Get token total supply
+
+```bash
+curl https://api.coinbase.com/v1/tokenized-stocks/total-supply/0xb200000000000000000000C2e324d24d7eEcd1fb
+```
+
+Returns a single `total_supply` field with the same meaning as in the list response.
+
+## Reading the numbers correctly
+
+The field names look familiar from the onchain interface, but several of them carry different units here. Most integration mistakes with this API come from mixing the two.
+
+- **`total_supply` counts tokens, not shares.** To get the share count, multiply it by `multiplier`.
+- **`multiplier` is already scaled down.** Onchain the multiplier is WAD-scaled (18 decimals). The API divides that out, so a token with no adjustment reports `1`, not `1e18`. Do not apply the WAD division a second time.
+- **`multiplier` moves.** Dividends and splits change it, so read the current value each time you convert units to shares. Never cache it as a constant.
+- **`nav_price` is a reference value, not a quote.** It is the total-return figure from the token's Chainlink feed. It is not a bid, an ask, or a fill price.
+- **`nav_price` goes stale without warning.** Chainlink publishes a new round only on a price deviation or a heartbeat, and the feeds stop outside market hours. So `nav_price_updated_at` can trail the clock by minutes or by many hours. Apply the same staleness bound you would apply to `updatedAt` from `latestRoundData()`.
+
+<Aside type="caution">
+`total_supply`, `multiplier`, and `nav_price` are JSON doubles. They are fine for display and rough checks, but they are not exact. For settlement, accounting, or anything that must match the chain to the last unit, read `totalSupply` and the multiplier from the contracts directly.
+</Aside>
+
+Two response details surfaced when this page was checked against the live API on 2026-09-25:
+
+- `paused_features` is left out entirely when nothing is paused, rather than sent as an empty array. Treat a missing key as "no pauses".
+- The list held exactly the ten launched tokens (AAPLc through TSLAc). COINc, CRCLc, and INTCc, which are registered onchain but have zero supply, were not in it.
+
+## Related pages
+
+- [Tokenized Stocks](/integration-guides/tokenized-stocks/) — multipliers, policies, price feeds, and deployed addresses
+- [B20 Precompile Reference](/api-reference/b20-precompiles/) — the onchain interface these records describe
+- [B20 Native Token Standard](/specifications/b20/)
