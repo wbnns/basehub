@@ -125,7 +125,7 @@ Cantina audited the library independently. The bundled JavaScript is there as a 
 
 ## Where this goes
 
-Base verifies Nitro attestations in production today through zero-knowledge proofs, which was the only practical route once Fusaka landed. The hinted P-384 approach removes that dependency: no new precompile, no ZK proving service. Base plans to adopt it for the canonical bridge's proof system in place of ZK proofs for onchain Nitro verification.
+After Fusaka, Base verified Nitro attestations through zero-knowledge proofs, the only practical route at the time. The hinted P-384 approach removes that dependency: no new precompile, no ZK proving service. That plan has now shipped. The [Cobalt](/specifications/cobalt-overview/) upgrade moves TEE signer registration for the proof system onto these hinted contracts, and the [registrar](/specifications/registrar/) now computes the hints itself instead of ordering a ZK proof.
 
 Nothing here is specific to Base. The same sequence works for any EVM application on a post-Fusaka chain that needs to place trust in a Nitro enclave: walk the AWS certificate chain, check the attestation signature, read off the measurements that come back, and hold them against whatever policy you have defined.
 

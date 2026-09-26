@@ -1,0 +1,152 @@
+---
+title: B20 Issuer Operations
+description: Day-two controls for a live B20 token — seizing and recovering a blocked balance, cancelling units, limiting who may initiate transfers, announcing holder-impacting changes, and scheduling multiplier updates.
+sources:
+- base/docs:docs/build-on-base/issue-stablecoins/recover-funds.mdx
+- base/docs:docs/build-on-base/issue-stablecoins/block-an-account.mdx
+- base/docs:docs/build-on-base/issue-rwa/seize-and-cancel-units.mdx
+- base/docs:docs/build-on-base/issue-rwa/restrict-transfer-initiators.mdx
+- base/docs:docs/build-on-base/issue-rwa/announce-a-distribution.mdx
+- base/docs:docs/build-on-base/issue-rwa/apply-a-multiplier.mdx
+- base/base:crates/common/precompiles/src/b20_asset/logic
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[Launching a B20 token](/integration-guides/launch-a-b20-token/) gets a balance onchain. This page covers what an issuer does after that: taking a balance back under a legal hold, cancelling units, deciding who may move tokens, and telling holders about changes before they land. The call-level reference is in [B20 precompiles](/api-reference/b20-precompiles/). The rules behind each check are in the [B20 specification](/specifications/b20/).
+
+Each control below is tied to a fork. Check the gate before you rely on a control on Mainnet.
+
+| Control | Available from | Variants |
+|---|---|---|
+| `seizeWithMemo` | Cobalt (Sepolia September 23, Mainnet September 30, 2026) | Asset and Stablecoin |
+| Executor policy on every transfer path | Denim (planning, October 2026) | Asset and Stablecoin |
+| `announce` | Beryl | Asset only |
+| Scheduled multiplier (`updateUIMultiplier`) | Cobalt | Asset only |
+
+## Seize a blocked balance
+
+Upstream's issuer guides now route every "take it back" case through `seizeWithMemo`: a lost key, a court order, a sanctions hold, or a holder who is no longer eligible. The call moves tokens from the holder to a safekeeping account in one transaction. It does not burn or mint, so `totalSupply` stays the same. The memo carries your case reference, and the token emits a dedicated `Seized` event that auditors can follow.
+
+The older route, `burnBlocked` followed by a fresh `mint`, is deprecated. It makes supply dip and recover, emits no `Seized` event, and leaves reconciliation with two unrelated transactions. Before Cobalt reaches Mainnet it is still the only option there.
+
+### Three gates
+
+A seize runs only if all three of these pass:
+
+| Gate | Passes when | If unset |
+|---|---|---|
+| `SEIZE_ROLE` | The caller holds the role. | No one can seize. |
+| `SEIZE_EXEMPT_POLICY` | The holder (`from`) is **not** authorized under the attached policy. | Everyone is authorized, so no one is seizable. |
+| `SEIZE_RECEIVER_POLICY` | The destination (`to`) is authorized. | Any destination works. |
+
+`SEIZE` must also not be paused. Pausing `TRANSFER`, `MINT`, or `BURN` does not stop a seize.
+
+<Aside type="caution" title="Attach a blocklist, never an allowlist">
+`SEIZE_EXEMPT_POLICY` works backwards compared with the transfer scopes. A holder the policy authorizes is protected. Attach a **blocklist** so only listed accounts become seizable. An allowlist, or `ALWAYS_BLOCK`, authorizes nobody by default, which turns every holder into a seize target.
+</Aside>
+
+### Freezing does not make an account seizable
+
+Seize reads its own scope and ignores the transfer scopes. Two common setups leave an account frozen but still out of reach:
+
+- **Stablecoin blocklist.** A blocklist bound to `TRANSFER_SENDER_POLICY` stops the holder's outgoing transfers. To make the same account seizable, also bind that blocklist to `SEIZE_EXEMPT_POLICY`. One list then both freezes and exposes the account.
+- **Asset allowlist.** Taking a holder off an eligibility allowlist freezes their transfers. It does not make them seizable. You need a separate blocklist on `SEIZE_EXEMPT_POLICY` with that holder on it.
+
+### The call
+
+Grant the role once, attach the blocklist, then seize to your treasury:
+
+```solidity
+token.grantRole(token.SEIZE_ROLE(), seizer);
+token.updatePolicy(B20Constants.SEIZE_EXEMPT_POLICY, blocklistId);
+token.seizeWithMemo(blocked, treasury, 50e6, bytes32("legal-hold-2026-118"));
+```
+
+Events fire in this order: `Transfer(from, to, amount)`, `Memo(caller, memo)`, then `Seized(caller, from, to, amount)`. After that the treasury holds an ordinary balance. You can `transfer` it to the holder's new address, keep it while the case is open, or cancel it (next section).
+
+To restrict where seized funds can go, put the treasury on an allowlist and bind it to `SEIZE_RECEIVER_POLICY`.
+
+`to` cannot be zero, the token's own address, or the same as `from`. Seizing *from* the token's own address is allowed, which is how you recover tokens someone sent to the contract by mistake.
+
+### Errors, in check order
+
+| Error | Meaning |
+|---|---|
+| `ContractPaused(SEIZE)` | Seize is paused. |
+| `AccessControlUnauthorizedAccount(caller, SEIZE_ROLE)` | The caller lacks the role. |
+| `InvalidReceiver(to)` | `to` is zero, the token, or `from`. |
+| `InvalidSender(from)` | `from` is zero. |
+| `AccountNotSeizable(from)` | `from` is still authorized under `SEIZE_EXEMPT_POLICY`: the slot is unset, or the holder is not on the blocklist. |
+| `PolicyForbids(SEIZE_RECEIVER_POLICY, policyId)` | `to` fails the receiver policy. |
+| `InsufficientBalance(from, balance, amount)` | `from` holds less than `amount`. |
+
+## Cancel units
+
+For an Asset whose units must be destroyed, seize first, then burn from the treasury with `burnWithMemo`. `burnWithMemo` burns the caller's own balance, so either seize to the burning account or transfer to it first. The burner needs `BURN_ROLE`, and `BURN` must not be paused.
+
+```solidity
+IB20(token).seizeWithMemo(holder, address(this), 100e6, bytes32("cancel-2026-07"));
+IB20(token).burnWithMemo(100e6, bytes32("cancel-2026-07"));
+```
+
+`totalSupply` stays level after the seize and drops after the burn. Reuse the same memo on both calls so reconciliation can link them to one case. To disclose the cancellation, wrap the burn in `announce` (see below).
+
+## Limit who may initiate transfers
+
+Some issuers want every transfer to go through a designated account, such as a transfer agent, even when both sides are eligible holders. `TRANSFER_EXECUTOR_POLICY` checks the initiator (`msg.sender`), separately from the sender and receiver scopes.
+
+<Aside type="caution" title="The full behaviour starts at Denim">
+Upstream's new guide describes the executor check as applying to every transfer, with no exception for a holder moving their own tokens. In the node source that is B20 logic version 3, which activates at **Denim**. Before Denim (Beryl and Cobalt), the check runs only on `transferFrom`, and only when the caller differs from `from`. A holder's own `transfer` skips it. Upstream does not mention the gate.
+</Aside>
+
+From Denim, the rules are:
+
+- The executor check runs first on `transfer`, `transferFrom`, and their memo variants.
+- A holder calling `transfer`, or `transferFrom` on their own balance, must be on the executor allowlist. Otherwise the call reverts `PolicyForbids(TRANSFER_EXECUTOR_POLICY, policyId)` before any balance check.
+- When the caller is `from` and the executor and sender scopes point at the same policy, the node skips the now-redundant sender check.
+- An allowance is still required for `transferFrom`. The allowance limits how much a caller may spend. The executor policy decides whether the caller may start a transfer at all. A transfer agent needs both.
+
+Setup is two calls: create an allowlist seeded with the agent, then bind it.
+
+```solidity
+id = StdPrecompiles.POLICY_REGISTRY.createPolicyWithAccounts(
+    admin, IPolicyRegistry.PolicyType.ALLOWLIST, initiators
+);
+IB20(token).updatePolicy(B20Constants.TRANSFER_EXECUTOR_POLICY, id);
+```
+
+Creating the policy has no effect until `updatePolicy` binds it. Add every intended initiator before you bind, including the issuer's own accounts. Anyone left off loses the ability to start transfers. Batches cap at 64 accounts, and only the policy admin can change membership.
+
+## Announce a change to holders
+
+`announce(internalCalls, id, description, uri)` wraps a holder-impacting change in an onchain disclosure. It is Asset-only and needs `OPERATOR_ROLE`. The wrapped calls keep their own role checks and run with the operator as `msg.sender`, so the operator also needs `MINT_ROLE` for `batchMint` or `mintWithMemo` and `BURN_ROLE` for `burnWithMemo`.
+
+The sequence is: emit `Announcement(caller, id, description, uri)`, run every inner call atomically, emit `EndAnnouncement(id)`. Each inner entry is raw calldata against this same asset, at least 4 bytes long. It is not a target and calldata pair. If any inner call fails, the whole transaction reverts and `id` stays unused. A successful call burns `id` for the life of the asset.
+
+Typical uses:
+
+- **Extra units** (a stock dividend paid in shares): wrap `batchMint`. The events are `Announcement`, one `Transfer` per recipient, then `EndAnnouncement`.
+- **Split or reverse split**: wrap `updateUIMultiplier`.
+- **Replacing a pending multiplier**: wrap `cancelUIMultiplierUpdate` and a new `updateUIMultiplier` in the same announcement.
+- **Treasury burn**: wrap `burnWithMemo`.
+- **Notice only**: pass an empty `internalCalls` array.
+
+**For indexers:** match `Announcement` to `EndAnnouncement` by `id`, not just by position. Everything between the two logs belongs to the announcement. A state change outside any bracket was made directly. A direct `updateUIMultiplier` still works, so flag it as undisclosed rather than assume every change was announced.
+
+## Schedule a multiplier update
+
+The multiplier changes what holders *see*, not what they hold. Raw `balanceOf`, `totalSupply`, and transfer amounts never move, so DeFi that reads raw units keeps working. Only the UI views apply it: `balanceOfUI(account)` equals `balanceOf(account) * uiMultiplier() / 1e18`.
+
+An asset holds at most **one** pending update:
+
+1. `updateUIMultiplier(newMultiplier, effectiveAt)` records it. `effectiveAt` must be later than the current block time, and `newMultiplier` must be above zero and at most `MAX_UI_MULTIPLIER`. A 2-for-1 split is `2e18`.
+2. While pending, `uiMultiplier()` still returns the old value, `newUIMultiplier()` returns the scheduled one, and a second schedule reverts `UIMultiplierUpdateExists`.
+3. At `effectiveAt` the new value takes over. Nothing is written and no event fires at that moment. `UIMultiplierUpdated` fired earlier, when the schedule was recorded.
+4. After it matures, `effectiveAt()` keeps the old timestamp. **Test for a pending update with `effectiveAt() > block.timestamp`, never with `effectiveAt() == 0`.**
+
+`cancelUIMultiplierUpdate()` drops a pending update before it matures. After maturity it reverts `UIMultiplierUpdateDoesNotExist`.
+
+The deprecated `updateMultiplier(newMultiplier)` applies a value at once and clears anything pending. Keep it for fixing a mistake you cannot wait out. It emits `UIMultiplierUpdateCancelled` only if an update was still live, then `MultiplierUpdated`, then `UIMultiplierUpdated` with the current block time as `effectiveAtTimestamp`, not the old scheduled time.
+
+The setters are not pause-gated. Pausing `TRANSFER` around a split is possible, but it freezes every holder and needs the pause roles, so upstream advises against it for routine updates.

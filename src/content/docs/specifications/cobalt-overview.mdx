@@ -1,6 +1,6 @@
 ---
 title: Cobalt Upgrade Overview
-description: Summary of the Cobalt hardfork — B20 improvements, validity transactions, upgrade timestamps read from an onchain contract, and a move into a trusted execution environment.
+description: Summary of the Cobalt hardfork — B20 improvements, validity transactions, upgrade timestamps read from an onchain contract, and a new onchain path for registering TEE signers.
 sources:
 - base/docs:docs/upgrades/cobalt/overview.mdx
 - base/docs:docs/upgrades/cobalt/dynamic-upgrades.mdx
@@ -9,7 +9,7 @@ sources:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its scope settled in mid-September 2026 after two rounds of reshuffling, and it is now booked for Sepolia on September 23, 2026 and Mainnet on September 30, 2026. It carries four things: a batch of B20 additions, conditional transactions that only become eligible when chain state matches, a first step toward lifting fork timestamps out of the node binary, and a move of Base infrastructure into a trusted execution environment.
+Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its scope settled in mid-September 2026 after two rounds of reshuffling, and it is now booked for Sepolia on September 23, 2026 and Mainnet on September 30, 2026. It carries four things: a batch of B20 additions, conditional transactions that only become eligible when chain state matches, a first step toward lifting fork timestamps out of the node binary, and a new way to register TEE prover signers that verifies the Nitro attestation directly onchain.
 
 ## Status
 
@@ -33,7 +33,7 @@ This corrects guidance this page carried until 2026-09-16. Cobalt does ship the 
 - **B20 improvements** — fees payable in B20, scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
 - **Validity transactions** — a signed transaction paired with conditions on chain state, which Base holds back until every condition matches. See [Validity Transactions](/api-reference/validity-transactions/).
 - **Dynamic upgrades** — an L1 contract holds the fork schedule, groundwork for activation that does not depend on shipping a binary with the timestamps compiled in. Cobalt itself still activates from the compiled-in schedule; the registry runs alongside it in metrics-only mode.
-- **TEE migration** — Base infrastructure moves inside a trusted execution environment. Upstream has not published the specification yet.
+- **TEE registration migration** — new TEE prover signers are now admitted by checking their AWS Nitro attestation fully onchain, with checked P-384 hints doing the heavy curve math. This retires the RISC Zero proof and the Boundless marketplace from registration, so the registrar no longer relies on an outside proving service and signers register faster. Enclave key generation, PCR0 image selection, and proof verification stay as they were. Upstream relabelled this item on 2026-09-25; earlier wording described a move of all Base infrastructure into a TEE, which overstated it. See the [TEE Prover Registrar](/specifications/registrar/) and the [nitro-validator redesign](/architecture/nitro-validator/).
 
 ## What moved out of Cobalt
 

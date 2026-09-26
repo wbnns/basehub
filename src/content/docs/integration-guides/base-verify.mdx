@@ -1,0 +1,190 @@
+---
+title: Base Verify
+description: Sybil resistance and eligibility gating from verified X, Coinbase, Instagram, and TikTok accounts — the backend token API and the onchain SignerRegistry flow, with what each one reveals.
+sources:
+- base/docs:docs/sdks/base-verify/overview.mdx
+- base/docs:docs/sdks/base-verify/verify-social-accounts.mdx
+- base/docs:docs/sdks/base-verify/verify-users-onchain.mdx
+- base/docs:docs/sdks/overview.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A wallet says nothing about the person behind it. One person can split across a hundred wallets, and a valuable user can arrive with an empty one. Base Verify closes both gaps. A user proves they control a verified account on X, Coinbase, Instagram, or TikTok, and your app gets two things back: a stable key that is the same for that account whichever wallet it uses (Sybil resistance), and a yes or no on traits you care about, such as follower count or an active Coinbase One membership (eligibility). Your app never sees the user's credentials or account name.
+
+It answers a different question from [Builder Codes](/integration-guides/builder-codes/). Builder Codes say which app produced a transaction. Base Verify says whether the person behind a wallet qualifies, and whether they have already been counted.
+
+## Two integrations
+
+| | Backend (verify social accounts) | Onchain (verify users onchain) |
+|---|---|---|
+| Who enforces | Your backend | Your contract |
+| Endpoint | `POST /v1/base_verify_token` | `POST /v1/onchain_verifications` |
+| Auth | Secret API key plus a SIWE signature | SIWE signature only, no key |
+| You get back | `token`, `action`, `wallet` | `identityHash`, `expiration`, `signature` |
+| Backend at claim time | Required | Not required |
+| Networks | Any app | **Base Sepolia only** |
+
+Both start the same way: the user signs a [SIWE](https://eips.ethereum.org/EIPS/eip-4361) message, which proves they control the wallet and states what is being checked. Access to the backend API is by request through the Base Verify interest form.
+
+If the user has not verified the needed provider yet, send them to Base Verify to complete OAuth, then check again:
+
+```text
+https://verify.base.dev?redirect_uri={your_app_url}&providers={provider}
+```
+
+`providers` takes `x`, `coinbase`, `instagram`, or `tiktok`.
+
+## Backend flow
+
+Your frontend has the user sign a SIWE message. Your backend forwards the message and signature to Base Verify with the secret key:
+
+```bash
+curl -X POST https://verify.base.dev/v1/base_verify_token \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_SECRET_KEY" \
+  -d '{
+    "signature": "0x1234...",
+    "message": "verify.base.dev wants you to sign in..."
+  }'
+```
+
+The SIWE `resources` list carries the provider, any trait requirements, and an action:
+
+```typescript
+resources: [
+  'urn:verify:provider:x',
+  'urn:verify:provider:x:verified:eq:true',
+  'urn:verify:action:claim_airdrop'
+]
+```
+
+Trait requirements use the form `urn:verify:provider:{provider}:{trait_name}:{operation}:{value}`.
+
+### The token is the dedupe key
+
+A `200` returns `{ "token", "action", "wallet" }`. The token is what makes Sybil resistance work. Store it, and refuse any second claim that arrives with a token you have already seen.
+
+- It follows the provider account, not the wallet. The same X account on a second wallet returns the same token.
+- It differs per provider, per app, and per action. Your tokens cannot be matched against another app's.
+- It does not rotate and does not change when traits change, such as a rising follower count.
+
+**Actions** let one app run several independent claims. The same account gets one token for `claim_airdrop` and a different one for `join_allowlist`. Pick descriptive names like `enter_weekly_raffle`, and do not rename an action after launch: a new name issues new tokens to every user, and your duplicate check stops working.
+
+### Responses
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `200` | Verified and meets every trait. | Store the token and grant access. |
+| `404` `verification_not_found` | This wallet has never verified the provider. | Redirect to Base Verify. Do not retry. |
+| `400` `verification_traits_not_satisfied` | Verified, but a trait falls short. | Tell the user. Do not redirect or retry. |
+| `401` `unauthorized` | Bad or missing secret key. | Fix the `Authorization` header. |
+
+<Aside type="caution" title="Check the traits on your backend">
+The SIWE message is built on the frontend, so a user can edit it. If your rule is 100 followers and the user signs a message asking for 10, Base Verify will happily confirm 10. Your backend must compare the trait requirements in the message with the ones it expects before it calls the API.
+</Aside>
+
+Keep the secret key on the server only. Never put it in frontend code or in a browser-exposed variable such as `NEXT_PUBLIC_*`, and rotate it at once if it leaks. Cache results for a session at most, and clear the cache when the wallet disconnects.
+
+## Onchain flow
+
+<Aside type="caution" title="Testnet only">
+The onchain flow runs on Base Sepolia (`84532`). There is no `SignerRegistry` on Base Mainnet (confirmed: no code at the Sepolia address on chain `8453`). Build and test against it, but do not put real value behind it.
+</Aside>
+
+Here your contract does the checking, so no backend has to be up at claim time. Base Verify signs a short-lived [EIP-712](https://eips.ethereum.org/EIPS/eip-712) verification. The contract checks it and records the identity in the same transaction as the claim, mint, deposit, or vote.
+
+| Item | Value |
+|---|---|
+| `SignerRegistry` (Base Sepolia) | `0x4f15593fbF7e3491d15080e1610E7AF8deBA1a02` |
+| API base URL | `https://verify.base.dev/v1` |
+| Consumer base contract | `BaseVerifyConsumer.sol` |
+
+The steps are:
+
+1. Your contract extends `BaseVerifyConsumer` and declares its policy: one `provider` and one or more `conditions`.
+2. The user signs a SIWE message whose `statement` is exactly `Claim eligibility for a Base Verify onchain benefit.`, whose `chainId` is `84532`, and whose `Resources` include `eip155:<chainId>:<yourContractAddress>`.
+3. Your app posts `{ "message", "signature" }` to `POST /v1/onchain_verifications`. Smart-wallet signatures (ERC-1271 and ERC-6492) work.
+4. Base Verify reads your contract's policy through `eth_call`, checks the user's stored credential against it, and signs only if it passes. The conditions come from your contract, not from the user, so a user cannot drop one.
+5. The user submits `identityHash`, `expiration`, and `signature` to your contract.
+6. Your contract calls `registry.verifyVerification(...)`, then rejects any `identityHash` it has already stored.
+
+### The contracts
+
+`SignerRegistry` is stateless. It checks that a trusted signer produced the verification, that it has not expired, and that it matches the calling contract's live policy. It does not dedupe, which is your contract's job.
+
+```solidity
+function verifyVerification(
+    address user,
+    bytes32 identityHash,
+    uint40 expiration,
+    bytes calldata signature
+) external view;
+// Reverts VerificationExpired(expiration) when block.timestamp > expiration.
+// Reverts InvalidSignature() when the signature cannot be recovered.
+// Reverts NotSigner(signer) when the recovered signer is not on the allowlist.
+```
+
+The registry rebuilds `policyHash` from the calling contract's policy, so a verification for one contract fails at any other. `BaseVerifyConsumer` supplies the policy getters and an `_verify` helper that passes `msg.sender` as the user, so only the wallet that signed can spend the verification and a mempool watcher cannot front-run it.
+
+```solidity
+abstract contract BaseVerifyConsumer {
+    struct Condition {
+        string name;  // e.g. "followers"
+        string op;    // eq | gt | gte | lt | lte | in
+        string value; // e.g. "1000"
+    }
+
+    function provider() external view virtual returns (string memory);
+    function conditions() external view virtual returns (Condition[] memory);
+    function cutoffBlock() external view virtual returns (uint256);
+
+    function _verify(bytes32 identityHash, uint40 expiration, bytes calldata signature) internal view;
+}
+```
+
+Your policy must be immutable. `cutoffBlock()` is the exception: it is outside `policyHash`, so you can raise it to force users to re-authenticate without breaking verifications already in flight. Return `0` for no cutoff.
+
+`identityHash` is one-way and scoped to your contract. The same person gets the same hash from every wallet, which is what blocks duplicates. A different contract gets an unrelated hash, so no one can link the same person across apps.
+
+### Policy options
+
+All conditions on a policy must pass (AND).
+
+| Provider | Condition | Type | Operators |
+|---|---|---|---|
+| `x` | `followers` | int | `eq` `gt` `gte` `lt` `lte` |
+| `x` | `verified` | bool | `eq` |
+| `x` | `verified_type` | string | `eq` |
+| `coinbase` | `coinbase_one_active` | bool | `eq` |
+| `coinbase` | `coinbase_one_billed` | bool | `eq` |
+| `instagram` | `followers_count` | int | `eq` `gt` `gte` `lt` `lte` |
+| `instagram` | `username` | string | `eq` |
+| `tiktok` | `follower_count` | int | `eq` `gt` `gte` `lt` `lte` |
+| `tiktok` | `following_count`, `likes_count`, `video_count` | int | `eq` `gt` `gte` `lt` `lte` |
+
+### Errors
+
+Do not send the transaction unless the API returned `200`.
+
+| Response | Meaning |
+|---|---|
+| `404` `contract_not_found` | The contract is not on this chain or has no policy. |
+| `404` `verification_not_found` | No credential for the contract's provider. Redirect to Base Verify. |
+| `404` `needs_reauth` | The credential predates the contract's cutoff block. Redirect to re-authenticate. |
+| `400` `conditions_not_satisfied` | Verified, but the policy is not met. Do not retry. |
+| `400` `invalid_policy` | The contract's provider, condition, and operator combination is unsupported. |
+| `400` `invalid_argument` | The SIWE message is malformed, expired, has the wrong statement, or names the wrong chain. |
+
+## What a claim makes public
+
+Neither flow hands your app a username, handle, trait value, or OAuth token. The onchain flow still leaves a public trail, and it is permanent once mined.
+
+- **Onchain:** the claiming wallet, the `identityHash`, and the expiring signature, plus anything your contract stores or emits. Your `provider` and `conditions` are public view functions.
+- **Never onchain:** the account itself, trait values, OAuth tokens, and `policyHash`, which the registry computes in memory.
+
+Because the policy is public, a claim reveals that the wallet met it. Every wallet in a Coinbase One-gated contract's claim log is known to have held an active membership at claim time. Anyone can see that, but not which Coinbase account it was. A narrow policy such as `followers gte 10000` reveals more than `verified eq true`.
+
+<Aside type="note" title="Deleting a verification does not reach the chain">
+A user can delete their verification at `verify.base.dev`. That removes the stored credential and stops new tokens and signatures. For the backend flow, the user cannot then re-verify with that account, so tokens you stored for them no longer match anything new. For the onchain flow, claims your contract already recorded stay recorded. `verify.base.dev` has no view of onchain claims. If users need to see their claim history, your app has to build that view.
+</Aside>

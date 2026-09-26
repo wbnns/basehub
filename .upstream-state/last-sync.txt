@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-25T03:02:16Z
+Generated 2026-09-26T03:07:25Z
 
-### base/base @ 30df2e0
+### base/base @ 41c674e
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
@@ -14,7 +14,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 4c9090cbbcac91a7888e44ddcb4df07adc1ee48e  docs/transaction-events/README.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 
-### base/docs @ 3ba6c32
+### base/docs @ 5d18728
 
 791bb6f9c8955cad0cabc837bb01ca054542b243  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 6ee5189f9c81ed2bb019099539eae18022754bf0  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -83,40 +83,47 @@ fd0a1c8b664d90d82071a80d4eefcea2bc51b6a4  docs/build-on-base/integrate-defi/inte
 ffb3a4be833c767511f59a40cb6f69a9fa620d5d  docs/build-on-base/integrate-defi/integrate-earn-product.mdx
 684361746ab645eccd11982f617a3eee29ef4b2e  docs/build-on-base/integrate-defi/integrate-lending.mdx
 54578014d4e43346e4ebb368213bac64e369f432  docs/build-on-base/integrate-defi/integrate-trading.mdx
-bf8635c6791dad11d62239387c79503bb9e243d3  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
-5e564b4dd6adac8fd43cba1873490e3aef5182e4  docs/build-on-base/issue-rwa/announce-a-distribution.mdx
-319d28047b6e31c9936f56775032a2dc29acde6b  docs/build-on-base/issue-rwa/apply-a-multiplier.mdx
-aa5eb292e9d861c8fc3a094b24168f20ec172589  docs/build-on-base/issue-rwa/cancel-blocked-units.mdx
-d7054f39adcde71cad6f65f3c87e7e5722b100f3  docs/build-on-base/issue-rwa/create-an-asset-token.mdx
-cebda98824f5c71a3111c7f147fe858699c713f7  docs/build-on-base/issue-rwa/issue-units.mdx
-4591c73c9afa07e5785d6dd28a9f347461fb930f  docs/build-on-base/issue-rwa/pause-transfers.mdx
-07f73ef89cb33c2fa7b1e5b4b22031c1cfc8aa3a  docs/build-on-base/issue-rwa/restrict-eligible-holders.mdx
-3d8fca74e29298343045b646f10fe0c62b5d557c  docs/build-on-base/issue-stablecoins/block-an-account.mdx
-95194a78efac11c280867586cef1d1db1729bd03  docs/build-on-base/issue-stablecoins/burn-supply.mdx
-c48852706dc7edeb456697275534e1bd5a576e0a  docs/build-on-base/issue-stablecoins/issue-your-stablecoin.mdx
-42ae0a9a15c84fe9a95355e30cc8948ec5d253af  docs/build-on-base/issue-stablecoins/mint-supply.mdx
-0695effabda9bdfdb74ad0a0876bc8caab4388d5  docs/build-on-base/issue-stablecoins/pause-activity.mdx
-5b7103b759981797b0e65c0cff8e7fe52965f84c  docs/build-on-base/issue-stablecoins/reconcile-with-memos.mdx
-1a1e662d184a834f2c847e9a281c78107f47ee67  docs/build-on-base/issue-stablecoins/recover-funds.mdx
-9e1a67a3a7dfe6e34a661005ab56fddacbd519eb  docs/build-on-base/issue-stablecoins/restrict-who-can-hold.mdx
+b8913f9251be875fa78121bf055491efafe6e6b6  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
+ab4aa574b413922a43dd3eaf119f4b11be91a71e  docs/build-on-base/issue-rwa/announce-a-distribution.mdx
+9e46c7976879aea3606c5f3d0fb72cf3f69c6b97  docs/build-on-base/issue-rwa/apply-a-multiplier.mdx
+d57fbbc25b260c4fe9abf7884bfeefa9b88c1a04  docs/build-on-base/issue-rwa/create-an-asset-token.mdx
+232c35b68237f331db7df4d40132cf690da5616a  docs/build-on-base/issue-rwa/issue-units.mdx
+82dbf460d4aa43fc0b6f942ddc722716e58e101c  docs/build-on-base/issue-rwa/pause-transfers.mdx
+8c0d33d22eac2334b404f452b25ee1e27105640e  docs/build-on-base/issue-rwa/restrict-eligible-holders.mdx
+f7575aeedfaaa08093df872576c369a977cc10d9  docs/build-on-base/issue-rwa/restrict-transfer-initiators.mdx
+3c1fd0e5af5f756fad08d6470003a4299e2752f6  docs/build-on-base/issue-rwa/seize-and-cancel-units.mdx
+c249ac0bc9e4e75720a9b8f75bd91220d79ae14a  docs/build-on-base/issue-stablecoins/block-an-account.mdx
+ef641d11ecff5dc7681d42e4f5a2299af384a154  docs/build-on-base/issue-stablecoins/burn-supply.mdx
+e9a806faa5e51c9a904766f1d085aeb104b8bfc7  docs/build-on-base/issue-stablecoins/issue-your-stablecoin.mdx
+4c914aa889290fe7826f5372df93c634223c323b  docs/build-on-base/issue-stablecoins/mint-supply.mdx
+78568fea8fb3cdddc0f59a411882a77e9cbdf970  docs/build-on-base/issue-stablecoins/pause-activity.mdx
+052005760bb1065bfe216a73e3f183558f920646  docs/build-on-base/issue-stablecoins/reconcile-with-memos.mdx
+dfbc3fddb857277b56962f8c7e7b8c628341556e  docs/build-on-base/issue-stablecoins/recover-funds.mdx
+03a3befa29121fd7ce0c8a5288e01db2404339f1  docs/build-on-base/issue-stablecoins/restrict-who-can-hold.mdx
 a3199b2654e36f72ec69bbb2f29466a3f07ab773  docs/build-on-base/ledgers/deposit.mdx
 8e0261574ed63756ecd13481bfd9fc8d930ee4a4  docs/build-on-base/ledgers/transfer.mdx
 5af831d4487aaeeac40039874338e8aee66b6a36  docs/build-on-base/ledgers/withdraw.mdx
 19c9f9e38062855d2cb76ee903621d56acdf898e  docs/build-on-base/overview.mdx
 66c042cc6ff5dcad9d96747e217080a6f10fbe6b  docs/build-on-base/test-on-vibenet.mdx
+ee88e1e64220786b72ae8aa4452e5917db3444cf  docs/sdks/API_MIGRATION_PLAN.md
+d6a3c74f14cb178c9002d07aa874ab5f59b8173a  docs/sdks/base-anvil.mdx
+e00b107d0183380ca2fecfacb1f4438a98e1f3bc  docs/sdks/base-verify/overview.mdx
+48f221b212a25c868c40ef0523dc0b12a0cd6605  docs/sdks/base-verify/verify-social-accounts.mdx
+ff8f92bf0db8606016c2968a691a7a7786220381  docs/sdks/base-verify/verify-users-onchain.mdx
+b01aa1b5fbe643a0bab71f39da35fda95f3aa79b  docs/sdks/migrated-products.mdx
+41465103a1ff1271a516b570c9a4ee8c60c0c17a  docs/sdks/overview.mdx
 311237c275267fb74187f8704ca8c9198b2a6ba7  docs/sdks/tokenized-stocks/api-reference/get-token-total-supply.mdx
 6e7141024723da6ebb75a1a32e2d29335ec35c3f  docs/sdks/tokenized-stocks/api-reference/list-protocol-contract-addresses.mdx
 3c04f1e2b53d0b49cd7295193639eb22c9512e3a  docs/sdks/tokenized-stocks/api-reference/list-tokenized-stocks.mdx
 281cc1c58f4a212055f9e54267ca385acc8dd928  docs/sdks/tokenized-stocks/overview.mdx
-09ff5fa51b808b48fc661635b395d6cbb58663cb  docs/specifications/b20/architecture.mdx
-5ccef23f158fd75b730aaf1828ffaf9b67e27084  docs/specifications/b20/changelog.mdx
+8f97516ba921e62676ac41dc31abf4eb3328a933  docs/specifications/b20/changelog.mdx
 6b2bc099452867b6ef70caf852c3f1c33b628379  docs/specifications/b20/concepts/multipliers.mdx
-8696088d6232622684f7fd6db1959b0ad3981176  docs/specifications/b20/concepts/policies.mdx
+8414e35227628f5f67cc156e9a2853cd2dcb5d31  docs/specifications/b20/concepts/policies.mdx
 a4c1e2910f856a3ecda0450e688f69a6b6902a12  docs/specifications/b20/concepts/roles-and-pause.mdx
-0acda1f52eb1be452b5b8a6c39b9d775993f20ba  docs/specifications/b20/concepts/token-types.mdx
-4f323a5994c53d432293685374ebe61a385c22f8  docs/specifications/b20/index.mdx
-054bc182ade596a6320a6036c77e2e8f5d537bbe  docs/specifications/b20/reference/constants.mdx
-0642798c31f751d80108673c0bc8735abfa80f4c  docs/specifications/b20/reference/errors.mdx
+54bf442830d81deb6b58427fc46610b4c10496a3  docs/specifications/b20/concepts/token-types.mdx
+4cdb34fba4ab54ce37e6e74a22e643d47482e0b8  docs/specifications/b20/index.mdx
+16148c6a0665c851be0e04db3c8922970770a9c9  docs/specifications/b20/reference/constants.mdx
+16ed1f4658fd5bac8a472efbe1d4697ff33e917d  docs/specifications/b20/reference/errors.mdx
 9b86872916caa576eaa2e73c9859422b2268450f  docs/specifications/b20/reference/events.mdx
 648a9d3aa5da9371a3ac4d6da43e789ac0a07fda  docs/specifications/b20/reference/interfaces.mdx
 5ea3c96abd6ea306e1f3faac9f656b9649c92492  docs/specifications/b20/reference/interfaces/i-activation-registry/activate.mdx
@@ -227,7 +234,6 @@ efeb50b728a4f0d75dfe1de4c53b5e4ced77fe3f  docs/specifications/b20/reference/inte
 545b356d47b51b4d8e96272b87c5e91d5dc5a842  docs/specifications/b20/reference/interfaces/ib20/update-policy.mdx
 4668d1ba12088112240c556f4043318465cb52e6  docs/specifications/b20/reference/interfaces/ib20/update-supply-cap.mdx
 bbbf20826ac6d6cc7849c7ddc2239c4683c9c132  docs/specifications/b20/reference/interfaces/ib20/update-symbol.mdx
-21c6aedea92ee772eacc244e28df583597319e9e  docs/specifications/b20/specification-overview.mdx
 f5e60bf06138f0932e5818033a33a4876d2ac78f  docs/specifications/base-protocol/batcher.mdx
 eca6d45c1452cfd46865e852b93a2f2101f23d14  docs/specifications/base-protocol/bridging/base-solana-bridge.mdx
 6aea9922fa8c7bd69b8de5bcfc252f599519c0d6  docs/specifications/base-protocol/bridging/cross-domain-messengers.mdx
@@ -267,7 +273,7 @@ e0172c65782c08da1d2836f1e160d171b9254294  docs/specifications/build-transaction/
 2ee643819bc715741e050e24d57e08ae111e2298  docs/specifications/node-operators/run-a-node.mdx
 86ac9f88cf1941db06e486d3d9b78c1e8b31040d  docs/specifications/node-operators/snapshots.mdx
 123e2d6956f884b76b0379b0b76ff30d5ddc4cb0  docs/specifications/node-operators/troubleshooting.mdx
-1b4595b9ca4b17b59495fb198e40a7ff54557944  docs/specifications/overview.mdx
+10e9f5433660cb734907a5a6b1f4be2567fa1520  docs/specifications/overview.mdx
 f23ce15b730750998b04e2f01718f85dc6e895b5  docs/specifications/reference/base-contracts.mdx
 89819762a6efa35629053a641c18a445674eebbc  docs/specifications/reference/configuration.mdx
 3ca097acd11119f6aee25780b0b05fc18a452c29  docs/specifications/reference/glossary.mdx
@@ -290,7 +296,7 @@ a7eba9b780b478f15cd76a3d085c567faace2678  docs/upgrades/azul/node-upgrade.mdx
 10b0310e81b09d825dad83c375190bd6e229fac1  docs/upgrades/beryl/reth-v2.mdx
 b9d7a4042bf4c144c219b38c77f15e374bc08f57  docs/upgrades/canyon/overview.mdx
 61dc070864e29e703328809c237cf1c7285ad643  docs/upgrades/cobalt/dynamic-upgrades.mdx
-b5a5824d343b19c4e4a0ee078606efa89d187d46  docs/upgrades/cobalt/overview.mdx
+799e74f5ecb979d618c597f9416b51767e81bb63  docs/upgrades/cobalt/overview.mdx
 e43432b4cfd33c3c514a4fba778ec658c36cca6d  docs/upgrades/cobalt/validity-transactions.mdx
 46c538631428ca45a48807e89ad69ac36c30fafb  docs/upgrades/delta/overview.mdx
 5c37cd1086e69bcdf8167bb5e579109483187fcb  docs/upgrades/delta/span-batches.mdx

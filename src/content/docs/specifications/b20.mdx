@@ -3,8 +3,7 @@ title: B20 Native Token Standard
 description: Base's native token standard, serving creators of long-tail tokens, stablecoin issuers, and issuers of real-world assets (RWAs) and equities.
 sources:
 - base/docs:docs/base-chain/specs/upgrades/beryl/b20.mdx
-- base/docs:docs/specifications/b20/specification-overview.mdx
-- base/docs:docs/specifications/b20/architecture.mdx
+- base/docs:docs/specifications/b20/index.mdx
 - base/docs:docs/specifications/b20/concepts/policies.mdx
 ---
 
@@ -150,7 +149,7 @@ B20 exposes a fixed set of policy scopes, each holding a `uint64` policy ID into
 |-------|-------|
 | `TRANSFER_SENDER_POLICY` | The `from` of `transfer` / `transferFrom` |
 | `TRANSFER_RECEIVER_POLICY` | The `to` of `transfer` / `transferFrom` |
-| `TRANSFER_EXECUTOR_POLICY` | The `msg.sender` of `transferFrom`, when distinct from `from` (not checked on `transfer`) |
+| `TRANSFER_EXECUTOR_POLICY` | The `msg.sender` of `transferFrom`, when distinct from `from` (not checked on `transfer`). From Denim it checks the initiator of every transfer, `transfer` included |
 | `MINT_RECEIVER_POLICY` | The `to` of `mint` |
 | `SEIZE_EXEMPT_POLICY` | The `from` of `seizeWithMemo`. Note the inversion — a holder is only seizable while this scope *denies* them |
 | `SEIZE_RECEIVER_POLICY` | The `to` of `seizeWithMemo`, which must be authorized |

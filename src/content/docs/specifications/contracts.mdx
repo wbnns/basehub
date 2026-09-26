@@ -5,6 +5,8 @@ sources:
 - base/docs:docs/base-chain/specs/protocol/proofs/contracts.mdx
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 The proof contracts are what turn offchain proof material into onchain checkpoint games. A game asserts an L2 output root for a fixed block interval. The contracts verify the initial proof, accept an optional second proof, let invalid proof material be challenged or nullified, resolve the game after the applicable delay, advance the anchor state, and release the initialization bond.
 
 The contracts in this spec:
@@ -445,6 +447,10 @@ DisputeGameFactory.gameImpls(gameType).TEE_IMAGE_HASH()
 Signer registration is itself PCR0-agnostic. This lets operators pre-register signers for a future image before a game-type migration. Those signers do not become valid for proof submission until the game implementation's `TEE_IMAGE_HASH` matches their registered image hash.
 
 ### Signer registration
+
+<Aside type="caution" title="Changed at Cobalt">
+This section and the `NitroEnclaveVerifier` section below describe the pre-Cobalt, ZK-proof registration path. From Cobalt, the registry exposes `NITRO_VALIDATOR()` and registers signers with `registerSigner(bytes attestationTbs, bytes signature, bytes hints)` (selector `0xb39dc09d`). The attestation is checked in full onchain by `NitroValidator`, `CertManager`, and `P384Verifier`, and certificate revocation moves to `CertManager`. See the [TEE Prover Registrar](/specifications/registrar/) and the [nitro-validator redesign](/architecture/nitro-validator/).
+</Aside>
 
 `registerSigner(output, proofBytes)` calls:
 
