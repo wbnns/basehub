@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-09-26T03:07:25Z
+Generated 2026-09-27T03:01:34Z
 
-### base/base @ 41c674e
+### base/base @ 1937d84
 
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
@@ -11,7 +11,7 @@ a19f2054c31cbbbca8ba06e16bfb4569c2cbe529  docs/guides/RELEASE.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
-4c9090cbbcac91a7888e44ddcb4df07adc1ee48e  docs/transaction-events/README.md
+4746b63853f013bd6357839355861cbde0104c1f  docs/transaction-events/README.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 
 ### base/docs @ 5d18728
