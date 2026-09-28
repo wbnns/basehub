@@ -51,6 +51,8 @@ Every 8130 transaction identifies the account it is sent from, demonstrates that
   ```
 
   The reference set covers secp256k1 (ordinary EVM keys), P-256, and WebAuthn, which is what puts passkey validation at the protocol level instead of behind a wrapper contract.
+
+  Base's own node is narrower than the design for now. Since late September 2026 (#5232), its txpool admits only the native k1 authenticator on the transaction path, for the sender and the payer alike, and the payload must be exactly `r || s || v` (65 bytes). A sender or payer that names P-256, WebAuthn, or the delegate authenticator is turned away at admission, so passkey-signed 8130 transactions do not currently reach a block through the Base node. Treat this as the state of an unscheduled feature, not a final scope.
 - **Payer.** A transaction may name a payer to cover gas for the sender. The draft [ERC-8168](https://eip.tools/eip/8168) standardizes how apps discover and request that sponsorship.
 
 ## What an 8130 transaction carries
@@ -63,6 +65,8 @@ A transaction under this model always does three things: it names the account it
 | `accountChanges` | Configuration applied before execution — creating the account included. |
 | `calls` | The batch to run atomically. |
 | `payer` | Optional. The account that covers gas instead of the sender. |
+
+The set of account changes is shrinking in the node. The same September change reorders the `accountChanges` type bytes so that code delegation takes `0x01` (`ACCOUNT_CHANGE_TYPE_DELEGATION`) and the signed config batch moves to `0x02` (`ACCOUNT_CHANGE_TYPE_CONFIG`), with creation still at `0x00`. Source comments call delegation the one entry the launch wire keeps, and mark both `Create` and `ConfigChange` for deletion in follow-up work. Encoders built against the earlier byte order will now decode as the wrong change type, so rebuild any 8130 tooling against the current node.
 
 Receipts need care here. Rather than collapsing to one status, an 8130 receipt reports a result for each phase, which means a transaction can come back successful at the top level while a phase inside it reverted. Check every phase before you treat a send as done. In the reference client `allPhasesSucceeded` does exactly that.
 
