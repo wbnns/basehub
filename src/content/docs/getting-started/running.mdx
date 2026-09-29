@@ -134,15 +134,27 @@ A working setup returns data from the most recent Flashblock; if the stream is b
 
 Serving `eth_getProof`, `debug_executionWitness`, and `debug_executePayload` at scale requires the historical proofs execution extension (ExEx), which maintains a dedicated database of the state those methods need. That database can grow by hundreds of gigabytes and wants a host with strong I/O, so enable it only if you actually need these endpoints — most operators do not.
 
-Turn the ExEx on with a single environment variable:
+The official execution entrypoint needs two environment variables to turn the ExEx on. It checks both, and if the storage path is empty it quietly starts the node without the ExEx:
 
 ```bash
 RETH_HISTORICAL_PROOFS=true
+RETH_HISTORICAL_PROOFS_STORAGE_PATH=<path>
 ```
 
-On its first start the node backfills existing state into a new proofs database under `<datadir>/proofs`. The backfill is lengthy — roughly 24-48 hours on mainnet. You can skip it entirely by [restoring a proofs snapshot](/node-operations/snapshots/#proofs-snapshots).
+With both set, the entrypoint runs the idempotent `proofs init` step and then starts the node with `--proofs-history --proofs-history.storage-path=<path>`. The first start backfills existing state into that proofs database, which takes roughly 24-48 hours on mainnet. You can skip it entirely by [restoring a proofs snapshot](/node-operations/snapshots/#proofs-snapshots).
 
-The earliest block these RPCs can answer for is whichever block the ExEx first ran from. When the ExEx is active the `--rpc.eth-proof-window` flag has no effect. By default the ExEx retains 28 days of blocks; override that window with `RETH_PROOFS_HISTORY_WINDOW=<num_blocks>`.
+The earliest block these RPCs can answer for is whichever block the ExEx first ran from. When the ExEx is active the `--rpc.eth-proof-window` flag has no effect.
+
+Retention is set by `--proofs-history.window` (alias `--proofs.window`), counted in blocks rather than days. Because it is a block count, the time it covers depends on block time:
+
+| Build | Default window | At 2s blocks | At 200ms blocks |
+| --- | --- | --- | --- |
+| `v1.4.2` and earlier | `1296000` | 30 days | 3 days |
+| `main` since late September 2026 (#5362) | `6480000` | 150 days | 15 days |
+
+The new default is sized for [200ms blocks under Denim](/specifications/denim-200ms-blocks/). Until Denim activates, a node on the new default keeps five times as much history as before, so plan disk for that or set the window yourself. The same change lowers the minimum from just over 12 hours of 2s blocks to a single block.
+
+The entrypoint has no variable of its own for the window, and the `RETH_PROOFS_HISTORY_WINDOW` variable that some guides mention is not read by it. To set the flag through the official image, append it to `RETH_PRUNING_ARGS`, which the entrypoint passes through to the node unchanged.
 
 The ExEx is fastest when it stays within 1024 blocks of the chain tip, so performance suffers while syncing up to head, and on an initial Base Mainnet sync it can fall behind far enough that it never catches up unaided. To prevent that, run `base-consensus` in follow mode so it tracks within 512 blocks of the proofs ExEx:
 

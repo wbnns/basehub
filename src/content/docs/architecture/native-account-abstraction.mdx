@@ -68,6 +68,8 @@ A transaction under this model always does three things: it names the account it
 
 The set of account changes is shrinking in the node. The same September change reorders the `accountChanges` type bytes so that code delegation takes `0x01` (`ACCOUNT_CHANGE_TYPE_DELEGATION`) and the signed config batch moves to `0x02` (`ACCOUNT_CHANGE_TYPE_CONFIG`), with creation still at `0x00`. Source comments call delegation the one entry the launch wire keeps, and mark both `Create` and `ConfigChange` for deletion in follow-up work. Encoders built against the earlier byte order will now decode as the wrong change type, so rebuild any 8130 tooling against the current node.
 
+Delegation is now opt-in only. Before late September 2026 (#5255), the node pointed a sender with no code at `DEFAULT_ACCOUNT` on its own during execution and charged an `auto_delegation_cost` of 4,600 gas for it. That path is gone: a code-less sender is delegated only when the transaction carries an explicit `0x01` delegation entry, and the intrinsic gas formula no longer has an auto-delegation term. Delegation updates also stop adding a `DelegationApplied` log to the receipt, so the protocol-injected logs are now only `ActorAuthorized`, `ActorRevoked`, and `AccountCreated`. An indexer that watched for `DelegationApplied` must read delegation from the transaction's `accountChanges` instead.
+
 Receipts need care here. Rather than collapsing to one status, an 8130 receipt reports a result for each phase, which means a transaction can come back successful at the top level while a phase inside it reverted. Check every phase before you treat a send as done. In the reference client `allPhasesSucceeded` does exactly that.
 
 ## Trying it on vibenet
@@ -82,7 +84,7 @@ The `viem/experimental/eip8130` helpers let a single transaction create an accou
 
 ## What changes for each audience
 
-- **Users.** A standard EOA gains access to new behaviors such as gas sponsorship and batching automatically. An existing ERC-4337 smart account takes a one-time upgrade to move onto the cheaper, faster-to-include path.
+- **Users.** A standard EOA gains access to new behaviors such as gas sponsorship and batching. In the current node that takes an explicit delegation entry, not an automatic upgrade (see above). An existing ERC-4337 smart account takes a one-time upgrade to move onto the cheaper, faster-to-include path.
 - **Application developers.** Existing integrations keep working unchanged — for example, `wallet_sendCalls` continues to function against Native AA — while new capabilities like memos (for attribution), session keys, and sub-accounts become available.
 - **Wallets.** No changes are required to keep working as they do today. Adding Native AA support opens new revenue paths through subscriptions and **ERC-8168** payer services.
 - **Node operators.** Nothing to do yet, because no fork carrying EIP-8130 is scheduled. When Denim gets a date, the required step is moving nodes onto that build and opening access to several new RPC methods. Upstream publishes the version requirements at that point.

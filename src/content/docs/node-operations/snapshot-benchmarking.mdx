@@ -98,11 +98,20 @@ Result directories are immutable inputs. To build a report index without disturb
 ```sh
 target/release/base-bench aggregate \
   --output-dir /absolute/path/to/results \
+  --versioned-pages \
   /absolute/path/to/results/run-a \
   /absolute/path/to/results/run-b
 ```
 
-This writes `results/metadata.json` atomically. For each unique set of report tags — which includes the scenario and the block-time tag — it keeps the entry with the latest `createdAt`. Distinct scenarios, cadences, and client versions all survive that rule; a repeat of an identical tag set does not, because the newer run replaces the older one. Source metadata and scenario labels are left alone. `id` stays the unique raw artifact identifier, and `BenchmarkRun` stays the report cohort key.
+This writes `results/metadata.json` atomically. For each unique set of report tags — which includes the scenario and the block-time tag — it keeps the entry with the latest `createdAt`. Distinct scenarios, cadences, and client versions all survive that rule; a repeat of an identical tag set does not, because the newer run replaces the older one.
+
+`--versioned-pages` then splits the report into pages. It rewrites `BenchmarkRun` so each client version gets its own page, and adds a `{cohort}--latest` alias page on top:
+
+- The latest page holds, for each scenario, block-time, and transaction-payload combination, the newest run from the past seven days.
+- Pages get distinct names, so the visualizer dropdown can tell them apart.
+- The latest page is timestamped 1ms after the newest run it selected. That makes the visualizer's Latest option land on it.
+
+Source metadata and scenario labels are left alone either way. `id` stays the unique raw artifact identifier, and `BenchmarkRun` stays the report cohort key.
 
 ## Choose comparable runs
 
