@@ -49,6 +49,17 @@ Base does not run a public WebSocket RPC endpoint on either network. A `wss://` 
 Base Vibenet is the exception. It publishes an open WebSocket at `wss://rpc.vibes.base.org/ws`, which makes it the cheapest place to prototype subscription code.
 :::
 
+### Transaction submission endpoints
+
+Base also publishes a separate host on each network for sending transactions straight to the sequencer:
+
+| Network | Transaction submission |
+|---------|------------------------|
+| Mainnet | `https://mainnet-sequencer.base.org` |
+| Sepolia | `https://sepolia-sequencer.base.org` |
+
+Point only transaction sends at these hosts, and keep every other call on the regular RPC endpoint. They are not general-purpose RPC: a probe on 2026-09-30 showed both hosts answering `eth_chainId` with `rpc method is not allowed`. The Sepolia host is also where `base_sendRawTransactionValidity` is currently served; see [Validity Transactions](/api-reference/validity-transactions/).
+
 :::note
 Public endpoints are rate-limited and intended for development and light usage. For production, run your own node or use a third-party provider.
 :::

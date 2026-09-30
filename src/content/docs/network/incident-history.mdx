@@ -9,6 +9,10 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-10-05 — V1 node snapshots retired (scheduled)
+
+Starting Monday, October 5th at 12:00 UTC, Base will no longer publish V1 node database snapshots, and the V1 snapshots already out there stop being provided. The notice, posted on September 29, gives a 24-hour window ending October 6 at 12:00 UTC. Operators who still restore from V1 need to move to the V2 snapshots at chain.base.org/snapshots; see [Snapshots](/node-operations/snapshots/) for the restore steps.
+
 ### 2026-09-30 — Mainnet Cobalt upgrade (scheduled)
 
 Base Mainnet is scheduled to activate the Cobalt hardfork on Wednesday, September 30th at 18:00 UTC (Unix timestamp `1790791200`), with a maintenance window running until 20:00 UTC. The notice went up on September 23 at 23:00 UTC, a few hours after the Sepolia window closed. Mainnet operators must run [`v1.4.2`](https://github.com/base/base/releases/tag/v1.4.2) of `github.com/base/base` or a later release. That is a higher floor than the compiled-in timestamp alone implies: `v1.4.1` already carries the Mainnet value, but `v1.4.2` adds a backport (#5260) that registers the validity transaction RPC ahead of Cobalt and switches it on from the live upgrade schedule. Details are in the [Cobalt Upgrade Overview](/specifications/cobalt-overview/#required-software).

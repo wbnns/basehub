@@ -30,7 +30,7 @@ This corrects guidance this page carried until 2026-09-16. Cobalt does ship the 
 
 ## What Cobalt ships
 
-- **B20 improvements** — fees payable in B20, scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
+- **B20 improvements** — scheduled multiplier updates, a first-class seize operation that supersedes `burnBlocked`, and two new composite policy types. The call-level detail is in the [B20 precompile reference](/api-reference/b20-precompiles/).
 - **Validity transactions** — a signed transaction paired with conditions on chain state, which Base holds back until every condition matches. See [Validity Transactions](/api-reference/validity-transactions/).
 - **Dynamic upgrades** — an L1 contract holds the fork schedule, groundwork for activation that does not depend on shipping a binary with the timestamps compiled in. Cobalt itself still activates from the compiled-in schedule; the registry runs alongside it in metrics-only mode.
 - **TEE registration migration** — new TEE prover signers are now admitted by checking their AWS Nitro attestation fully onchain, with checked P-384 hints doing the heavy curve math. This retires the RISC Zero proof and the Boundless marketplace from registration, so the registrar no longer relies on an outside proving service and signers register faster. Enclave key generation, PCR0 image selection, and proof verification stay as they were. Upstream relabelled this item on 2026-09-25; earlier wording described a move of all Base infrastructure into a TEE, which overstated it. See the [TEE Prover Registrar](/specifications/registrar/) and the [nitro-validator redesign](/architecture/nitro-validator/).
@@ -71,7 +71,7 @@ One packaging note worth repeating, because the September 23 window is the first
 
 Cobalt widens the B20 surface rather than changing it. Every Beryl selector, event topic, and error keeps its 4-byte identity, so existing integrations keep compiling and keep working.
 
-The additions worth knowing about: transaction fees payable in a B20 token, multiplier updates that can be scheduled ahead of time instead of landing instantly, a `seizeWithMemo` call that reassigns a holder's balance in one admin step, and Union and Intersect policy types that compose existing policies.
+The additions worth knowing about: multiplier updates that can be scheduled ahead of time instead of landing instantly, a `seizeWithMemo` call that reassigns a holder's balance in one admin step, and Union and Intersect policy types that compose existing policies. Paying transaction fees in a B20 token was on Cobalt's list until 2026-09-29, when upstream took it off the fork page; the node source has no fee-token path either, so it remains a [roadmap item](/specifications/b20/#roadmap) rather than a Cobalt feature.
 
 <Aside type="caution">
 One Cobalt rename does break an ABI. The policy scope consulted by `seizeWithMemo` was `SEIZE_HOLDER_POLICY` (`0xb279d311`) and is now `SEIZE_EXEMPT_POLICY` (`0xfeb346ec`). The selector and the `keccak256` scope constant both change with it. Code that hardcodes either value needs updating. The behaviour is unchanged: an account authorized by this scope is exempt from seizure, and a token whose issuer never configures the slot has no seize capability at all.

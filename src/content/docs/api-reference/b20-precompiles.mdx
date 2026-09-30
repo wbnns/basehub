@@ -464,14 +464,15 @@ Three groups are specified and documented above, but undialable until Cobalt act
 
 ### Arriving with Denim
 
-Three changes are already in the node source, gated behind [Denim](/specifications/denim-overview/) rather than Cobalt. Denim has a target month but no activation timestamp yet.
+Three changes are already in the node source, gated behind [Denim](/specifications/denim-overview/) rather than Cobalt. Denim has a target month but no activation timestamp yet. Upstream published a changelog entry for each on 2026-09-29 and labels the first two breaking for integrations that depend on the old behaviour; inverted policy IDs are purely additive.
 
-**A token can no longer be credited to itself.** `transfer`, `transferFrom`, `mint` and `seizeWithMemo` all reject a `to` equal to the address of the token being credited, reverting `InvalidReceiver`. Asset and Stablecoin enforce it identically. The zero address was already refused; this extends the same treatment to the token's own address, which previously accepted the credit and stranded the balance where nothing could move it.
+**A token can no longer be credited to itself.** `transfer`, `transferFrom`, `mint`, `batchMint` (checked per element) and `seizeWithMemo`, plus their memo variants, all reject a `to` equal to the address of the token being credited, reverting `InvalidReceiver`. Asset and Stablecoin enforce it identically. The zero address was already refused; this extends the same treatment to the token's own address, which previously accepted the credit and stranded the balance where nothing could move it.
 
 The rule is narrower than it first sounds, and the distinction is the part worth getting right:
 
 - Only the token *being credited* is refused. Sending B20 token A to the address of a different B20 token B is still a valid transfer. An earlier revision of this change rejected every B20-prefixed recipient; it was narrowed before landing, so do not build on the broader reading.
 - On `transferFrom` the recipient is validated before the allowance is touched, so a call that trips this rule leaves the allowance unspent rather than consuming it on a revert.
+- Only `to` is checked. A seize whose `from` is the token address still works, which is how an issuer recovers tokens that were sent there before Denim. The error keeps its selector, `InvalidReceiver(address)` (`0x9cfea583`); it simply fires in one more case.
 - For seizure, this closes a disguised-burn path: because seize leaves `totalSupply` alone, seizing into the token address used to remove a balance from circulation without recording it as a burn.
 
 **The executor policy covers every transfer.** Asset and Stablecoin both move to logic version 3 at Denim. Before it, `TRANSFER_EXECUTOR_POLICY` runs only on `transferFrom` where the caller is not `from`. From Denim it runs first on `transfer`, `transferFrom`, and the memo variants, so a holder who is not on a restrictive executor allowlist can no longer move their own balance. When the caller is `from` and both the executor and sender scopes hold the same policy ID, the sender check is skipped as redundant. Storage is append-only, so existing tokens switch in place with no migration. Upstream's issuer guide documents this behaviour without the Denim gate. See [B20 Issuer Operations](/integration-guides/b20-issuer-operations/#limit-who-may-initiate-transfers).

@@ -320,7 +320,7 @@ ZK_VERIFIER.verify(proofBytes, ZK_AGGREGATE_HASH, keccak256(journal))
 | Proof count | Delay                                       |
 | ----------- | ------------------------------------------- |
 | `0`         | Never resolvable.                           |
-| `1`         | `SLOW_FINALIZATION_DELAY`, fixed at 7 days. |
+| `1`         | `SLOW_FINALIZATION_DELAY`, 5 days since Beryl. |
 | `2`         | `FAST_FINALIZATION_DELAY`, fixed at 1 day.  |
 
 Adding a proof can only push `expectedResolution` earlier. Nullifying a proof can push it later. A challenge with a ZK proof sets `expectedResolution` to 7 days from the challenge so the challenge can itself be nullified.
@@ -590,7 +590,7 @@ The proof contracts rely on these cross-contract properties:
 - Monotonic checkpoints: each child game must advance exactly `BLOCK_INTERVAL` L2 blocks from its starting root.
 - Intermediate accountability: every proposal commits to all intermediate roots, so challengers can target the first invalid checkpoint interval.
 - Verifier separation: TEE and ZK proofs use different verifier contracts and different journal domain separators (`TEE_IMAGE_HASH` versus `ZK_RANGE_HASH`).
-- Fast finality requires diversity: a game with two accepted proof types can resolve after one day, while a game with one proof waits seven days.
+- Fast finality requires diversity: a game with two accepted proof types can resolve after one day, while a game with one proof waits five days (seven before [Beryl](/specifications/beryl-overview/)).
 - Registry finality is separate from game resolution: a game can resolve before the `AnchorStateRegistry` accepts it as a valid claim.
 - Safety controls fail closed: pause, blacklist, retirement, verifier nullification, route freezing, and certificate revocation all prevent acceptance rather than expanding trust.
 

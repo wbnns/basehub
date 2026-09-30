@@ -19,7 +19,7 @@ Base configuration is organized into four groups, distinguished by how — and b
 | Batch Inbox Address | L1 address where batcher transactions are posted | Static |
 | Batcher Hash | Versioned hash of the authorized batcher sender(s) | [System Config Owner](#admin-roles) |
 | Chain ID | Unique chain ID for transaction signature validation | Static |
-| Proof Maturity Delay | Time between proving and finalizing a withdrawal. 1 day. | [L1 Proxy Admin](#admin-roles) |
+| Proof Maturity Delay | How long a proven withdrawal waits before it can finalize. Set by the dispute game's finalization window: 5 days with one proof, 1 day with both TEE and ZK proofs (see [Transaction Finality](/network/transaction-finality/#finality-for-withdrawals)). | [L1 Proxy Admin](#admin-roles) |
 | Respected Game Type | Game type `OptimismPortal` accepts for withdrawal finalization. Aggregate verifier (`621`). | [Guardian](#service-roles) |
 | Bond Withdrawal Delay | Time before dispute game bonds can be withdrawn. 1 day. | Static |
 | Fee Scalar | Markup on transactions relative to raw L1 data cost. Fee margin between 0%–50%. | [System Config Owner](#admin-roles) |

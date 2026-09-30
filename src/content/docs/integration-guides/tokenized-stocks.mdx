@@ -42,13 +42,17 @@ Three calls manage it:
 | `updateMultiplier` | Deprecated, and kept only as an emergency failsafe. Applies at once and discards any scheduled change that was pending. |
 | `cancelUIMultiplierUpdate` | Withdraws a pending scheduled update. |
 
-For the arithmetic, the contract exposes helpers rather than making you replicate it. `raw` is the token-unit balance; `scaled` is the redeemable share quantity.
+For the arithmetic, the contract exposes helpers rather than making you replicate it. From Cobalt these follow ERC-8056 naming. `raw` is the token-unit balance; `ui` is the redeemable share quantity.
 
 | Function | Result |
 |----------|--------|
-| `scaledBalanceOf(account)` | Raw balance × multiplier |
-| `toScaledBalance(raw)` | Raw amount converted to scaled |
-| `toRawBalance(scaled)` | Scaled amount converted to raw |
+| `uiMultiplier()` | Current effective multiplier (WAD) |
+| `balanceOfUI(account)` | Raw balance × multiplier |
+| `totalSupplyUI()` | Raw total supply × multiplier |
+| `toUIAmount(raw)` | Raw amount converted to UI amount |
+| `fromUIAmount(ui)` | UI amount converted to raw |
+
+The Beryl names still work. `multiplier()` and `scaledBalanceOf(account)` stay canonical, with `uiMultiplier()` and `balanceOfUI(account)` as aliases returning identical values. `toScaledBalance` and `toRawBalance` remain callable but are deprecated in favour of `toUIAmount` and `fromUIAmount`.
 
 ### Policies
 
@@ -161,7 +165,7 @@ Aggregators such as CoinGecko, CoinMarketCap, and RWA are the offchain route. Ea
 For OHLC and time series, either use a market-data provider or walk Chainlink's round history by `roundId`.
 
 <Aside type="tip">
-If you are reconstructing a series from raw share prices, remember the published prices are total-return. Replay the multiplier history — `MultiplierUpdated` events, which both the scheduled and the instant path emit — or your series will not line up with the feed.
+If you are reconstructing a series from raw share prices, remember the published prices are total-return, so you need the multiplier history or your series will not line up with the feed. Build it from `UIMultiplierUpdated`, not `MultiplierUpdated`: the scheduled `updateUIMultiplier` path emits only the former, while the legacy event comes solely from the deprecated instant `updateMultiplier`. A scheduled change is logged when it is booked, so date each one by its `effectiveAtTimestamp` rather than the block time, and discard any that a later `UIMultiplierUpdateCancelled` event withdrew, because those never took effect.
 </Aside>
 
 ## Deployed addresses

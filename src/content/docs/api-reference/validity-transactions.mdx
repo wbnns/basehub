@@ -17,7 +17,7 @@ A validity transaction is an ordinary signed transaction handed to Base together
 The method accepts legacy, EIP-2930, and EIP-1559 transactions. EIP-1559 is the recommended type.
 
 <Aside type="caution">
-`base_sendRawTransactionValidity` arrives on each public network with [Cobalt](/specifications/cobalt-overview/). Sepolia crossed that line at `1790186400` (September 23, 2026 at 18:00 UTC), so the method is live there now. Mainnet is pinned too, at `1790791200`, or September 30, 2026 at 18:00 UTC, added to the source on 2026-09-21. Mainnet nodes need `v1.4.2` or later: `v1.4.1` carries the timestamp but not the validity RPC wiring. Upstream promoted this feature from "specifications to follow" to a published specification on 2026-09-15, so the surface described below is the documented one rather than a preview of it. Error codes and messages are still not guaranteed stable.
+`base_sendRawTransactionValidity` arrives on each public network with [Cobalt](/specifications/cobalt-overview/). Sepolia crossed that line at `1790186400` (September 23, 2026 at 18:00 UTC), so the method is live there now, but only on the sequencer host `https://sepolia-sequencer.base.org`. On 2026-09-30 that host decoded a test call, while the public `https://sepolia.base.org` endpoint answered `Method not found`, so send validity transactions to the sequencer URL. Mainnet is pinned too, at `1790791200`, or September 30, 2026 at 18:00 UTC, added to the source on 2026-09-21. Mainnet nodes need `v1.4.2` or later: `v1.4.1` carries the timestamp but not the validity RPC wiring. Upstream still lists Mainnet availability as unconfirmed. Upstream promoted this feature from "specifications to follow" to a published specification on 2026-09-15, so the surface described below is the documented one rather than a preview of it. Error codes and messages are still not guaranteed stable.
 </Aside>
 
 ## How it works
@@ -240,7 +240,7 @@ const hash = body.result;
 
 Start by separating "not accepted" from "accepted but not included". A returned hash means the submission was accepted, so anything after that is an inclusion question.
 
-**The method is unavailable.** The endpoint does not support `base_sendRawTransactionValidity`. Vibenet is currently the only network that does.
+**The method is unavailable.** The endpoint does not serve `base_sendRawTransactionValidity`. Today that means Vibenet or, on Base Sepolia, `https://sepolia-sequencer.base.org`; the regular `sepolia.base.org` endpoint returns `Method not found`.
 
 **Submission fails.** Check that the first parameter really is a signed legacy, EIP-2930, or EIP-1559 transaction, and that the second parameter carries a non-empty `validity` array and no other key. Then check each predicate's type, operator, and that every value is `0x`-prefixed hex.
 

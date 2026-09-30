@@ -1,6 +1,6 @@
 ---
 title: Transaction Finality
-description: The four finality stages for Base L2 transactions and the 7-day window that applies only to withdrawals back to Ethereum.
+description: The four finality stages for Base L2 transactions and the withdrawal finalization window (5 days, or 1 day with two proofs) that applies only to withdrawals back to Ethereum.
 sources:
 - base/docs:docs/base-chain/network-information/transaction-finality.mdx
 ---
@@ -10,7 +10,7 @@ import { Aside } from '@astrojs/starlight/components';
 Finality is the point at which a Base transaction becomes irreversible. The behavior differs for transactions that update L2 state versus transactions that withdraw funds from Base L2 to Ethereum L1.
 
 <Aside type="note">
-**Only withdrawals from Base to Ethereum require a 7-day wait.** Regular L2 transactions — swaps, transfers, contract calls — do not.
+**Only withdrawals from Base to Ethereum have to sit out a finalization window** — 5 days when one proof backs the claim, 1 day when both a TEE proof and a ZK proof do. Regular L2 transactions — swaps, transfers, contract calls — never wait on it.
 </Aside>
 
 ## Finality for Base L2 transactions
@@ -45,17 +45,15 @@ Reorg probability is effectively 0%. L2 blocks past L1 batch finality enjoy the 
 
 ## Finality for withdrawals
 
-**Withdrawals from Base to Ethereum must wait 7 days before funds can be released to the L1 recipient.** The delay enables Base's Fault Proof system to provide strong security for bridged funds.
+**A withdrawal from Base to Ethereum is released to the L1 recipient only after its finalization window closes.** That window is what lets Base's proof system give bridged funds strong security guarantees.
 
-### What happens during the 7 days
+Since [Beryl](/specifications/beryl-overview/) activated, the window is **5 days** for a dispute game backed by a single proof. When a TEE proof and a ZK proof both support the same proposal, the dual-proof fast path cuts it to **1 day**. The window dominates the end-to-end time: the wait for the relevant Base state to be proposed on Ethereum typically adds only 20 to 60 minutes, plus however long the prove and finalize transactions take. Third-party bridges that pay out sooner do it with their own liquidity; they leave this window untouched.
 
-When a withdrawal is initiated, the funds are debited from the Base account immediately. A permissionless "proposer" must then provide Ethereum with proof that Base contains the withdrawal.
+### What happens during the finalization window
 
-Ethereum cannot independently confirm Base state — they are separate chains — so a 7-day window opens during which a permissionless "challenger" may dispute a proposal it considers malicious. If no challenge arrives, the withdrawal can be proven against the finalized output root and released on L1. If a challenge is filed, the proposer and challenger play the Fault Dispute Game, escalating bonds until a winner emerges. A winning proposer locks in the output root for use in withdrawal proofs; a winning challenger invalidates the output proposal.
+The funds leave the Base account as soon as the withdrawal is initiated. A proposer then posts a checkpoint claim on Ethereum through an `AggregateVerifier` game, backed by a TEE or ZK proof. An independent challenger can contest an invalid claim by supplying a ZK proof. The window exists so that others have time to check the claim, and it is shorter when TEE and ZK proofs agree. The [Azul proof system](/specifications/azul-proofs/) page walks through the full flow.
 
-The system is secure as long as a single honest party participates. Base will always run an honest proposer and an honest challenger.
-
-A successful challenge does not reorg the L2 chain. The output proposal is marked invalid, and any withdrawals proven against it must be re-proven against a different, valid output root.
+If a claim turns out to be invalid, withdrawals proven against it cannot finalize and have to be proven again against a valid claim. Contesting a claim never reorgs the Base chain.
 
 ## FAQ
 
