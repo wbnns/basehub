@@ -5,25 +5,28 @@ sources:
 - base/docs:docs/upgrades/cobalt/overview.mdx
 - base/docs:docs/upgrades/cobalt/dynamic-upgrades.mdx
 - base/docs:docs/upgrades/overview.mdx
+- https://blog.base.dev/cobalt
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its scope settled in mid-September 2026 after two rounds of reshuffling, and it is now booked for Sepolia on September 23, 2026 and Mainnet on September 30, 2026. It carries four things: a batch of B20 additions, conditional transactions that only become eligible when chain state matches, a first step toward lifting fork timestamps out of the node binary, and a new way to register TEE prover signers that verifies the Nitro attestation directly onchain.
+Cobalt is the Base hardfork that follows [Beryl](/specifications/beryl-overview/). Its scope settled in mid-September 2026 after two rounds of reshuffling, and it is now live on both public networks: Sepolia since September 23, 2026 and Mainnet since September 30, 2026. It carries four things: a batch of B20 additions, conditional transactions that only become eligible when chain state matches, a first step toward lifting fork timestamps out of the node binary, and a new way to register TEE prover signers that verifies the Nitro attestation directly onchain.
 
 ## Status
 
 | Network | Status | Date |
 |---|---|---|
 | Base Sepolia | Live | September 23, 2026 |
-| Base Mainnet | Shipping | September 30, 2026 |
+| Base Mainnet | Live | September 30, 2026 |
 
 Upstream moved Cobalt off planning status on 2026-09-15 and named both dates. Both are now pinned in the node source rather than merely announced, and the status page has published scheduled-event notices for both networks. Sepolia activated on September 23 and the maintenance window closed cleanly at 20:00 UTC, so the scope on this page is no longer expected to move.
+
+Mainnet followed one week later. Its window opened at 18:00 UTC on September 30 and the status page marked it complete at 20:00 UTC, again with no incident filed. Upstream switched both the fork page and the upgrades tracker to Live the same evening. A check against Mainnet on 2026-10-01 agrees: at a block from before `1790791200`, a B20 Asset token reverted calls to the Cobalt-only `uiMultiplier` and `SEIZE_EXEMPT_POLICY` getters, and at the current head both return values.
 
 Both networks now have an exact activation moment compiled into the node. `cobalt_timestamp` for chain `84532` is `1790186400`, which is **September 23, 2026 at 18:00 UTC**. Chain `8453` is `1790791200`, which is **September 30, 2026 at 18:00 UTC**. The two sit exactly seven days apart, and the Mainnet value landed on 2026-09-21, six days after the dates were first announced.
 
 <Aside type="caution">
-The two networks have different minimum releases. `v1.4.0` covers Sepolia. Mainnet needs `v1.4.2` or later, not `v1.4.1` — see [Required software](#required-software) before September 30.
+The two networks have different minimum releases. `v1.4.0` covers Sepolia. Mainnet needs `v1.4.2` or later, not `v1.4.1`. A Mainnet node still below `v1.4.2` is now running past the fork without the release Base asked for; see [Required software](#required-software).
 </Aside>
 
 This corrects guidance this page carried until 2026-09-16. Cobalt does ship the onchain upgrade registry, but that mechanism runs in metrics-only mode at this fork and does not replace the compiled-in schedule yet. Both networks still take their Cobalt activation from the timestamp built into the client, so a node release remains the thing to watch.
@@ -59,13 +62,13 @@ Mainnet has a published floor too: [`v1.4.2`](https://github.com/base/base/relea
 - the node registers validity transaction ingress before Cobalt and turns it on from the live upgrade schedule, while keeping the experimental override
 - a regular RPC node proxies validity submissions to the sequencer through `SequencerClient`, keeping predicates, sequencer headers, and upstream rejection behavior intact
 
-Put simply, `v1.4.1` follows the fork, but its validity RPC is not tied to the live schedule and does not forward submissions to the sequencer. If your node takes public RPC traffic, callers of `base_sendRawTransactionValidity` will see that gap on September 30.
+Put simply, `v1.4.1` follows the fork, but its validity RPC is not tied to the live schedule and does not forward submissions to the sequencer. If your node takes public RPC traffic and still runs `v1.4.1`, callers of `base_sendRawTransactionValidity` hit that gap today.
 
 <Aside type="caution">
 Do not read "`v1.4.0` or later" as sufficient for both networks, and do not stop at the first tag that carries the Mainnet timestamp. The Mainnet floor is `v1.4.2`. The upstream rollout note adds one more requirement for proxied setups: route and allowlist `base_sendRawTransactionValidity` to a validity-enabled ingress.
 </Aside>
 
-One packaging note worth repeating, because the September 23 window is the first fork where it bites: the public node images and binaries now come from `github.com/base/base`. The retired `base/node` repository stopped receiving them at `v1.3.0`, so there is no `v1.4.0` or `v1.4.2` on the old path to pull. To exercise the new surface before either date, point a client at [vibenet](/introduction/connecting-to-base/).
+One packaging note worth repeating, because the September 23 window is the first fork where it bites: the public node images and binaries now come from `github.com/base/base`. The retired `base/node` repository stopped receiving them at `v1.3.0`, so there is no `v1.4.0` or `v1.4.2` on the old path to pull. [Vibenet](/introduction/connecting-to-base/) still carries the Cobalt surface too, and upstream keeps its interactive validity transaction demos there.
 
 ## B20 improvements
 

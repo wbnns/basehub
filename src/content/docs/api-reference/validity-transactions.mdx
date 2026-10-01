@@ -17,7 +17,7 @@ A validity transaction is an ordinary signed transaction handed to Base together
 The method accepts legacy, EIP-2930, and EIP-1559 transactions. EIP-1559 is the recommended type.
 
 <Aside type="caution">
-`base_sendRawTransactionValidity` arrives on each public network with [Cobalt](/specifications/cobalt-overview/). Sepolia crossed that line at `1790186400` (September 23, 2026 at 18:00 UTC), so the method is live there now, but only on the sequencer host `https://sepolia-sequencer.base.org`. On 2026-09-30 that host decoded a test call, while the public `https://sepolia.base.org` endpoint answered `Method not found`, so send validity transactions to the sequencer URL. Mainnet is pinned too, at `1790791200`, or September 30, 2026 at 18:00 UTC, added to the source on 2026-09-21. Mainnet nodes need `v1.4.2` or later: `v1.4.1` carries the timestamp but not the validity RPC wiring. Upstream still lists Mainnet availability as unconfirmed. Upstream promoted this feature from "specifications to follow" to a published specification on 2026-09-15, so the surface described below is the documented one rather than a preview of it. Error codes and messages are still not guaranteed stable.
+`base_sendRawTransactionValidity` arrived on each public network with [Cobalt](/specifications/cobalt-overview/), which is now live on both: Sepolia since `1790186400` (September 23, 2026 at 18:00 UTC) and Mainnet since `1790791200` (September 30, 2026 at 18:00 UTC). Upstream dropped its "experimental" and "Mainnet not yet confirmed" warnings on 2026-09-30 and now points callers at the sequencer hosts, `https://mainnet-sequencer.base.org` and `https://sepolia-sequencer.base.org`. Those are the endpoints to use. A 2026-10-01 probe found that `https://mainnet.base.org` also decodes the call, which fits the `v1.4.2` change that lets an ordinary RPC node forward validity submissions to the sequencer. Upstream does not document that path, so do not depend on it. Mainnet nodes need `v1.4.2` or later: `v1.4.1` carries the fork timestamp but not the validity RPC wiring. Error codes and messages are still not guaranteed stable.
 </Aside>
 
 ## How it works
@@ -110,7 +110,7 @@ Operators are `<`, `<=`, `=`, `!=`, `>`, and `>=`. Every value is a `0x`-prefixe
 
 For a storage predicate Base compares `(storage[address][slot] & mask)` against `value`. Leave `mask` out to compare the whole storage word; it defaults to all ones.
 
-Use `block_number` to pin a target block and `flashblock_index` to pin a position inside it. Both conditions need their own predicate — one entry cannot express both.
+Use `block_number` to pin a target block and `flashblock_index` to pin a position inside it. Both conditions need their own predicate — one entry cannot express both. The request sample in the Cobalt launch post folds both into a single object with repeated `type` and `params` keys, and it is not valid JSON as printed. Give each predicate its own entry in the `validity` array, as the examples on this page do.
 
 ## Safety
 

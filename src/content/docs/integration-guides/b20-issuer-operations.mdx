@@ -15,11 +15,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 [Launching a B20 token](/integration-guides/launch-a-b20-token/) gets a balance onchain. This page covers what an issuer does after that: taking a balance back under a legal hold, cancelling units, deciding who may move tokens, and telling holders about changes before they land. The call-level reference is in [B20 precompiles](/api-reference/b20-precompiles/). The rules behind each check are in the [B20 specification](/specifications/b20/).
 
-Each control below is tied to a fork. Check the gate before you rely on a control on Mainnet.
+Each control below is tied to a fork. Beryl and Cobalt controls are live on Mainnet and Sepolia. Denim controls are not live yet.
 
 | Control | Available from | Variants |
 |---|---|---|
-| `seizeWithMemo` | Cobalt (Sepolia September 23, Mainnet September 30, 2026) | Asset and Stablecoin |
+| `seizeWithMemo` | Cobalt (live: Sepolia September 23, Mainnet September 30, 2026) | Asset and Stablecoin |
 | Executor policy on every transfer path | Denim (planning, October 2026) | Asset and Stablecoin |
 | `announce` | Beryl | Asset only |
 | Scheduled multiplier (`updateUIMultiplier`) | Cobalt | Asset only |
@@ -28,7 +28,7 @@ Each control below is tied to a fork. Check the gate before you rely on a contro
 
 Upstream's issuer guides now route every "take it back" case through `seizeWithMemo`: a lost key, a court order, a sanctions hold, or a holder who is no longer eligible. The call moves tokens from the holder to a safekeeping account in one transaction. It does not burn or mint, so `totalSupply` stays the same. The memo carries your case reference, and the token emits a dedicated `Seized` event that auditors can follow.
 
-The older route, `burnBlocked` followed by a fresh `mint`, is deprecated. It makes supply dip and recover, emits no `Seized` event, and leaves reconciliation with two unrelated transactions. Before Cobalt reaches Mainnet it is still the only option there.
+The older route, `burnBlocked` followed by a fresh `mint`, is deprecated. It makes supply dip and recover, emits no `Seized` event, and leaves reconciliation with two unrelated transactions. Since Cobalt reached Mainnet on September 30, 2026, there is no network where it is still the only option.
 
 ### Three gates
 

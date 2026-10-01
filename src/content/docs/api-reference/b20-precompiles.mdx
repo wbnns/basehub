@@ -439,7 +439,7 @@ The variant is encoded into the address, so you can read it off the prefix.
 | Bitmask with every feature paused | `15` — `TRANSFER`, `MINT`, `BURN`, `SEIZE` together |
 ## Availability by hardfork
 
-Every selector on this page is final, but not all of them are dialable today. [Beryl](/specifications/beryl-overview/) shipped the standard and is live on Mainnet and Sepolia. A second group arrives with [Cobalt](/specifications/cobalt-overview/), now booked for Sepolia on September 23, 2026 and Mainnet on September 30, 2026 — call any of it before your target network reaches its date and there is nothing at the address to answer.
+Every selector on this page is final, but not all of them are dialable today. [Beryl](/specifications/beryl-overview/) shipped the standard. [Cobalt](/specifications/cobalt-overview/) added a second group, and both are live on Mainnet and Sepolia. A third group waits for Denim and takes effect only when that fork activates.
 
 Cobalt adds no breaking change. Every Beryl function, event topic, and error keeps the exact four-byte selector or `topic0` it has now, and keeps its behaviour.
 
@@ -452,9 +452,14 @@ Cobalt adds no breaking change. Every Beryl function, event topic, and error kee
 
 Beryl carried the roles model, the policy registry with its six per-token scopes, memos, granular pausing, supply caps, `permit`, the factory, and both the Asset and Stablecoin variants.
 
-### Arriving with Cobalt
+### Live since Cobalt
 
-Three groups are specified and documented above, but undialable until Cobalt activates.
+| Network | Cobalt live since |
+|---|---|
+| Base Mainnet | 2026-09-30 |
+| Base Sepolia | 2026-09-23 |
+
+Three groups came with this fork. On 2026-10-01, a Mainnet B20 Asset token reverted the Cobalt getters at a pre-fork block and answered them at the head.
 
 **The seize surface on `IB20`.** `seizeWithMemo` (`0xf916d81b`), the `SEIZE_ROLE`, `SEIZE_EXEMPT_POLICY` and `SEIZE_RECEIVER_POLICY` getters, the `Seized` event, the `AccountNotSeizable` error, and the `SEIZE` pause ordinal (`3`, bit `8`) all land together. It is defined on the shared `IB20` surface, so Asset and Stablecoin expose it identically.
 
@@ -553,4 +558,4 @@ Everything on this page is fixed. B20 method and event signatures sit on the cha
 
 That gives you one practical guarantee. Code compiled against the selectors here keeps working across upgrades, and you only revisit it when you want something new.
 
-Two names are the exception, and they are already marked throughout this page. `burnBlocked` and `BURN_BLOCKED_ROLE` are deprecated. They still resolve, because nothing is removed, but seizure flows are expected to use [`seizeWithMemo`](#ib20) once Cobalt is live.
+Two names are the exception, and they are already marked throughout this page. `burnBlocked` and `BURN_BLOCKED_ROLE` are deprecated. They still resolve, because nothing is removed, and seizure flows now use [`seizeWithMemo`](#ib20), which has been live on every public network since Cobalt.
