@@ -261,11 +261,12 @@ Then ask for a builder code registration. The skill validates the wallet, calls 
 
 ## Confirming attribution works
 
-Three independent checks, cheapest first:
+Two independent checks:
 
-1. **base.dev** — select **Onchain** in the transaction type dropdown. Attribution counts under Total Transactions climb as transactions carrying your code are processed.
-2. **A block explorer** — pull up the transaction on Basescan or Etherscan, open the input data field, and confirm the last 16 bytes are the repeating `8021` pattern. Decode the suffix to see your code.
-3. **The validation tool** — paste a transaction or UserOperation hash into [Builder Code Validation](https://builder-code-checker.vercel.app/), pick the transaction type, and press **Check Attribution**.
+1. **A block explorer** — pull up the transaction on Basescan or Etherscan, open the input data field, and confirm the last 16 bytes are the repeating `8021` pattern. Decode the suffix to see your code.
+2. **The validation tool** — paste a transaction or UserOperation hash into [Builder Code Validation](https://builder-code-checker.vercel.app/), pick the transaction type, and press **Check Attribution**.
+
+Upstream used to list the base.dev dashboard as a third check. It removed that step on 2026-10-01, so rely on the onchain data instead.
 
 ## Wallet support today
 

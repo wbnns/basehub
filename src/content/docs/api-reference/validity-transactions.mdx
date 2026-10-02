@@ -24,7 +24,7 @@ The method accepts legacy, EIP-2930, and EIP-1559 transactions. EIP-1559 is the 
 
 Submit two things: a signed raw transaction, and an object carrying a non-empty `validity` array. Base evaluates the predicates before inclusion. A transaction whose predicates do not all match stays pending rather than failing.
 
-That waiting behaviour is the useful part. An earlier transaction can move the balance or storage value a pending transaction is watching, and the pending transaction then becomes eligible — possibly within the same Flashblock. No keeper has to watch the chain and race to submit.
+That waiting behaviour is the useful part. An earlier transaction can move the storage value a pending transaction is watching, and the pending transaction then becomes eligible — possibly within the same Flashblock. No keeper has to watch the chain and race to submit.
 
 Eligibility is not a reservation. A matching predicate set earns a place in the ordinary competition for block space, nothing more.
 
@@ -101,7 +101,6 @@ Failures come back as JSON-RPC errors. Handle at least three cases: the method b
 
 | Type | Parameters |
 | --- | --- |
-| `balance` | `address`, `op`, `value` |
 | `storage` | `address`, `slot`, `op`, `value`, optional `mask` |
 | `block_number` | `op`, `value` |
 | `flashblock_index` | `op`, `value` |
@@ -110,7 +109,13 @@ Operators are `<`, `<=`, `=`, `!=`, `>`, and `>=`. Every value is a `0x`-prefixe
 
 For a storage predicate Base compares `(storage[address][slot] & mask)` against `value`. Leave `mask` out to compare the whole storage word; it defaults to all ones.
 
+<Aside type="caution">
+Upstream dropped the `balance` predicate on 2026-10-01, from this table and from every example. Do not use it. The node change behind this (#5463) gives the reason. Predicates sit outside the signature, so a relayer that handles a user's transaction can attach its own balance checks. It can test the user's balance before and after their gas payment, and use that to place transactions right around theirs. Ingress on `main` now answers any `balance` entry with `-32602` and `balance predicate at index N is not supported`. The fix landed after `v1.4.2` and is in no tagged release yet. The builder can still evaluate the variant internally. Upstream says the type can come back for contract accounts if there is demand. For now, express a state condition as a `storage` predicate.
+</Aside>
+
 Use `block_number` to pin a target block and `flashblock_index` to pin a position inside it. Both conditions need their own predicate — one entry cannot express both. The request sample in the Cobalt launch post folds both into a single object with repeated `type` and `params` keys, and it is not valid JSON as printed. Give each predicate its own entry in the `validity` array, as the examples on this page do.
+
+A usable `flashblock_index` runs from `1` to `10` inclusive, which is `0x1` to `0xa` in hex. Index `0` is the fallback block. It holds only the sequencer's own transactions, so no pooled transaction can ever match there. The node refuses at ingress any `flashblock_index` predicate whose largest reachable value is below `1`, for example `<= 0x0` or `< 0x1`, because such a transaction would wait forever.
 
 ## Safety
 
@@ -134,7 +139,7 @@ A transaction that never becomes eligible costs nothing onchain. One that is inc
 
 **Expiry is mandatory, and it is bounded on both sides.** Every submission has to carry a `block_number` predicate with an upper bound, written with `<`, `<=`, or `=`. Leave it out and the node refuses the transaction outright. Pair it with `flashblock_index` to tighten the bound to a position within the block.
 
-Only an upper bound counts. A `>`, `>=`, or `!=` comparison on `block_number` does not establish expiry, and neither does a `balance`, `storage`, or `flashblock_index` predicate. State conditions can recover after failing, and the flashblock index restarts every block, so none of them puts a ceiling on how long a transaction can wait. When several `block_number` predicates carry upper bounds, the tightest one decides the lifetime.
+Only an upper bound counts. A `>`, `>=`, or `!=` comparison on `block_number` does not establish expiry, and neither does a `storage` or `flashblock_index` predicate. State conditions can recover after failing, and the flashblock index restarts every block, so none of them puts a ceiling on how long a transaction can wait. When several `block_number` predicates carry upper bounds, the tightest one decides the lifetime.
 
 Two further checks apply once a canonical head exists. A bound already behind the block being built is rejected, because every block it still permits has been sealed. A bound past the node's configured window is rejected as well. That window is 60 seconds of wall-clock time by default, which the node converts into a block count using the current full-block cadence: roughly 30 blocks on two-second blocks, and roughly 300 once Denim's 200ms cadence is active. Operators set it with `--validity-max-expiry-secs`.
 
@@ -156,20 +161,12 @@ Validity criteria travel beside the signed transaction, not inside it, and never
 
 ## Worked example
 
-Build the predicate list first. This one waits for an account to hold a balance, waits for a storage slot to reach a value, and bounds the result to a block and a Flashblock position:
+Build the predicate list first. This one waits for a storage slot to reach a value, and bounds the result to a block and a Flashblock position:
 
 ```ts
 import type { Address, Hex } from 'viem';
 
 const validity = [
-  {
-    type: 'balance',
-    params: {
-      address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72' as Address,
-      op: '>=',
-      value: '0x1' as Hex,
-    },
-  },
   {
     type: 'storage',
     params: {

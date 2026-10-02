@@ -3,6 +3,7 @@ title: Proof Contracts
 description: Onchain contracts that verify proof material, track game state, and release withdrawals for the Azul proof system.
 sources:
 - base/docs:docs/base-chain/specs/protocol/proofs/contracts.mdx
+- base/docs:docs/specifications/base-protocol/proofs/proof-contracts.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -18,7 +19,9 @@ The contracts in this spec:
 - `ZKVerifier`
 - `TEEVerifier`
 - `TEEProverRegistry`
-- `NitroEnclaveVerifier`
+- `NitroValidator`
+- `CertManager`
+- `P384Verifier`
 
 ## Contract graph
 
@@ -30,13 +33,15 @@ flowchart TB
     Game -->|TEE proofs| TEEVerifier[TEEVerifier]
     Game -->|ZK proofs| ZKVerifier[ZKVerifier]
     TEEVerifier -->|signer and proposer checks| Registry[TEEProverRegistry]
-    Registry -->|attestation proof| Nitro[NitroEnclaveVerifier]
+    Registry -->|signed attestation and hints| Nitro[NitroValidator]
     Registry -->|current TEE_IMAGE_HASH| Factory
     ZKVerifier -->|SP1 proof| SP1[SP1 verifier gateway]
-    Nitro -->|RISC Zero or SP1 proof| Coprocessor[ZK verifier contract]
+    Nitro -->|cached certificate chain| Certs[CertManager]
+    Nitro -->|attestation signature| P384[P384Verifier]
+    Certs -->|certificate signatures| P384
 ```
 
-`DisputeGameFactory`, `AnchorStateRegistry`, and `DelayedWETH` are proxied system contracts. `AggregateVerifier` is deployed as an implementation and cloned by the factory with immutable arguments. `TEEVerifier`, `ZKVerifier`, `TEEProverRegistry`, and `NitroEnclaveVerifier` are standalone verifier and registry contracts that the game implementation references.
+`DisputeGameFactory`, `AnchorStateRegistry`, `DelayedWETH`, and `TEEProverRegistry` sit behind proxies. `AggregateVerifier` is deployed once as an implementation, and the factory clones it with immutable arguments. `TEEVerifier` and `ZKVerifier` are standalone proof verifiers that the game implementation points to. The registry points to a standalone `NitroValidator`, and that contract relies on `CertManager` and `P384Verifier` to check signer attestations.
 
 ## Data model
 
@@ -72,7 +77,7 @@ The final intermediate root must equal the game's `rootClaim`.
 ## Game lifecycle
 
 1. The factory owner configures a game type with an `AggregateVerifier` implementation and an initialization bond.
-2. TEE operators register enclave signer addresses in `TEEProverRegistry` using ZK-verified Nitro attestation.
+2. The registrar caches the Nitro certificates in `CertManager`, then registers each enclave signer through `TEEProverRegistry` with the attestation and its P-384 hints.
 3. A proposer creates a game through `DisputeGameFactory.createWithInitData()`, paying the exact initialization bond and supplying an initial TEE or ZK proof.
 4. The game validates its parent, L2 block number, intermediate roots, L1 origin, and proof journal. The bond is deposited into `DelayedWETH`.
 5. A second proof can be submitted through `verifyProposalProof()`. If the proposal is invalid, challengers can call `challenge()` or `nullify()` with proof material for an intermediate root.
@@ -426,7 +431,7 @@ The registry holds:
 
 - an owner
 - a manager
-- a `NitroEnclaveVerifier`
+- an immutable `NitroValidator` reference
 - a `DisputeGameFactory`
 - a configurable `gameType`
 - registered signer state
@@ -444,21 +449,25 @@ DisputeGameFactory.gameImpls(gameType).TEE_IMAGE_HASH()
 
 `setGameType()` checks that this call succeeds and returns a non-zero hash. `isValidSigner()` returns true only when the signer is registered and its stored image hash matches the current expected hash.
 
-Signer registration is itself PCR0-agnostic. This lets operators pre-register signers for a future image before a game-type migration. Those signers do not become valid for proof submission until the game implementation's `TEE_IMAGE_HASH` matches their registered image hash.
+Registration does not compare PCR0 with the current `TEE_IMAGE_HASH`. Operators can therefore register the signers of the next image ahead of a game-type migration. Those signers stay unusable for proofs until the game implementation's `TEE_IMAGE_HASH` equals their stored image hash.
 
 ### Signer registration
 
-<Aside type="caution" title="Changed at Cobalt">
-This section and the `NitroEnclaveVerifier` section below describe the pre-Cobalt, ZK-proof registration path. From Cobalt, the registry exposes `NITRO_VALIDATOR()` and registers signers with `registerSigner(bytes attestationTbs, bytes signature, bytes hints)` (selector `0xb39dc09d`). The attestation is checked in full onchain by `NitroValidator`, `CertManager`, and `P384Verifier`, and certificate revocation moves to `CertManager`. See the [TEE Prover Registrar](/specifications/registrar/) and the [nitro-validator redesign](/architecture/nitro-validator/).
-</Aside>
-
-`registerSigner(output, proofBytes)` calls:
+Since [Cobalt](/specifications/cobalt-overview/), the call is `registerSigner(attestationTbs, signature, hints)` (selector `0xb39dc09d`). It hands the attestation to the validator:
 
 ```text
-NITRO_VERIFIER.verify(output, ZkCoProcessorType.RiscZero, proofBytes)
+NITRO_VALIDATOR.validateAttestationWithHints(
+  attestationTbs,
+  signature,
+  hints
+)
 ```
 
-The returned journal must have `VerificationResult.Success`. The attestation timestamp must not be older than `MAX_AGE`, which is fixed at 60 minutes. The public key must be exactly 65 bytes in uncompressed ANSI X9.62 form:
+The certificate chain behind the attestation has to be verified and cached in `CertManager` beforehand. The validator authenticates the signed fields and returns pointers into the attestation. The registry then applies Base's own rules:
+
+- The attestation timestamp arrives in milliseconds and is converted to seconds. It must be strictly earlier than `block.timestamp`, and less than `MAX_AGE` (3,600 seconds) old.
+- PCR0 must sit at index zero, be exactly 48 bytes, and not be the all-zero debug-mode value.
+- The public key must be exactly 65 bytes in uncompressed ANSI X9.62 form:
 
 ```text
 0x04 || x || y
@@ -470,13 +479,17 @@ The registry derives the signer address as:
 address(uint160(uint256(keccak256(x || y))))
 ```
 
-It pulls PCR0 out of the journal and stores:
+It takes the 48-byte PCR0 value from the attestation and stores:
 
 ```text
-signerImageHash[signer] = keccak256(pcr0.first || pcr0.second)
+signerImageHash[signer] = keccak256(PCR0)
 ```
 
-It then marks the signer as registered and adds it to an enumerable signer set.
+It then marks the signer as registered, adds it to an enumerable signer set, and emits `SignerRegistered`.
+
+<Aside type="note" title="Changed at Cobalt">
+Before Cobalt, `registerSigner(output, proofBytes)` accepted a RISC Zero proof of the attestation through `NitroEnclaveVerifier`, and stored `keccak256(pcr0.first || pcr0.second)` as the image hash. The upgrade replaced the registry implementation behind the same proxy and kept all existing registry state. The [TEE Prover Registrar](/specifications/registrar/) and the [nitro-validator redesign](/architecture/nitro-validator/) cover the offchain side.
+</Aside>
 
 ### Deregistration
 
@@ -484,102 +497,71 @@ It then marks the signer as registered and adds it to an enumerable signer set.
 
 `getRegisteredSigners()` returns the current enumerable set. Ordering is not guaranteed.
 
-## NitroEnclaveVerifier
+## NitroValidator
 
-`NitroEnclaveVerifier` verifies ZK proofs of AWS Nitro Enclave attestation documents. It is the attestation verifier used by `TEEProverRegistry`.
-
-The contract supports:
-
-- single-attestation verification
-- batch attestation verification
-- RISC Zero and Succinct SP1 proof systems
-- root certificate configuration
-- trusted intermediate certificate caching
-- certificate revocation
-- route-specific verifier selection
-- permanently frozen proof routes
-
-### Roles and configuration
-
-The owner controls:
-
-- `rootCert`
-- `maxTimeDiff`
-- `proofSubmitter`
-- `revoker`
-- ZK verifier configuration
-- verifier program IDs
-- aggregator program IDs
-- route-specific verifier overrides
-- route freezing
-
-The `revoker` can also revoke trusted intermediate certificates. `proofSubmitter` is the only address allowed to call `verify()` or `batchVerify()`.
-
-`zkConfig[zkCoProcessor]` stores:
-
-| Field          | Purpose                                         |
-| -------------- | ----------------------------------------------- |
-| `verifierId`   | Program ID for single-attestation verification. |
-| `aggregatorId` | Program ID for batch verification.              |
-| `zkVerifier`   | Default verifier contract address.              |
-
-Route-specific verifier overrides are keyed by `(zkCoProcessor, selector)`, where `selector` is the first four bytes of `proofBytes`. If a route is frozen, verification through that route permanently reverts.
-
-### Single verification
-
-`verify(output, zkCoprocessor, proofBytes)`:
-
-1. Requires `msg.sender == proofSubmitter`.
-2. Resolves the verifier route from the proof selector.
-3. Verifies the ZK proof against `zkConfig[zkCoprocessor].verifierId`.
-4. Decodes `output` as a `VerifierJournal`.
-5. Validates the journal.
-6. Emits `AttestationSubmitted`.
-7. Returns the journal with its final verification result.
-
-For RISC Zero, proof verification uses:
+`NitroValidator` checks AWS Nitro attestations. It holds immutable references to `CertManager` and `P384Verifier`.
 
 ```text
-IRiscZeroVerifier.verify(proofBytes, programId, sha256(output))
+validateAttestationWithHints(
+  attestationTbs,
+  signature,
+  attestationSigHints
+)
 ```
 
-For Succinct, proof verification uses:
+The call does four things:
+
+1. It parses the signed COSE `Sig_structure` and checks the shape of the Nitro payload.
+2. It walks the certificate chain again through `CertManager`. The path to the pinned AWS Nitro root must be complete, unexpired, and unrevoked.
+3. It checks the 96-byte P-384 attestation signature over `SHA384(attestationTbs)`, using the leaf certificate's public key and the supplied inverse hints.
+4. It returns `Ptrs`, which holds the timestamp and CBOR field pointers into `attestationTbs`.
+
+The chain walk takes no certificate hints, so every certificate must already sit in the cache. `decodeAttestationTbs()` splits a raw `COSE_Sign1` document into its signed TBS bytes and its signature. Decoding on its own proves nothing about validity.
+
+The validator does not apply Base policy. It does not check the freshness window, the signer key format, or which enclave image is allowed. The [registry](#signer-registration) checks the timestamp, public key, and PCR0. The registrar checks the nonce offchain. `TEEVerifier` checks the game's expected image when a proof is submitted.
+
+The old unhinted `validateAttestation()` entry point is deprecated and always reverts.
+
+## CertManager
+
+`CertManager` pins the AWS Nitro root when it is deployed. It verifies CA and leaf certificates and caches them. Its two active verification calls are:
 
 ```text
-ISP1Verifier.verifyProof(programId, output, proofBytes)
+verifyCACertWithHints(
+  cert, parentCertHash, signatureHints
+)
+verifyClientCertWithHints(
+  cert, parentCertHash, signatureHints
+)
 ```
 
-### Batch verification
+Anyone can call either one. A non-root certificate needs its parent in the cache first. On a cold check, the certificate signature goes through `P384Verifier`. When a cached certificate is reused, the contract checks its CA or leaf role, its expiry, the parent it was first bound to, and an unrevoked path to the root. The CA call returns the certificate's cache key. The leaf call returns `VerifiedCert` metadata.
 
-`batchVerify(output, zkCoprocessor, proofBytes)`:
+A non-root cache key is `keccak256(TBSCertificate DER)`, which leaves out the outer signature. The root uses its pinned `keccak256(root DER)` key. `loadVerified()` only reads the cache. What it returns can be expired or revoked, so do not treat it as proof that a certificate is still usable.
 
-1. Requires `msg.sender == proofSubmitter`.
-2. Verifies the ZK proof against `zkConfig[zkCoprocessor].aggregatorId`.
-3. Decodes `output` as a `BatchVerifierJournal`.
-4. Requires `batchJournal.verifierVk == getVerifierProofId(zkCoprocessor)`.
-5. Validates every embedded `VerifierJournal`.
-6. Emits `BatchAttestationSubmitted`.
-7. Returns the validated journals.
+Revocation uses a separate identity. `computeCertId()` gives the issuer and serial identity of a non-root certificate, and `isRevoked()` reports its status. The root uses its pinned hash. The contract checks revocation on cold verification, on cached reuse, and on the final attestation check. The [TEE Prover Registrar](/specifications/registrar/) page describes how the registrar computes these identifiers.
 
-### Journal validation
+<Aside type="caution">
+Revoking the root stops all new signer registrations. Revoking or expiring a certificate does not touch signers that are already registered. Remove those through `TEEProverRegistry.deregisterSigner()`.
+</Aside>
 
-A successful journal stays successful only when:
+The old unhinted `verifyCACert()` and `verifyClientCert()` entry points are deprecated and always revert.
 
-- the trusted certificate prefix length is non-zero
-- the first certificate equals `rootCert`
-- every trusted intermediate certificate is still trusted and unexpired
-- every newly supplied certificate is unexpired
-- the attestation timestamp is not too old
-- the attestation timestamp is not in the future
-
-Attestation timestamps are provided in milliseconds and converted to seconds. The timestamp is valid only when:
+## P384Verifier
 
 ```text
-timestamp + maxTimeDiff > block.timestamp
-timestamp < block.timestamp
+verifyP384SignatureWithHints(
+  hash, signature, pubKey, inverseHints
+)
 ```
 
-Certificates beyond the trusted prefix are cached with their expiry timestamps after successful validation. A revoked certificate can become trusted again only if it shows up in a later successful attestation proof and is cached again.
+`P384Verifier` checks P-384 ECDSA signatures for both certificates and attestations. Each hint is a 48-byte big-endian modular inverse. Before it uses a hint, the contract confirms `b * hint == 1 (mod m)`. A wrong, short, or extra hint makes the call revert. A hint can never make a bad signature pass.
+
+The contract does not enforce low-S, so two different byte strings can be valid signatures for the same message. Never use signature bytes as a unique ID for a certificate or an attestation.
+
+## NitroEnclaveVerifier (legacy)
+
+`NitroEnclaveVerifier` is the ZK attestation verifier that the registry used before Cobalt. It accepted RISC Zero or SP1 proofs of an attestation, handled certificate caching and revocation itself, and supported per-route verifier overrides and route freezing. The current registry does not call it. Use `NitroValidator`, `CertManager`, and `P384Verifier` instead.
 
 ## Cross-contract safety properties
 
@@ -592,7 +574,7 @@ The proof contracts rely on these cross-contract properties:
 - Verifier separation: TEE and ZK proofs use different verifier contracts and different journal domain separators (`TEE_IMAGE_HASH` versus `ZK_RANGE_HASH`).
 - Fast finality requires diversity: a game with two accepted proof types can resolve after one day, while a game with one proof waits five days (seven before [Beryl](/specifications/beryl-overview/)).
 - Registry finality is separate from game resolution: a game can resolve before the `AnchorStateRegistry` accepts it as a valid claim.
-- Safety controls fail closed: pause, blacklist, retirement, verifier nullification, route freezing, and certificate revocation all prevent acceptance rather than expanding trust.
+- Safety controls fail closed: pause, blacklist, retirement, and verifier nullification all prevent acceptance rather than expanding trust.
 
 ## Administrative surfaces
 
@@ -603,7 +585,7 @@ The proof contracts rely on these cross-contract properties:
 | `DelayedWETH`          | Proxy admin owner            | Recover ETH and hold WETH from accounts.                                                          |
 | `TEEProverRegistry`    | Owner                        | Set proposers, update game type, transfer ownership or management.                                |
 | `TEEProverRegistry`    | Owner or manager             | Register and deregister TEE signers.                                                              |
-| `NitroEnclaveVerifier` | Owner                        | Configure root certificate, time tolerance, proof submitter, revoker, ZK routes, and program IDs. |
-| `NitroEnclaveVerifier` | Owner or revoker             | Revoke trusted intermediate certificates.                                                         |
+| `CertManager`          | Owner                        | Transfer ownership, set the revoker, revoke the pinned root, and unrevoke certificate identities or the root. |
+| `CertManager`          | Revoker                      | Revoke non-root issuer and serial identities with `revokeCert()` or `revokeCerts()`.               |
 
 These surfaces are intentionally narrow but high impact. Operational changes here can affect which games are respected, which proofs verify, and which attestations can register new TEE signers.

@@ -3,6 +3,7 @@ title: TEE Prover Registrar
 description: Offchain service that discovers TEE prover enclaves, verifies their Nitro attestations onchain with P-384 hints, and maintains the onchain TEEProverRegistry of accepted signer identities.
 sources:
 - base/base:docs/specs/pages/protocol/proofs/registrar.md
+- base/docs:docs/specifications/base-protocol/proofs/registrar.mdx
 - base/base:crates/proof/tee/registrar
 - base/docs:docs/upgrades/cobalt/overview.mdx
 ---
@@ -12,7 +13,7 @@ import { Aside } from '@astrojs/starlight/components';
 The registrar is an offchain service that keeps the onchain set of accepted TEE signer identities in sync with the actual running prover fleet. It locates live TEE prover instances, pulls each enclave's AWS Nitro attestation document, computes the P-384 inverse hints the onchain verifier needs to check it, and writes the resulting signer registration to [`TEEProverRegistry`](https://github.com/base/contracts/blob/main/src/L1/proofs/tee/TEEProverRegistry.sol) on L1. It also removes signers whose backing instances have disappeared and revokes certificates that AWS has marked as withdrawn.
 
 <Aside type="note" title="Changed at Cobalt">
-Before Cobalt, registration went through a ZK proof: the registrar sent each attestation to a RISC Zero prover (normally the Boundless marketplace) and submitted the resulting Groth16 seal. Cobalt removes that step. The attestation is now checked in full by L1 contracts, using the hinted verifier described in [nitro-validator redesign](/architecture/nitro-validator/). No Boundless or RISC Zero code remains in the current registrar. The upstream registrar specification still describes the old proof flow; this page follows the node source.
+Before Cobalt, registration went through a ZK proof: the registrar sent each attestation to a RISC Zero prover (normally the Boundless marketplace) and submitted the resulting Groth16 seal. Cobalt removes that step. The attestation is now checked in full by L1 contracts, using the hinted verifier described in [nitro-validator redesign](/architecture/nitro-validator/). No Boundless or RISC Zero code remains in the current registrar, and there is no switch to fall back to ZK verification. Upstream rewrote its registrar specification for the hinted flow on 2026-10-01, and it now agrees with the node source. The migration was an in-place upgrade of the `TEEProverRegistry` proxy. It kept the storage layout, owner, manager, game type, proposers, every registered signer, and their stored image hashes. Enclave key generation, attestation production, PCR0 image selection in `TEEVerifier`, `AggregateVerifier`, proof formats, and SP1 state proofs did not change.
 </Aside>
 
 The Base team operates a single registrar. The proof system trusts only signers that this registrar has admitted, which makes registrar correctness a prerequisite for accepting TEE proofs onchain. The output is still self-validating end-to-end. Every certificate signature, the attestation signature, the enclave PCR0 measurement, and the signer public key are re-checked onchain by `TEEProverRegistry` and its `NitroValidator` and `CertManager` before the signer is treated as valid. The hints only speed that check up. A wrong hint makes the check fail, it cannot make a bad attestation pass.
@@ -49,10 +50,10 @@ The operator supplies only the registry address. The registrar reads the validat
 
 The service runs a single driver loop:
 
-1. Discover the current instance set.
-2. Process every instance concurrently, bounded by `max_concurrency`.
-3. Read the onchain signer set.
-4. Deregister orphan signers.
+1. Discover the current instance set through AWS.
+2. Probe `readyz` on every target that is not draining, and resolve signer keys and attestations concurrently, bounded by `max_concurrency`.
+3. Start a registration task for each eligible signer, and cancel tasks whose signer is no longer eligible.
+4. Read the onchain signer set and deregister orphans, but only when discovery was conclusive.
 5. Sleep `poll_interval` seconds, or exit on cancellation.
 
 `step()` runs once at startup before the first sleep. Cancellation is observed promptly between ticks and inside long-running transaction retries, so the service can shut down without leaving partial state behind.
@@ -69,18 +70,15 @@ Each discovery cycle:
 4. Calls `ec2.DescribeInstances(instance_ids)` to read each instance's private IP and launch time.
 5. Builds JSON-RPC endpoint URLs shaped like `http://{private_ip}:{prover_port}` and pairs each one with its ALB-reported health state.
 
-ALB health states map to internal states as follows:
+The registrar does not trust the ALB health state to decide who may register. The load balancer's `/healthz` check only passes once an instance is registered, so relying on it would block every new instance from ever bootstrapping. Instead, the registrar calls the prover's own `readyz` method on every target that is not `Draining`, right before it resolves that target. A target that answers becomes `Healthy`. A target that fails becomes `Unhealthy`. Only `Healthy` instances can start a new registration. A slow probe does not hold up the others, because each probe is paired with its own resolution.
 
-| AWS state    | Internal state | `should_register()` |
-| ------------ | -------------- | ------------------- |
-| `initial`    | `Initial`      | true                |
-| `healthy`    | `Healthy`      | true                |
-| `draining`   | `Draining`     | false               |
-| anything else| `Unhealthy`    | false               |
+When an instance drops out of discovery or turns unhealthy, the registrar keeps protecting the signers it last saw there for `instance_cache_ttl_cycles` cycles. If any instance is still unresolved, it skips the whole orphan pass for that tick.
 
-An `Unhealthy` instance is still allowed to register if it is within `unhealthy_registration_window` seconds of its `launch_time`. This is a warm-up grace period: it gives a freshly launched instance — whose JSON-RPC endpoint may be briefly slow — enough time to complete enclave attestation and registration before the next ALB health check would deregister it. Hint generation is local and fast compared with the old outsourced proof, so the window mainly has to cover enclave start-up and the certificate-cache transactions.
+An AWS API error or missing EC2 data aborts the tick and skips orphan cleanup. An empty target group is different: it counts as a conclusive answer.
 
-A discovery failure aborts the current tick and skips orphan cleanup. It never deregisters a live signer.
+<Aside type="caution" title="Cold start against an empty target group">
+The last-known-signer cache lives in memory and is empty after every restart. A freshly started registrar that sees an empty target group has nothing to protect, so it can treat every onchain signer as an orphan. Check the target group configuration before you restart a registrar, and alert on it.
+</Aside>
 
 ## Per-instance processing
 
@@ -89,7 +87,7 @@ For each discovered instance, the registrar:
 1. Calls `enclave_signerPublicKey` to fetch the per-enclave SEC1 public keys. A single instance can host multiple enclaves, and each enclave has its own signer key.
 2. Derives the Ethereum signer address from each public key as the last 20 bytes of `keccak256(uncompressed_pubkey_xy)`.
 3. Returns immediately when no signers were reported — that instance contributes nothing to the active set, and the call becomes a no-op.
-4. Decides whether the instance is currently registerable: `Initial` and `Healthy` instances proceed; `Unhealthy` instances inside the warm-up window also proceed; every other state contributes its addresses to the active set but does not generate new proofs or transactions.
+4. Decides whether the instance is currently registerable. Only an instance whose `readyz` probe passed proceeds. A `Draining` instance still adds its known signer addresses to the active set, so a rotation does not deregister it at once, but it starts no new registrations.
 5. Calls `enclave_signerAttestation` once with one nonce per signer. Each nonce is deterministic: `keccak256` over the domain string `base-proof-tee-registrar:attestation-nonce:v1`, the registry address, and the signer address. That binds each attestation to one signer and one registry, and the registrar rejects any plan whose nonce does not match.
 6. Runs CRL checks once per batch when CRL checking is enabled. Each enclave signs with its own key, but AWS Nitro attestations are signed by the parent EC2 instance's Nitro Hypervisor, whose signing key is endorsed by a per-instance AWS-issued certificate chain. Every enclave on a given instance therefore lives under the same parent chain, so one CRL check per instance is sufficient.
 7. Runs the registration pipeline for each signer address.
@@ -115,7 +113,17 @@ The default freshness window is 3300 seconds, kept under the onchain `MAX_AGE` o
 
 ### Certificate caching
 
-`CertManager` stores every certificate it has already verified. Before registering, the registrar walks the chain and, for each certificate not yet cached, sends one caching transaction: `verifyCACertWithHints` for a CA and `verifyClientCertWithHints` for the leaf. A per-certificate lock stops two signers that share a chain from caching the same certificate twice. Once the leaf is cached, later attestations under that leaf take the short path.
+`CertManager` stores every certificate it has already verified. Before registering, the registrar walks the chain and, for each certificate not yet cached, sends one caching transaction: `verifyCACertWithHints` for a CA and `verifyClientCertWithHints` for the leaf. A per-certificate lock stops two signers that share a chain from caching the same certificate twice. Once the leaf is cached, later attestations under that leaf take the short path. Cache writes need no permission, because the contract verifies every certificate and hint itself. After each caching transaction the registrar reads the cache again. If a transaction reports an error but the expected entry is now present and usable, it counts as a success. After a restart or a partial failure, the registrar resumes from the first certificate that is still missing.
+
+Each signature check gets its own transaction, which keeps every transaction under the EIP-7825 per-transaction gas limit. For a typical Nitro chain with three non-root CAs, the count depends on what is already cached:
+
+| Already cached | Transactions |
+| --- | ---: |
+| Nothing | 5: three CA writes, one leaf write, one registration |
+| CA chain only | 2: one leaf write, one registration |
+| CA chain and leaf | 1: registration only |
+
+The final `registerSigner` call carries no certificate hints. `NitroValidator` accepts it only if the whole chain is already cached and usable. Because a cold registration takes several transactions, the registrar checks attestation freshness again before every certificate, revocation, and registration transaction. That way it stops before it sends material that has gone stale.
 
 ## Registration transactions
 
@@ -146,16 +154,16 @@ Transaction submission is cancellation-aware: both the active send and the inter
 
 After every instance has been processed, the registrar reconciles the onchain signer set against the active set:
 
-1. Skip cleanup if discovery failed during this tick.
-2. Skip cleanup if cancellation was requested.
-3. Compare reachable instances against total discovered instances. If `reachable_instances * 2 <= total_instances`, skip cleanup.
+1. Skip cleanup if discovery failed during this tick, or if cancellation was requested.
+2. Skip cleanup if any instance is still unresolved.
+3. Build the protected set: active signers, signers kept from the last-known cache, and signers with a registration task still pending.
 4. Read the onchain set with `TEEProverRegistry.getRegisteredSigners()`.
-5. Compute `orphans = onchain_signers \ active_signers`.
+5. Compute `orphans = onchain_signers - protected_signers`.
 6. For each orphan, in order:
    1. Recheck `isRegisteredSigner(signer)`. Skip if it returns false.
    2. ABI-encode `deregisterSigner(signer)` and submit it through the transaction manager.
 
-The majority-reachable guard exists so that a transient AWS or VPC outage cannot deregister most of the prover fleet at once. The per-orphan `isRegisteredSigner` recheck is a race guard: the set returned by `getRegisteredSigners()` is read once per cycle, and a different writer might have deregistered the signer between that read and this transaction. Skipping signers that are already gone avoids wasted gas on a no-op transaction.
+Deregistration clears the registered flag and the stored image hash. The unresolved-instance rule and the last-known-signer grace period replace the older majority-reachable guard, which is no longer in the source. Together they keep a short AWS or VPC outage from deregistering live signers. The per-orphan `isRegisteredSigner` recheck is a race guard: the set returned by `getRegisteredSigners()` is read once per cycle, and a different writer might have deregistered the signer between that read and this transaction. Skipping signers that are already gone avoids wasted gas on a no-op transaction.
 
 The procedure assumes a single registrar per `TEEProverRegistry`. Two registrars sharing a registry would each treat the other's signers as orphans.
 
@@ -179,6 +187,10 @@ This layer runs only when CRL checking is on. For certificates that pass Layer 1
 6. Blocks registration for that signer.
 
 A recorded revocation protects every later registration that shares the same chain, because Layer 1 catches it on the next pass without a network fetch.
+
+A CRL fetch or parse failure fails open and is retried on a later cycle. A revocation confirmed onchain always fails closed.
+
+Revocation and expiry only block new registrations. They do not remove signers that are already registered. If a certificate under an existing signer is revoked, deregister that signer yourself.
 
 <Aside type="caution" title="CRL flag quirk">
 CRL checking is still switched on by setting `CRL_NITRO_VERIFIER_ADDRESS`. In the current source only the presence of that value matters. The address itself is not used: revocation reads and writes go to the `CertManager` found through the registry.
@@ -238,9 +250,9 @@ The health endpoint reports ready as soon as wiring completes. Connectivity gati
 
 Each driver tick:
 
-1. Discovers instances.
+1. Discovers instances and probes `readyz`.
 2. Processes instances concurrently.
-3. Computes orphans subject to the majority-reachable guard.
+3. Computes orphans, but only when no instance is unresolved.
 4. Submits deregistration transactions for any confirmed orphans.
 
 Shutdown is driven by a cancellation token. The driver loop exits, in-flight per-instance futures are dropped, the readiness flag clears, the `up` metric is set to zero, and the health server is joined.
@@ -272,8 +284,9 @@ Optional inputs are `CRL_NITRO_VERIFIER_ADDRESS` (turns CRL checks on, see the c
 
 Any registrar implementation must preserve these safety properties:
 
-- Never deregister live signers because of a transient AWS or VPC outage. Apply the majority-reachable guard before any deregistration.
-- Treat `Draining` and `Unhealthy` instances as part of the active set as long as their JSON-RPC endpoint responds, so rotations do not race deregistration.
+- Never deregister live signers because of a transient AWS or VPC outage. Skip the orphan pass while any instance is unresolved, and honour the last-known-signer grace period.
+- Keep the known signers of `Draining` and recently unavailable instances in the active set, so rotations do not race deregistration.
+- Recheck attestation freshness before each transaction in a multi-transaction cold registration.
 - Request each attestation with the deterministic per-signer nonce and reject any plan whose nonce, signer, root, or chain links do not match.
 - Reject debug-mode PCR0 values before any transaction.
 - Reject attestations older than `max_attestation_age`, keeping every submission inside the onchain `MAX_AGE` window.

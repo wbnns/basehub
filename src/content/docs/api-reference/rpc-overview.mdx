@@ -32,7 +32,7 @@ Base exposes a single, fully EVM-compatible JSON-RPC API. There is now one publi
 </Tabs>
 
 <Aside type="note">
-The public endpoints are rate-limited and not suitable for production traffic. Connect through a node provider for production workloads.
+The public endpoints are rate-limited and not suitable for production traffic. Connect through a node provider for production workloads. From **October 8, 2026 at 12:00 UTC**, `https://mainnet.base.org` no longer serves the `debug`, `trace`, or `txpool` namespaces, and basic reads get a lower rate limit. Use a [node provider](/node-operations/node-providers/) for those namespaces or for higher throughput.
 </Aside>
 
 <Aside type="caution">

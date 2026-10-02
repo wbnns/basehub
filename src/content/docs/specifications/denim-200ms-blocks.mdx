@@ -14,7 +14,7 @@ Denim changes how Base produces blocks. Instead of one canonical block every two
 <Aside type="caution">
 200ms native blocks now run on Vibenet, the experimental preview network, so developers can try them early. That deployment can still change. Do not base production decisions on it.
 
-Denim is active on neither Sepolia nor Mainnet. Upstream now lists **October 2026** as the planning target for both, but no activation timestamp is published and the required client versions are still open.
+Denim is active on neither Sepolia nor Mainnet. Upstream now targets **October 2026** for Sepolia and **November 2026** for Mainnet, but no activation timestamp is published and the required client versions are still open.
 
 Denim makes `block.number` advance ten times faster in wall-clock time. Any contract that counts blocks to measure a duration is affected. Read [Block-number contract logic](#block-number-contract-logic) before activation.
 </Aside>
@@ -35,11 +35,11 @@ The Ethereum block header does not change. Its `timestamp` field stays Unix time
 | --- | --- | --- | --- |
 | `vibenet` | Live for experimental testing | — | — |
 | `sepolia` | Planning for October 2026 | `TBD` | `TBD` |
-| `mainnet` | Planning for October 2026 | `TBD` | `TBD` |
+| `mainnet` | Planning for November 2026 | `TBD` | `TBD` |
 
 Vibenet carries 200ms blocks today, which makes it the place to exercise an integration ahead of time.
 
-Upstream lists **October 2026** as the planning target for Denim on both Sepolia and Mainnet. That is a target under a planning status rather than a booked activation: neither network has a published timestamp, and the required client versions are still open. The node source is consistent with that, leaving `denim_timestamp` unset on every canonical network. Treat the month as subject to change until timestamps appear.
+Upstream lists **October 2026** as the Denim planning target for Sepolia and **November 2026** for Mainnet. Until 2026-10-01 both networks shared October; the Mainnet month then slipped by one. Each is a target under a planning status rather than a booked activation: neither network has a published timestamp, and the required client versions are still open. The node source is consistent with that, leaving `denim_timestamp` unset on every canonical network. Treat the month as subject to change until timestamps appear.
 
 The fork name is no longer in doubt. Upstream briefly filed 200ms blocks under Cobalt in early September 2026 and has since moved them back to Denim, which matches what the node has done throughout: every block-timing path gates on `is_denim_active_at_timestamp`, and the BaseTime helper lives under the same gate.
 

@@ -44,7 +44,7 @@ Two features carried the Cobalt label at some point and no longer do. Material w
 
 | Feature | Now shipped by | Status |
 |---|---|---|
-| Canonical 200ms blocks, BaseTime, millisecond RPC timestamps | [Denim](/specifications/denim-overview/) | Planning, targeting October 2026 |
+| Canonical 200ms blocks, BaseTime, millisecond RPC timestamps | [Denim](/specifications/denim-overview/) | Planning: Sepolia October 2026, Mainnet November 2026 |
 | Native account abstraction (EIP-8130) | No scheduled fork | Gated behind `zenith`, which is unset everywhere |
 
 The 200ms work was briefly filed under Cobalt in early September 2026 and has since moved back to Denim. The node source never followed it across: block-timing paths have gated on `is_denim_active_at_timestamp` throughout, so the reassignment restores agreement between the docs and the implementation.
@@ -84,7 +84,7 @@ One Cobalt rename does break an ABI. The policy scope consulted by `seizeWithMem
 
 A validity transaction is an ordinary signed transaction submitted alongside a list of predicates over chain state. Base holds it out of the block until every predicate matches, then lets it compete for inclusion on normal fee rules. This makes conditional swaps, conditional withdrawals, and similar state-dependent actions expressible without a keeper watching the chain and racing to submit.
 
-The predicates read balances, raw storage slots, block numbers, and Flashblock positions. They are submitted out of band and never appear onchain. The [Validity Transactions reference](/api-reference/validity-transactions/) covers the request format, the predicate types, and the safety rules that go with reading storage directly.
+The predicates read raw storage slots, block numbers, and Flashblock positions. Cobalt shipped with a balance predicate too, but upstream withdrew it on 2026-10-01 because a relayer could abuse it, so do not build on it. They are submitted out of band and never appear onchain. The [Validity Transactions reference](/api-reference/validity-transactions/) covers the request format, the predicate types, and the safety rules that go with reading storage directly.
 
 ## Dynamic upgrades
 

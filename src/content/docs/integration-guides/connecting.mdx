@@ -62,6 +62,8 @@ Point only transaction sends at these hosts, and keep every other call on the re
 
 :::note
 Public endpoints are rate-limited and intended for development and light usage. For production, run your own node or use a third-party provider.
+
+From **October 8, 2026 at 12:00 UTC**, `https://mainnet.base.org` no longer serves the `debug`, `trace`, or `txpool` namespaces, and basic reads get a lower rate limit. Use a [node provider](/node-operations/node-providers/) for those namespaces or for higher throughput.
 :::
 
 ## Connecting with common tools

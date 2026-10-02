@@ -105,7 +105,16 @@ A single-block range collapses the aggregate proposal into the lone per-block pr
 
 ### enclave_signerAttestation
 
-Takes optional `user_data` and `nonce` byte arguments. The NSM hardware caps each at 512 bytes, and oversize values are rejected at the host RPC layer before reaching vsock. The host returns one raw `COSE_Sign1` document per configured enclave, in the same order as `enclave_signerPublicKey`. The registrar uses this endpoint to bind each enclave's signer to a fresh attestation before submitting it onchain.
+The call is `enclave_signerAttestation(user_data, nonces)`. Both arguments are optional:
+
+| Argument | Type |
+| --- | --- |
+| `user_data` | `Option<Vec<u8>>` |
+| `nonces` | `Option<Vec<Vec<u8>>>` |
+
+`nonces` is now a list with one entry per enclave, not a single shared value. The host puts the same `user_data` into every attestation and hands out the nonces in `enclave_signerPublicKey` order. If you pass `nonces`, the list length must equal the number of configured enclaves. If you leave it out, no enclave gets a nonce. The NSM hardware allows 512 bytes for `user_data` and 512 bytes per nonce. A wrong nonce count or an oversized value fails with JSON-RPC error `-32602` before anything crosses vsock.
+
+The host returns one raw `COSE_Sign1` document per configured enclave, in that same order. The registrar sends each signer its own [deterministic challenge](/specifications/registrar/), which ties the attestation to one registry and one signer before it goes onchain.
 
 ## Proof pipeline
 

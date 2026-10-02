@@ -9,6 +9,10 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-10-08 — mainnet.base.org loses debug, trace, and txpool (scheduled)
+
+From Thursday, October 8th at 12:00 UTC, the free public endpoint `https://mainnet.base.org` stops answering the `debug`, `trace`, and `txpool` namespaces. Reads that remain get a tighter rate limit. The endpoint stays free and best-effort for basic reads. The notice went up on October 1 and gives a window that ends October 9 at 12:00 UTC. Any app that calls those namespaces on the public host, or needs more throughput than the new limit allows, must move to a dedicated [node provider](/node-operations/node-providers/) before the 8th.
+
 ### 2026-10-05 — V1 node snapshots retired (scheduled)
 
 Starting Monday, October 5th at 12:00 UTC, Base will no longer publish V1 node database snapshots, and the V1 snapshots already out there stop being provided. The notice, posted on September 29, gives a 24-hour window ending October 6 at 12:00 UTC. Operators who still restore from V1 need to move to the V2 snapshots at chain.base.org/snapshots; see [Snapshots](/node-operations/snapshots/) for the restore steps.
