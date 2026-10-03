@@ -106,6 +106,9 @@ Alongside the tests, `just ci` and `just pr` run a set of static checks:
 | `no_std` (proof) | `etc/scripts/ci/check-no-std-proof.sh` | The same, for the bare-metal FPVM proof crates |
 | Feature flags | `zepter format features && zepter` | Validates Cargo feature propagation across the workspace |
 | Links | `lychee --config ./lychee.toml .` | Looks for dead links repository-wide |
+| Docs index | `python3 etc/scripts/local/docs-index.py check` | Fails if any Markdown doc is missing from `llms.txt` and `llms-full.txt`, if its reviewed summary is absent or out of date, or if either generated file is stale |
+
+The docs index check is the newest of these. The manifest at `etc/docs-index.toml` holds one summary per doc, plus a digest of the doc as it was when someone last reviewed that summary. Edit a doc and the check fails until its summary is re-read and the new digest is recorded with `stamp <path>`. For a new, moved, or deleted doc, run `sync` instead.
 
 Every one of these has its own `just check::<name>` recipe — `just check::clippy`, `just check::udeps`, and so on. Run `just check` for the full list, and `just fix` to auto-repair formatting, clippy, and zepter issues where that is possible.
 

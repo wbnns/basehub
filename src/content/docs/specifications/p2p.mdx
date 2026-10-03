@@ -374,6 +374,17 @@ A node that is not the sequencer cannot include transactions itself, so whatever
 
 The [`DestinationReader`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/reader/task.rs) polls the transaction pool for pending transactions and queues them onto a bounded `tokio::mpsc` channel. The [`DestinationForwarder`](https://github.com/base/base/blob/main/crates/execution/tx-forwarding/src/forwarder/task.rs) drains that queue and relays each transaction to the configured builder endpoints through a custom JSON-RPC method (`base_insertValidatedTransaction`). A separate forwarder task is spawned for each builder URL, so several downstream builders can be fed at once. Both halves of the pipeline run in the background, scheduled on the node's task executor.
 
+On `main` after `v1.4.2` (#5479), the reader no longer queues purely by arrival. It fills each builder's queue from two lanes. A fixed share of picks, 20% by default, goes to the oldest pending transaction. Every other pick goes to the highest tip-per-gas bid, ranked by the same `coinbase-tip` ordering the builder uses. The picks alternate, so at the default one transaction in five comes from the oldest-first lane.
+
+This only matters when a destination falls behind. With no backlog, everything pending fits in the next batch and the lanes change nothing. During a burst, a late high bid now goes out in the next batch rather than waiting behind the queue. The oldest-first share keeps low bids moving, so they slow down but do not starve. In both lanes, only a sender's earliest unsent transaction is eligible, so each sender's transactions still go out in nonce order.
+
+Order is fixed once a transaction enters the queue. The queue is now two batches deep by default (200 at the default batch size of 100), so the order is chosen close to the send. Under a deep backlog the reader reuses a pool snapshot for up to 10ms, so a new arrival can wait that long before it is considered. Two flags control this, and both need `--enable-tx-forwarding`:
+
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `--tx-forwarding-fifo-percent` | `20` | Share of picks taken oldest-first, from `0` to `100`. `100` gives pure arrival order |
+| `--tx-forwarding-queue-capacity` | 2x the batch size | Per-builder queue depth. A deeper queue fixes the order earlier |
+
 ### EL P2P configuration flags
 
 The execution layer P2P is configured through Reth's standard network flags plus Base-specific rollup flags defined in [`args.rs`](https://github.com/base/base/blob/main/crates/execution/node/src/args.rs). Key flags:

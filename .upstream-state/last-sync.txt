@@ -1,20 +1,20 @@
 ## Upstream snapshot
 
-Generated 2026-10-02T03:05:10Z
+Generated 2026-10-03T03:03:30Z
 
-### base/base @ d1cd95c
+### base/base @ fad992a
 
 4746b63853f013bd6357839355861cbde0104c1f  docs/transaction-events/README.md
-6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 a19f2054c31cbbbca8ba06e16bfb4569c2cbe529  docs/guides/RELEASE.md
 b37a296671cfa4e52694880f773af13c584f0119  docs/guides/SNAPSHOT_BENCHMARKS.md
+be2fb5397527d4c4075f9229133280507f3efde9  docs/guides/TESTING.md
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 
-### base/docs @ e4a4983
+### base/docs @ 78ef9cd
 
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
 016665db95f8ad8300a0160c890b8f1514648036  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -287,7 +287,6 @@ d6013a6efcbf61946404ef21f8a4dda4666e8172  docs/upgrades/fjord/exec-engine.mdx
 d678dd48ca4417f056f6b2b38fe7dbcdbd1f19e0  docs/specifications/b20/reference/interfaces/ib20-factory/is-b20-initialized.mdx
 d6a3c74f14cb178c9002d07aa874ab5f59b8173a  docs/sdks/base-anvil.mdx
 d892091279d3a42853ce1c468ed689832cb57492  docs/specifications/b20/reference/interfaces/ib20-asset/to-raw-balance.mdx
-d8da1defd320a7fda451c2531911f5246291b2f8  docs/specifications/base-protocol/execution/precompiles.mdx
 d8f9fe3ab2cd80903564d6851802412d7ffed931  docs/specifications/reference/smart-contracts.mdx
 d9d9f9351d5eb52005c08789618f11610c5bcee8  docs/specifications/reference/base-contracts.mdx
 dc5ce2d4762331685a8f729743b3cca420ebe702  docs/specifications/b20/reference/interfaces/ib20/mint-with-memo.mdx
@@ -303,6 +302,7 @@ e428febcbeec62098bdc024aa56e95431e9e82f1  docs/specifications/b20/reference/inte
 e62537023c5af29dc74e951b748ec4bfc7cb3b99  docs/base-chain/network-information/configuration-changelog.mdx
 e64f5750f43cbe1e469a19cf339fec16669dcb91  docs/base-chain/api-reference/rpc-overview.mdx
 e6aacf5248bb0f2a0f1ec0afdc6d86720602e9f2  docs/build-on-base/issue-stablecoins/recover-funds.mdx
+e762b66991b78dc94f29d854939b5882607cd954  docs/specifications/base-protocol/execution/precompiles.mdx
 e7fca6e85d4561b7e4931486a7725e1051ff1d03  docs/specifications/base-protocol/proofs/zk-prover.mdx
 e835ff244a4d3c63c26b1567af1d0629254dc2d1  docs/upgrades/isthmus/overview.mdx
 e9637e6f9496223aa315284eb0b9ab33d41e3116  docs/specifications/build-transaction/troubleshooting.mdx

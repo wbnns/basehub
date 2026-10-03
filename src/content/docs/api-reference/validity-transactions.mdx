@@ -149,6 +149,8 @@ These limit flags were renamed in `v1.4.2`, and the old names are gone rather th
 
 A bound equal to the block currently being built is fine. The transaction can still land in a later Flashblock of that same block.
 
+Once the block named by the bound is committed, the node drops the transaction from its pool, because no later block can include it. Before #5333 the node kept it for one more block. During that block the node still forwarded it and still counted it against admission capacity. The fix is on `main` after `v1.4.2` and is in no tagged release yet.
+
 <Aside type="caution">
 Compute the bound at submission time, not at signing time. A bound derived from a stale head can fall behind the build target while you are still preparing the request, and the node rejects it rather than holding it.
 </Aside>
