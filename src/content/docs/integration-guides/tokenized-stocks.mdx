@@ -56,7 +56,7 @@ The Beryl names still work. `multiplier()` and `scaledBalanceOf(account)` stay c
 
 ### Policies
 
-Where an asset carries regulatory obligations, the issuer can attach [policies](/specifications/b20/#policy-registry) — allowlists and blocklists that decide, per transfer, whether it proceeds or reverts. To check an account ahead of time, call `isAuthorized(policyID, account)`.
+Where an asset carries regulatory obligations, the issuer can attach [policies](/specifications/b20/#policy-registry) — allowlists and blocklists that decide, per transfer, whether it proceeds or reverts. To check an account ahead of time, call `isAuthorized(policyID, account)`. It always returns an answer, even for an ID that was never created, so confirm `policyExists(policyId)` before you trust the result.
 
 <Aside type="note">
 `approve()` is not policy gated. An allowance can exist for funds that a policy will refuse to move, so a successful approval check is not evidence that the transfer will clear.

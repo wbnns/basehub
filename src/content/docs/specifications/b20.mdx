@@ -106,7 +106,7 @@ Two reserved IDs work without being created first:
 | `UNION` | Denies everyone (no child authorizes) |
 | `INTERSECT` | **Authorizes everyone** (no child declines) |
 
-A malformed ID — one whose type byte exceeds `INTERSECT` — is treated as unauthorized rather than reverting.
+A malformed ID — one whose type byte exceeds `INTERSECT` — is treated as unauthorized rather than reverting. From Denim, the registry drops the invert flag (bit 63) before it reads the type byte. An inverted ID returns the opposite of its base when the base exists, and `false` when the base is unknown or malformed. A B20 token rejects any ID that does not exist in `updatePolicy`, so this empty-set behavior reaches only callers that query the registry with IDs they never checked. Store an ID only after `policyExists` confirms it.
 
 From [Denim](/specifications/denim-overview/), bit 63 gains a meaning of its own: it inverts the policy. An ID with that bit set authorizes exactly the accounts its base rejects, and it reads as `false` when the base does not exist. `invertedPolicyId(policyId)` toggles the bit. Until Denim activates, the same ID is simply malformed and denies everyone, so a slot bound to one changes behaviour at the fork. The [precompile reference](/api-reference/b20-precompiles/#arriving-with-denim) has the details.
 

@@ -46,6 +46,8 @@ A seize runs only if all three of these pass:
 `SEIZE_EXEMPT_POLICY` works backwards compared with the transfer scopes. A holder the policy authorizes is protected. Attach a **blocklist** so only listed accounts become seizable. An allowlist, or `ALWAYS_BLOCK`, authorizes nobody by default, which turns every holder into a seize target.
 </Aside>
 
+On this scope, a `false` from `isAuthorized` exposes the holder. `isAuthorized` gives `false` for a malformed ID, and from Denim also for an inverted ID whose base is unknown or malformed. The token itself rejects a missing ID in `updatePolicy` with `PolicyNotFound`. If your tooling computes or stores IDs before it attaches them, still check `policyExists` first, so a typo fails at the call and not on a holder.
+
 ### Freezing does not make an account seizable
 
 Seize reads its own scope and ignores the transfer scopes. Two common setups leave an account frozen but still out of reach:

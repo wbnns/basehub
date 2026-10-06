@@ -184,12 +184,15 @@ Admission caveat: `TXPOOL_SEND_RAW_TRANSACTION` and `TXPOOL_SEND_RAW_TRANSACTION
 
 Forwarding:
 
+- `TXPOOL_BUILDER_CONSUMED`
 - `TXPOOL_BUILDER_FORWARD_ATTEMPT`
-- `TXPOOL_BUILDER_FORWARD_SUCCESS`
+- `TXPOOL_BUILDER_FORWARD_SUCCESS` (retired)
 - `TXPOOL_BUILDER_FORWARD_FAILURE`
 - `TXPOOL_BUILDER_FORWARD_DROPPED`
 - `TXPOOL_VALIDATED_INSERT_ACCEPTED`
 - `TXPOOL_VALIDATED_INSERT_REJECTED`
+
+A mempool node sends every pending transaction to each configured builder. While the transaction stays pending, it sends it again every `--tx-forwarding-resend-after-ms` (default `4000`, about two blocks). Each time a transaction is queued for a builder, the node writes one `TXPOOL_BUILDER_CONSUMED` per destination, with the builder URL folded into its event ID. That event now stands in for the first send, so `TXPOOL_BUILDER_FORWARD_ATTEMPT` appears only on RPC retries (`data.attempt` >= 1). Delivery is confirmed on the other side: the builder writes `TXPOOL_VALIDATED_INSERT_ACCEPTED` with its host in the event ID, and the mempool node no longer writes `TXPOOL_BUILDER_FORWARD_SUCCESS`. Join on the builder's accept event, not on a forward success. This change (#5521) is on `main` only and is not in `v1.4.2`.
 
 `TXPOOL_BUILDER_FORWARD_DROPPED` is reserved for transaction-scoped drops where the forwarding task still has the `tx_hash` in hand, such as a final RPC failure after the retries are exhausted. Broadcast lag is deliberately kept out of the journal and stays visible only through logs and metrics.
 

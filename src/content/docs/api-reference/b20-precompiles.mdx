@@ -217,7 +217,7 @@ The singleton registry holding every policy, keyed by `uint64 policyId`.
 | `stageUpdateAdmin` | `0x1d7ae695` | Nominates a replacement admin for `policyId`. The sitting admin keeps control until the handover completes. |
 | `finalizeUpdateAdmin` | `0x33031a9c` | Closes out the two-step handover. The caller becomes admin and the pending slot empties. |
 | `renounceAdmin` | `0xefdb7fa3` | Gives up the policy permanently, which freezes its membership and children from then on. |
-| `isAuthorized` | `0x55a1179e` | Whether `account` clears `policyId`. It never reverts, and an unknown ID behaves as an empty set. |
+| `isAuthorized` | `0x55a1179e` | Whether `account` clears `policyId`. It never reverts. A malformed ID gives `false`, and a well-formed ID that was never created behaves as an empty set. |
 | `policyExists` | `0x330f5637` | Whether `policyId` is a built-in sentinel or an ID that was actually handed out. It never reverts. |
 | `policyAdmin` | `0x09dd0a47` | The sitting admin for `policyId`, or the zero address for built-ins. |
 | `pendingPolicyAdmin` | `0x017548b7` | The nominated admin for `policyId`, or the zero address when nothing is staged. |
@@ -228,6 +228,18 @@ The singleton registry holding every policy, keyed by `uint64 policyId`.
 <Aside type="caution">
 `isAuthorized` treats an ID that was never created as an empty set instead of reverting. So before you write a policy ID into a token slot, check `policyExists` yourself — unless the ID is a built-in.
 </Aside>
+
+Every ID shape gets an answer, and none of them revert:
+
+| Policy ID | `isAuthorized` result |
+|---|---|
+| Malformed (top byte outside `PolicyType`) | `false` |
+| Well-formed, never created, `ALLOWLIST` or `UNION` | `false`, because an empty set lets nobody through |
+| Well-formed, never created, `BLOCKLIST` or `INTERSECT` | `true`, because an empty set stops nobody |
+| Inverted, base exists (from Denim) | The opposite of the base result |
+| Inverted, base never created or malformed (from Denim) | `false` |
+
+The token guards its own slots: `updatePolicy` reverts with `PolicyNotFound` when `policyExists` is false, so a B20 scope can never point at a missing ID. The empty-set rows matter for your own contracts and off-chain checks that call `isAuthorized` directly and store IDs without that guard. An unknown `BLOCKLIST` or `INTERSECT` ID there quietly lets everyone through.
 
 ## IActivationRegistry
 
@@ -484,10 +496,10 @@ The rule is narrower than it first sounds, and the distinction is the part worth
 
 **Inverted policy IDs.** Denim moves the policy registry to its third version, which treats bit 63 of a policy ID as a NOT flag. Setting it gives you the complement of an existing policy without building a second member set: bind the inverted ID to a token scope, or hand it to a composite as a child to express "A AND NOT X". It works on all four types. Membership stays on the base policy, so editing the base changes the inverse too. The one new selector is `invertedPolicyId(uint64 policyId) external pure returns (uint64)`, which flips the bit either way. You can also set it by hand.
 
-On an inverted ID, `isAuthorized` returns the negation of the base, except when the base does not exist: then it returns `false`. That fail-closed rule stops a mistyped inverted ID from turning into allow-everyone. `policyExists` and `policyAdmin` ignore bit 63 and answer for the base, because an inverted ID has no record of its own.
+On an inverted ID, `isAuthorized` returns the negation of the base, except when the base is unknown or malformed: then it returns `false`. The registry clears bit 63 before it checks the type byte, so an inverted ID counts as malformed only when its base does. That fail-closed rule stops a mistyped inverted ID from turning into allow-everyone. `policyExists` and `policyAdmin` ignore bit 63 and answer for the base, because an inverted ID has no record of its own.
 
 <Aside type="caution">
-The same stored ID means two different things either side of Denim. Before the fork, bit 63 puts the type byte above `INTERSECT`, so the registry reads the ID as malformed: `isAuthorized` returns `false` for every account and `policyExists` returns `false`. After the fork, that ID authorizes everyone the base policy rejects. A slot bound to an inverted ID ahead of activation goes from deny-all to the complement at the fork block, with no transaction marking the change. And `invertedPolicyId` itself reverts with an unknown-selector error until then.
+The same stored ID means two different things either side of Denim. Before the fork, bit 63 puts the type byte above `INTERSECT`, so the registry reads the ID as malformed: `isAuthorized` returns `false` for every account and `policyExists` returns `false`. After the fork, that ID authorizes everyone the base policy rejects. You cannot stage one early: because `policyExists` is false, `updatePolicy` and composite create and update calls all revert with `PolicyNotFound` before Denim. Only contracts that store IDs without that check see the flip from deny-all to the complement at the fork block. And `invertedPolicyId` itself reverts with an unknown-selector error until then.
 </Aside>
 
 ## What changes for integrators at Cobalt
