@@ -1,10 +1,10 @@
 ## Upstream snapshot
 
-Generated 2026-10-06T03:03:33Z
+Generated 2026-10-07T03:04:38Z
 
-### base/base @ 3bdeea0
+### base/base @ e4a402d
 
-651a478f549bbb028ce9addca89a9f7b377faad2  docs/transaction-events/README.md
+117c8f7bba6a543791be4f046e76e0531497823c  docs/transaction-events/README.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
@@ -14,7 +14,7 @@ be2fb5397527d4c4075f9229133280507f3efde9  docs/guides/TESTING.md
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 
-### base/docs @ 39612e1
+### base/docs @ e810c79
 
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
 016665db95f8ad8300a0160c890b8f1514648036  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -55,6 +55,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 1d10a44cdd4f52d80422bb14235751ec6b1872dc  docs/base-chain/api-reference/flashblocks-api/base_transactionStatus.mdx
 1f051bc65ceb9257b22fcdf86d1bfa019bfd8f58  docs/specifications/transactions/transaction-finality.mdx
 1f7a7d0914879b3f61cdb5cf1d825c7c7d9ca5b0  docs/specifications/b20/reference/interfaces/ib20/transfer-sender-policy.mdx
+1f989b6668f24a2cf6d71ea5a018666b7766372a  docs/specifications/build-transaction/base_sendRawTransactionValidity.mdx
 1f9907f59a5a6d8fbd0414ddefa69f3b60a9f005  docs/specifications/b20/reference/constants.mdx
 1fb61dad887c7cf13232dd5715d25c00998ccfa2  docs/base-chain/api-reference/flashblocks-api/pendingLogs.mdx
 1fbfc344043ae799c04799964e1dbdbfb0529055  docs/specifications/transactions/throughput-and-limits.mdx
@@ -89,7 +90,6 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 38b6e18452ef65990456712822b12145b7b2bf57  docs/specifications/transactions/transaction-ordering.mdx
 398976834229846d72bf8e3dbf5f61233995beff  docs/specifications/b20/reference/interfaces/i-policy-registry/update-composite.mdx
 3abd730d4a58f0766a439f74051e6d7054019df7  docs/specifications/b20/reference/interfaces/ib20/contract-uri.mdx
-3ac3cabe8d44b3de57f50e2d79a03dc4b2955f92  docs/specifications/builder-codes/for-app-developers.mdx
 3c04f1e2b53d0b49cd7295193639eb22c9512e3a  docs/sdks/tokenized-stocks/api-reference/list-tokenized-stocks.mdx
 3c56729c4561fb8c1013215c23c5f5e89c6d5c68  docs/specifications/base-protocol/bridging/deposits.mdx
 3ca097acd11119f6aee25780b0b05fc18a452c29  docs/specifications/reference/glossary.mdx
@@ -102,11 +102,10 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 41191fc1f7d9ca0abf5bcae5ae7b79011014a56c  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByHash.mdx
 41465103a1ff1271a516b570c9a4ee8c60c0c17a  docs/sdks/overview.mdx
 42e77f00935a5146cf9334d5332e73893ee6ea24  docs/upgrades/ecotone/overview.mdx
-435947850f3449c97f331af4b0816c06da332463  docs/specifications/build-transaction/build-a-validity-transaction.mdx
+42f6ec3dba080cd9b65aca333bcfa80fab4fe175  docs/specifications/builder-codes/for-app-developers.mdx
 439d2aedc363b556b7a75fcb7f5e7ed9a39e7c5c  docs/upgrades/azul/overview.mdx
 4402a4d40ecfac8db4a7e5e9eaa16a4a829b4442  docs/specifications/base-protocol/proofs/proof-contracts.mdx
 44d6f88542bfeaebb80c40b6e4869527b4310f69  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getStorageAt.mdx
-44feec93b9affcdd7c78b85ae1709a531acbcd66  docs/specifications/builder-codes/for-agent-developers.mdx
 450d08192e71d836447faf8b49fbf84c2b8cdb88  docs/specifications/b20/reference/interfaces/ib20/transfer-from-with-memo.mdx
 45c9180dcebc38413f475d0a5d0c62d121995072  docs/specifications/base-protocol/design-goals.mdx
 4668d1ba12088112240c556f4043318465cb52e6  docs/specifications/b20/reference/interfaces/ib20/update-supply-cap.mdx
@@ -128,6 +127,8 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 4dc9d89cf491688c7b8d3e9fec9a713a3cf557b3  docs/specifications/b20/reference/interfaces/ib20/transfer-from.mdx
 50b47938713e14b33649a4c96a104a70871ec062  docs/build-on-base/accept-payments/make-a-simple-payment.mdx
 526abc24a9bf7268d91bb97eddd0479ac1059827  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
+52bc1fc608e9041d23c84b352052eaa9bd70b4ad  docs/specifications/build-transaction/predicates-and-safety.mdx
+52df5de40749e51def561777585f1fc8787db555  docs/specifications/builder-codes/overview.mdx
 53e57f15ee184f698c696c094401c0687e68fdea  docs/specifications/base-protocol/proofs/proposer.mdx
 54578014d4e43346e4ebb368213bac64e369f432  docs/build-on-base/integrate-defi/integrate-trading.mdx
 545b356d47b51b4d8e96272b87c5e91d5dc5a842  docs/specifications/b20/reference/interfaces/ib20/update-policy.mdx
@@ -192,9 +193,9 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 83447e6e64649d627394731776ad0bc0e84b5e5e  docs/build-on-base/test-on-vibenet.mdx
 85558d255d016656d54a4ad31ab6c26119ab44b1  docs/specifications/node-operators/run-a-node.mdx
 86ac9f88cf1941db06e486d3d9b78c1e8b31040d  docs/specifications/node-operators/snapshots.mdx
-8790caa116b0073d3b731aa8f1033f686e3e5e0a  docs/specifications/build-transaction/base_sendRawTransactionValidity.mdx
 87bcf0686df805bbe1fa5cb3e669fd2fc4fa2084  docs/specifications/b20/reference/interfaces/ib20/total-supply.mdx
 88b80350257ce4e0ca3bdbd53094a5507678a286  docs/upgrades/isthmus/derivation.mdx
+894f212d20abdda4d6f588f160aeaee3a2ae823d  docs/specifications/build-transaction/validity-transactions.mdx
 8a905ec38590c825d65323a62c73225fd7c3b0f1  docs/upgrades/holocene/system-config.mdx
 8ae26ac41e7331af9e320884287d32b31ff491ed  docs/specifications/transactions/troubleshooting-transactions.mdx
 8c0d33d22eac2334b404f452b25ee1e27105640e  docs/build-on-base/issue-rwa/restrict-eligible-holders.mdx
@@ -209,7 +210,6 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 94a9a798c8a35221f0ec951c54755f936eb1675a  docs/upgrades/denim/migrate-from-flashblocks.mdx
 952da7288f94d2c939f6524512cd2e4b2cbf7c85  docs/specifications/b20/reference/interfaces/ib20/set-role-admin.mdx
 95a7cc3393c5123908f727a07eaaf430e99fb47e  docs/upgrades/denim/200ms-blocks.mdx
-95ac1de6f31a9be871a89ca6dbae4a228743800d  docs/specifications/builder-codes/overview.mdx
 968d401427adbe4bd591d5aeeb8fd343c5fdc7aa  docs/upgrades/azul/proofs.mdx
 97f9f57634ecf6508646905c7ea321773912f837  docs/specifications/b20/reference/interfaces/ib20/burn-role.mdx
 9849a203678aec827c73f25980f3004bab574426  docs/specifications/b20/reference/interfaces/ib20/policy-id.mdx
@@ -220,6 +220,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 9bb0273e880d643992b38af3d0e9a16e2b678a1c  docs/specifications/b20/reference/interfaces/i-policy-registry/create-policy-with-accounts.mdx
 9e46c7976879aea3606c5f3d0fb72cf3f69c6b97  docs/build-on-base/issue-rwa/apply-a-multiplier.mdx
 a0f713c5f87b710f37523cc29ad4509ed9fc8b56  docs/specifications/b20/reference/interfaces/ib20/burn.mdx
+a1b4c796c38d7d0f13164acb3b0f9d27dd3656ac  docs/build-on-base/issue-rwa/create-an-asset-token.mdx
 a1bd2165c36637ba2d5b3e45eb83d79767042936  docs/specifications/b20/reference/interfaces/ib20-asset/operator-role.mdx
 a29012e62cfadf35c7487645096216ebe6f7260d  docs/specifications/b20/reference/interfaces/ib20/default-admin-role.mdx
 a2de2cde8d8d894a6213e590bea9e284f87033d3  docs/base-chain/network-information/bridging-and-withdrawals.mdx
@@ -238,7 +239,6 @@ b091321ea37687e81120a8099bb74b15d9d66e64  docs/specifications/b20/reference/inte
 b10616b563d38e9670bd4b2317f1079d54c3555e  docs/specifications/b20/reference/interfaces/i-activation-registry/is-activated.mdx
 b1772097ac915ee0ec99bf54419b54f78cdf970f  docs/base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize.mdx
 b1d453aaabafb5eb94abb9828b1210224ce3a86e  docs/specifications/b20/reference/interfaces/ib20/symbol.mdx
-b1e7d619946358b9dc721f06da8fce9688f4faae  docs/specifications/build-transaction/predicates-and-safety.mdx
 b3cf2bdaf625c56a023187e5b9f4eb64a8fd6de3  docs/specifications/b20/reference/interfaces/ib20/supply-cap.mdx
 b801fd84b7f488f6794ab804209ab6148afce065  docs/upgrades/holocene/exec-engine.mdx
 b80b94e1fb819ec146d5c6628f4dbe0fa9bd9edc  docs/upgrades/azul/exec-engine.mdx
@@ -266,19 +266,17 @@ c981e4efdb783e576883a6656956af9f3e4c8d22  docs/specifications/base-protocol/proo
 cab6e5efd744299caf877f2b73cbc835e6c6a56c  docs/specifications/base-protocol/execution/preinstalls.mdx
 cb0372c39a8410f5eababb2e10efe02e1a37c4e6  docs/upgrades/isthmus/predeploys.mdx
 cb2f10f48e1ed1143247816c541f6fc31cb1df7e  docs/base-chain/api-reference/flashblocks-api/flashblocks-api-overview.mdx
-cdbb0734223d7eb205a1ef505b9e06958951cfe7  docs/specifications/build-transaction/validity-transactions.mdx
 cdc0cc0b5ba37d0a1e403f19ce919386cfb75924  docs/specifications/b20/reference/interfaces/ib20-asset/update-ui-multiplier.mdx
 ce53535b88a3eb80affcede0f1d6e6cc1b3e2b68  docs/specifications/b20/reference/interfaces/i-activation-registry/check-activated.mdx
 ce6f542b42a66ff98915dedcdf1666eeacea4b1e  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByNumber.mdx
 ceff2bbebd37298e2dcda812b8d6dba4c4a7aa34  docs/specifications/b20/reference/interfaces/ib20-stablecoin/index.mdx
 cf0551cdf5bd61eef91963df6e12882e309baf20  docs/specifications/b20/reference/interfaces/i-activation-registry/index.mdx
 cf4ca40723097972a9420acde89fe7d12fc6ebc5  docs/upgrades/holocene/overview.mdx
-d096000c6a26657aa07f477795143df4c564bb02  docs/upgrades/cobalt/overview.mdx
 d11aa1753c49712f85d37df36e608e693165a830  docs/base-chain/api-reference/debug-api/debug_traceBlockByHash.mdx
 d272ce00eddaf5298856304ed3804060597330f6  docs/specifications/b20/reference/interfaces/ib20/burn-blocked.mdx
 d289e151eb2b726dc4eafe59f0df02ed98e05188  docs/specifications/b20/reference/interfaces/ib20-asset/index.mdx
+d4ea1df7d354481b163744226e73a38b9e013128  docs/upgrades/cobalt/overview.mdx
 d54cd7a0c77f995185d8f451172cd541f3bf4c62  docs/specifications/b20/reference/interfaces/i-policy-registry/create-composite-policy.mdx
-d57fbbc25b260c4fe9abf7884bfeefa9b88c1a04  docs/build-on-base/issue-rwa/create-an-asset-token.mdx
 d58753698a5d333b77751bfde6fc1991583d6bb7  docs/upgrades/jovian/system-config.mdx
 d5cbaab083df5e2d9e117752eef232008792dc72  docs/specifications/b20/reference/interfaces/ib20-asset/to-scaled-balance.mdx
 d6013a6efcbf61946404ef21f8a4dda4666e8172  docs/upgrades/fjord/exec-engine.mdx
@@ -309,7 +307,9 @@ e9637e6f9496223aa315284eb0b9ab33d41e3116  docs/specifications/build-transaction/
 e9a806faa5e51c9a904766f1d085aeb104b8bfc7  docs/build-on-base/issue-stablecoins/issue-your-stablecoin.mdx
 e9de1ce6eb3dda1a064d5b24d7449fc28988ae6f  docs/specifications/b20/reference/interfaces/ib20/has-role.mdx
 ea6b8724e0c61fd77c0bc73f90573395ee9b8ab7  docs/specifications/b20/reference/interfaces/ib20-asset/max-ui-multiplier.mdx
+ea9b0291d48d28422c76e098ede9c4a402e8d717  docs/specifications/build-transaction/build-a-validity-transaction.mdx
 eadec53657442eb6dd0644c471231a2b354f43af  docs/specifications/b20/reference/interfaces/ib20/transfer-with-memo.mdx
+eb33cd2034f15ecd694515be8d01c9f0dc38b7aa  docs/specifications/builder-codes/for-agent-developers.mdx
 eca6d45c1452cfd46865e852b93a2f2101f23d14  docs/specifications/base-protocol/bridging/base-solana-bridge.mdx
 ee5f2cbebdb5f091152a3a58deea304e13a45835  docs/specifications/b20/reference/interfaces/ib20/eip712-domain.mdx
 ee88e1e64220786b72ae8aa4452e5917db3444cf  docs/sdks/API_MIGRATION_PLAN.md
@@ -361,7 +361,7 @@ Unm7vkJ9Mn9HUiAmMzA1	Flashblocks Deep Dive: How we made Base 10x faster	Tue, 09 
 ### base-l2.statuspage.io RSS
 
 https://base-l2.statuspage.io/incidents/jrs0dpj60tqz	mainnet.base.org public RPC changes: October 8th, 2026	Thu, 08 Oct 2026 12:00:00 +0000
-https://base-l2.statuspage.io/incidents/jx4p15jppftm	V1 Node Snapshot Deprecation: October 5th, 2026	Mon, 05 Oct 2026 12:00:00 +0000
+https://base-l2.statuspage.io/incidents/jx4p15jppftm	V1 Node Snapshot Deprecation: October 5th, 2026	Tue, 06 Oct 2026 14:00:10 +0000
 https://base-l2.statuspage.io/incidents/zctq4rtnmlxd	Mainnet: Base Cobalt Upgrade - September 30th	Wed, 30 Sep 2026 20:00:08 +0000
 https://base-l2.statuspage.io/incidents/72b9wfwbn2yc	Sepolia Testnet: Base Cobalt Upgrade - September 23rd	Wed, 23 Sep 2026 20:00:07 +0000
 https://base-l2.statuspage.io/incidents/j6y12tshwkcg	Base Mainnet Safe head delayed	Tue, 28 Jul 2026 15:13:23 +0000

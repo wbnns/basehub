@@ -12,7 +12,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 A Builder Code ties onchain activity back to whoever built the thing that caused it. Codes live as an ERC-721 collection, one NFT per code, each holding a short identifier such as `abc123`. The onchain metadata carries a payout address — where rewards would go if the program pays out. Name, site, and similar details sit offchain.
 
-Register at [base.dev](https://base.dev/) to get a code. It appears under **Settings** → **Builder Code**.
+Register a project on [Base Dashboard](https://dashboard.base.org/) to get a code. Base Dashboard is the new name for base.dev, and `base.dev` now redirects there. The code sits under **Settings** → **Project Settings** → **Builder Code**. Switch the format to **Encoded String** there to copy the whole ERC-8021 suffix. It is the same hex that `Attribution.toDataSuffix` returns.
 
 ## The mechanism, in one paragraph
 
@@ -30,7 +30,7 @@ The suffix is appended, not inserted. A contract that reads its calldata by ABI 
 
 ## For app developers
 
-An app registered on [base.dev](https://base.dev/) gets attribution inside the Base App for free — the Base App appends your code to transactions its users make through your app or its browser. That feeds your analytics and counts toward any future rewards.
+An app registered on [Base Dashboard](https://dashboard.base.org/) gets attribution inside the Base App for free — the Base App appends your code to transactions its users make through your app or its browser. That credits the activity to your project and counts toward any future rewards.
 
 Everything outside the Base App is on you. If users reach your app on the web or through another client, wire up `dataSuffix` yourself to capture that traffic.
 
@@ -52,7 +52,7 @@ import { createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { Attribution } from "ox/erc8021";
 
-// Get your Builder Code from base.dev > Settings > Builder Codes
+// Get your Builder Code from Base Dashboard > Settings > Project Settings > Builder Code
 const DATA_SUFFIX = Attribution.toDataSuffix({
   codes: ["YOUR-BUILDER-CODE"],
 });
@@ -105,7 +105,7 @@ import { createWalletClient, http } from "viem";
 import { base } from "viem/chains";
 import { Attribution } from "ox/erc8021";
 
-// Get your Builder Code from base.dev > Settings > Builder Codes
+// Get your Builder Code from Base Dashboard > Settings > Project Settings > Builder Code
 const DATA_SUFFIX = Attribution.toDataSuffix({
   codes: ["YOUR-BUILDER-CODE"],
 });
@@ -216,7 +216,7 @@ Putting the suffix on the wrong field is the failure mode worth guarding against
 
 ## For agent developers
 
-Agents transact on their own schedule, with no human pressing a button per transaction. Without a code that activity is anonymous; with one it rolls up under your identity in the Base registry, feeding analytics in [base.dev](https://base.dev) and making the agent eligible for discovery surfaces such as the App Leaderboard.
+Agents transact on their own schedule, with no human pressing a button per transaction. Without a code that activity is anonymous; with one it rolls up under your identity in the Base registry, where anyone can measure it from chain data, and making the agent eligible for discovery surfaces such as the App Leaderboard.
 
 The mechanics are the ones described above — an ERC-8021 suffix, ignored by contracts, recovered by indexers, 16 gas per non-zero byte.
 
@@ -268,6 +268,96 @@ Two independent checks:
 
 Upstream used to list the base.dev dashboard as a third check. It removed that step on 2026-10-01, so rely on the onchain data instead.
 
+## Measuring your own users
+
+Base Dashboard reports a narrow set of numbers from your code's activity: spot trading volume, borrow TVL, and lending TVL. It does not report users, retention, or funnels. For those you join two data sets yourself. One is what your app sees in the browser. The other is the attributed transactions onchain. The connected wallet address, in lowercase, is the join key. The transaction hash links each submit to its result.
+
+| Metric | What to count | Where it comes from |
+| --- | --- | --- |
+| Daily, weekly, and monthly active users | Distinct addresses that connected, or that sent a successful attributed transaction | The `eth_requestAccounts` result; the sender and status of each transaction |
+| D1, D7, and D30 retention | Each address's first-seen date, and whether it returned later | Block timestamp of the address's first successful attributed transaction |
+| Conversion funnel | Open, connect, submit, success, joined on address and hash | Page load, `eth_requestAccounts`, the hash or call bundle ID from submit, the receipt |
+| Attributed onchain activity | Transactions whose ERC-8021 suffix holds your code | Transaction `input`, or each UserOperation's `callData` |
+
+Capture the browser side at each step:
+
+- **Open.** Read the acquisition source from URL parameters such as `utm_source` or `ref`, and from `document.referrer`. Do it on the first load, because client-side navigation discards them.
+- **Connect.** A resolved `eth_requestAccounts` call. Error code `4001` means the user said no.
+- **Submit.** `eth_sendTransaction` returns a transaction hash. `wallet_sendCalls` ([EIP-5792](https://eips.ethereum.org/EIPS/eip-5792)) returns a call bundle ID instead, and `wallet_getCallsStatus` turns it into hashes. Store the hash with the in-app action it stands for (mint, swap, deposit). Error code `4001` here means the user refused to sign.
+- **Success.** Comes from the chain, not the app.
+
+<Aside type="caution">
+Smart accounts move every field. For an ERC-4337 UserOperation, the user is the operation's `sender`, not the outer transaction's `from` (that is the bundler). The suffix sits at the end of the operation's `callData`, inside the EntryPoint `handleOps` call. Success comes from the `success` field of the EntryPoint's `UserOperationEvent` log. The outer receipt can report success while one of the bundled operations reverted, so do not count the receipt.
+</Aside>
+
+The suffix is parsed from the end backwards. First comes the 16-byte marker `0x80218021802180218021802180218021`, then a 1-byte schema ID, then a 1-byte length, then the codes as comma-separated ASCII. So `bc_b7k3p9da` becomes `0x62635f62376b33703964610b0080218021802180218021802180218021`. Compare decoded codes, not raw bytes.
+
+Upstream's helper takes a recorded hash and returns one row per user action, for either account type:
+
+```typescript
+import { createPublicClient, decodeFunctionData, http, isAddressEqual, parseEventLogs, type Hash } from "viem";
+import { base } from "viem/chains";
+import { entryPoint06Abi, entryPoint06Address, entryPoint07Abi, entryPoint07Address } from "viem/account-abstraction";
+import { Attribution } from "ox/erc8021";
+
+const client = createPublicClient({ chain: base, transport: http() });
+
+const BUILDER_CODE = "YOUR-BUILDER-CODE";
+
+export async function getAttributedActivity(hash: Hash) {
+  const [tx, receipt] = await Promise.all([
+    client.getTransaction({ hash }),
+    client.getTransactionReceipt({ hash }),
+  ]);
+
+  const block = await client.getBlock({ blockNumber: receipt.blockNumber });
+  const common = {
+    transactionHash: hash,
+    blockNumber: receipt.blockNumber,
+    timestamp: Number(block.timestamp),
+  };
+
+  // ERC-4337: the outer transaction is sent by a bundler to the EntryPoint.
+  // The user is each UserOperation's sender, and the suffix sits in its callData.
+  const entryPoint =
+    tx.to && isAddressEqual(tx.to, entryPoint07Address) ? { abi: entryPoint07Abi } :
+    tx.to && isAddressEqual(tx.to, entryPoint06Address) ? { abi: entryPoint06Abi } :
+    undefined;
+
+  if (entryPoint) {
+    const { args } = decodeFunctionData({ abi: entryPoint.abi, data: tx.input });
+    const ops = (args?.[0] ?? []) as readonly { sender: `0x${string}`; callData: `0x${string}` }[];
+    const events = parseEventLogs({ abi: entryPoint.abi, eventName: "UserOperationEvent", logs: receipt.logs });
+
+    return ops.map((op) => {
+      const event = events.find((e) => isAddressEqual(e.args.sender, op.sender));
+      return {
+        ...common,
+        sender: op.sender.toLowerCase(),
+        success: event?.args.success ?? false,
+        attributed: Attribution.fromData(op.callData)?.codes?.includes(BUILDER_CODE) ?? false,
+      };
+    });
+  }
+
+  // EOA transaction: the user is tx.from and the suffix is at the end of tx.input.
+  return [{
+    ...common,
+    sender: tx.from.toLowerCase(),
+    success: receipt.status === "success",
+    attributed: Attribution.fromData(tx.input)?.codes?.includes(BUILDER_CODE) ?? false,
+  }];
+}
+```
+
+To backfill, or to catch transactions sent from outside your UI, scan Base blocks (or your contracts' logs via `eth_getLogs`) for calldata that ends in the marker, and decode each hit the same way.
+
+With both sides joined:
+
+1. **Active users.** Count distinct addresses per UTC day, week, or month. Keep connected users and transacting users apart (a transacting user has a row where `success` and `attributed` are both true). The gap between the two is your activation rate.
+2. **Retention.** Put each address in a cohort by the week of its first successful attributed transaction. Then measure what share of each cohort transacts again after 1, 7, and 30 days.
+3. **Funnel.** Count addresses at each stage, split by acquisition source. A drop between submit and success has three causes: a refused signature (`4001`), a revert (`success` is false), or a missing code (`attributed` is false). The last one usually means a client was set up without `dataSuffix`.
+
 ## Wallet support today
 
 Every EOA wallet supports `dataSuffix` as a matter of course. Smart wallets that implement ERC-5792 can carry it through the `DataSuffixCapability`:
@@ -298,4 +388,4 @@ If you need both — attributing activity *and* gating who can perform it — th
 
 - [ERC-8021 proposal](https://eip.tools/eip/8021) — the specification itself.
 - [Builder Code Validation tool](https://builder-code-checker.vercel.app/) — check a hash for attribution.
-- [base.dev](https://base.dev/) — registration, analytics, and your code.
+- [Base Dashboard](https://dashboard.base.org/) — registration, project settings, and your code.

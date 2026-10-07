@@ -84,7 +84,7 @@ One Cobalt rename does break an ABI. The policy scope consulted by `seizeWithMem
 
 A validity transaction is an ordinary signed transaction submitted alongside a list of predicates over chain state. Base holds it out of the block until every predicate matches, then lets it compete for inclusion on normal fee rules. This makes conditional swaps, conditional withdrawals, and similar state-dependent actions expressible without a keeper watching the chain and racing to submit.
 
-The predicates read raw storage slots, block numbers, and Flashblock positions. Cobalt shipped with a balance predicate too, but upstream withdrew it on 2026-10-01 because a relayer could abuse it, so do not build on it. They are submitted out of band and never appear onchain. The [Validity Transactions reference](/api-reference/validity-transactions/) covers the request format, the predicate types, and the safety rules that go with reading storage directly.
+The predicates read account balances, raw storage slots, block numbers, and Flashblock positions. Upstream pulled the balance predicate on 2026-10-01 and restored it on 2026-10-06, and no release ever rejected it. They are submitted out of band and never appear onchain. The [Validity Transactions reference](/api-reference/validity-transactions/) covers the request format, the predicate types, and the safety rules that go with reading storage directly.
 
 ## Dynamic upgrades
 

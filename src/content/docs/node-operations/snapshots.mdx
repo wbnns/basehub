@@ -12,7 +12,7 @@ Restoring from a snapshot drastically reduces initial Base node sync time. Snaps
 Whether you're planning to run a Base node or already operate one, seeding from a snapshot lets you skip most of the initial sync. Work through the steps below carefully.
 
 <Aside type="caution" title="Action required: move to reth V2 storage">
-Operators on Base Mainnet were asked to finish the move to reth V2 storage **by mid-August**. The V1 snapshots now have a hard end date: from **October 5, 2026 at 12:00 UTC**, Base stops publishing V1 node database snapshots and no longer serves the existing ones. Any restore, bootstrap script, or disaster-recovery runbook that still fetches a V1 snapshot stops working then, so switch it to V2 (listed at chain.base.org/snapshots) beforehand.
+Operators on Base Mainnet were asked to finish the move to reth V2 storage **by mid-August**. The V1 snapshots now have a hard end date: from **October 5, 2026 at 12:00 UTC**, Base stops publishing V1 node database snapshots and no longer serves the existing ones. Base marked the retirement complete on October 6, 2026. Any restore, bootstrap script, or disaster-recovery runbook that still fetches a V1 snapshot no longer works. Switch it to V2 (listed at chain.base.org/snapshots).
 
 There are two ways across:
 

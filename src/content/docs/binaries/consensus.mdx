@@ -3,7 +3,7 @@ title: consensus
 description: The Base consensus node binary implementing the OP Stack consensus protocol via Kona.
 ---
 
-import { LinkCard } from '@astrojs/starlight/components';
+import { Aside, LinkCard } from '@astrojs/starlight/components';
 
 `base-consensus` runs the Base consensus layer, implementing the OP Stack consensus protocol on top of the [Kona](https://github.com/op-rs/kona) derivation framework.
 
@@ -45,6 +45,16 @@ The consensus node must be configured with:
 - An L1 Ethereum RPC endpoint for reading rollup data
 - An Engine API endpoint for communicating with the execution layer
 - A P2P configuration for block gossip
+
+### Serving execution methods from the consensus port
+
+By default the consensus RPC answers only its own methods. A call such as `eth_getBlockByNumber` fails with method not found, so a client that needs both layers has to hold two URLs. #5506 adds an opt-in fix: `--rpc.execution-forwarding-endpoint <url>` (env `BASE_NODE_RPC_EXECUTION_FORWARDING_ENDPOINT`). Point it at the execution client's plain, unauthenticated HTTP RPC. There is no default. It works on `base-consensus node`, `base-consensus follow`, `base rpc`, `base follow`, and `base sequencer`.
+
+With the flag set, any method the consensus server does not serve goes to that endpoint unchanged, and its result or error comes back as is. The match is on the exact method name. A method the consensus server serves itself is never forwarded, even if the execution client has one of the same name. Each entry in a batch is routed on its own. Notifications are not forwarded. Forwarded calls share `--rpc.max-concurrent` and `--rpc.timeout` with the server's own requests. If the execution client returns no valid response, or a response over 10 MB, the caller gets a bare `-32603` internal error, and the real cause goes only to the log.
+
+<Aside type="caution">
+The consensus RPC has no authentication. With forwarding on, every method of the execution endpoint is reachable through the consensus port, so firewall that port as tightly as the execution RPC. The Engine API stays out of reach, because the execution client's plain HTTP RPC does not serve it. This flag is on `main` after `v1.4.2` and is in no tagged release yet.
+</Aside>
 
 ## Source
 

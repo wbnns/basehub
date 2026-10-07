@@ -101,6 +101,7 @@ Failures come back as JSON-RPC errors. Handle at least three cases: the method b
 
 | Type | Parameters |
 | --- | --- |
+| `balance` | `address`, `op`, `value` |
 | `storage` | `address`, `slot`, `op`, `value`, optional `mask` |
 | `block_number` | `op`, `value` |
 | `flashblock_index` | `op`, `value` |
@@ -109,8 +110,10 @@ Operators are `<`, `<=`, `=`, `!=`, `>`, and `>=`. Every value is a `0x`-prefixe
 
 For a storage predicate Base compares `(storage[address][slot] & mask)` against `value`. Leave `mask` out to compare the whole storage word; it defaults to all ones.
 
+A balance predicate reads the native ETH balance of `address`, in wei, and compares it with `value`. An address with no account reads as zero. It takes no `slot` and no `mask`.
+
 <Aside type="caution">
-Upstream dropped the `balance` predicate on 2026-10-01, from this table and from every example. Do not use it. The node change behind this (#5463) gives the reason. Predicates sit outside the signature, so a relayer that handles a user's transaction can attach its own balance checks. It can test the user's balance before and after their gas payment, and use that to place transactions right around theirs. Ingress on `main` now answers any `balance` entry with `-32602` and `balance predicate at index N is not supported`. The fix landed after `v1.4.2` and is in no tagged release yet. The builder can still evaluate the variant internally. Upstream says the type can come back for contract accounts if there is demand. For now, express a state condition as a `storage` predicate.
+The `balance` predicate was briefly withdrawn and is now back. Upstream removed it from the docs on 2026-10-01, and #5463 made ingress on `main` reject it. On 2026-10-06 both changes were reverted (#5528 in the node, #2080 in the docs). No tagged release ever carried the rejection, so `v1.4.2` and current `main` both accept `balance`. The reason #5463 gave still holds, though. Predicates are not covered by the signature, so whoever relays your signed transaction can attach a balance check of their own. It can watch your balance move around your gas payment and place its own transactions next to yours. If that matters to you, submit directly rather than through a relayer.
 </Aside>
 
 Use `block_number` to pin a target block and `flashblock_index` to pin a position inside it. Both conditions need their own predicate — one entry cannot express both. The request sample in the Cobalt launch post folds both into a single object with repeated `type` and `params` keys, and it is not valid JSON as printed. Give each predicate its own entry in the `validity` array, as the examples on this page do.
@@ -150,6 +153,8 @@ These limit flags were renamed in `v1.4.2`, and the old names are gone rather th
 A bound equal to the block currently being built is fine. The transaction can still land in a later Flashblock of that same block.
 
 Once the block named by the bound is committed, the node drops the transaction from its pool, because no later block can include it. Before #5333 the node kept it for one more block. During that block the node still forwarded it and still counted it against admission capacity. The fix is on `main` after `v1.4.2` and is in no tagged release yet.
+
+A `flashblock_index` upper bound now expires sooner too (#5477). The node drops the transaction as soon as the last Flashblock it allows is published, instead of waiting for the whole block to seal. This frees the nonce at once. An unbumped replacement with the same nonce can land in a later Flashblock of the same block, which an expired entry used to block. A failed publication does not trigger the drop. This change is also on `main` only.
 
 <Aside type="caution">
 Compute the bound at submission time, not at signing time. A bound derived from a stale head can fall behind the build target while you are still preparing the request, and the node rejects it rather than holding it.
