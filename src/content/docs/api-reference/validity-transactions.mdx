@@ -102,6 +102,7 @@ Failures come back as JSON-RPC errors. Handle at least three cases: the method b
 | Type | Parameters |
 | --- | --- |
 | `balance` | `address`, `op`, `value` |
+| `nonce` | `address`, `op`, `value` |
 | `storage` | `address`, `slot`, `op`, `value`, optional `mask` |
 | `block_number` | `op`, `value` |
 | `flashblock_index` | `op`, `value` |
@@ -111,6 +112,14 @@ Operators are `<`, `<=`, `=`, `!=`, `>`, and `>=`. Every value is a `0x`-prefixe
 For a storage predicate Base compares `(storage[address][slot] & mask)` against `value`. Leave `mask` out to compare the whole storage word; it defaults to all ones.
 
 A balance predicate reads the native ETH balance of `address`, in wei, and compares it with `value`. An address with no account reads as zero. It takes no `slot` and no `mask`.
+
+A nonce predicate works the same way, but on the account's protocol nonce (#5637). That is the ordinary transaction count of `address`, not an EIP-8130 channel nonce. An address with no account reads as zero, and an account deleted during the block also reads as zero. Like `balance`, it takes no `slot` and no `mask`. Use it to make one transaction wait until another account has sent a given number of transactions, or to stop waiting once it has sent too many.
+
+A nonce condition that has been passed does not evict the transaction. Suppose you write `=`, `<`, or `<=` and the nonce then moves above your value. Nonces only go up, so the condition can never match again, but the node still parks the transaction and does not drop it. Only your mandatory `block_number` bound ends its life. Keep that bound tight when you rely on a nonce ceiling.
+
+<Aside type="caution">
+`nonce` is new. It first appears in `v1.5.0-rc.1` (tagged 2026-10-07). `v1.4.2`, the newest final release, decodes predicates strictly and refuses an unknown `type`, so a submission that carries `nonce` fails there. Check the version on the endpoint before you depend on it.
+</Aside>
 
 <Aside type="caution">
 The `balance` predicate was briefly withdrawn and is now back. Upstream removed it from the docs on 2026-10-01, and #5463 made ingress on `main` reject it. On 2026-10-06 both changes were reverted (#5528 in the node, #2080 in the docs). No tagged release ever carried the rejection, so `v1.4.2` and current `main` both accept `balance`. The reason #5463 gave still holds, though. Predicates are not covered by the signature, so whoever relays your signed transaction can attach a balance check of their own. It can watch your balance move around your gas payment and place its own transactions next to yours. If that matters to you, submit directly rather than through a relayer.
@@ -142,7 +151,7 @@ A transaction that never becomes eligible costs nothing onchain. One that is inc
 
 **Expiry is mandatory, and it is bounded on both sides.** Every submission has to carry a `block_number` predicate with an upper bound, written with `<`, `<=`, or `=`. Leave it out and the node refuses the transaction outright. Pair it with `flashblock_index` to tighten the bound to a position within the block.
 
-Only an upper bound counts. A `>`, `>=`, or `!=` comparison on `block_number` does not establish expiry, and neither does a `storage` or `flashblock_index` predicate. State conditions can recover after failing, and the flashblock index restarts every block, so none of them puts a ceiling on how long a transaction can wait. When several `block_number` predicates carry upper bounds, the tightest one decides the lifetime.
+Only an upper bound counts. A `>`, `>=`, or `!=` comparison on `block_number` does not establish expiry, and neither does a `balance`, `nonce`, `storage`, or `flashblock_index` predicate. State conditions can recover after failing, and the flashblock index restarts every block, so none of them puts a ceiling on how long a transaction can wait. When several `block_number` predicates carry upper bounds, the tightest one decides the lifetime.
 
 Two further checks apply once a canonical head exists. A bound already behind the block being built is rejected, because every block it still permits has been sealed. A bound past the node's configured window is rejected as well. That window is 60 seconds of wall-clock time by default, which the node converts into a block count using the current full-block cadence: roughly 30 blocks on two-second blocks, and roughly 300 once Denim's 200ms cadence is active. Operators set it with `--validity-max-expiry-secs`.
 
@@ -150,11 +159,15 @@ Two further checks apply once a canonical head exists. A bound already behind th
 These limit flags were renamed in `v1.4.2`, and the old names are gone rather than aliased. `--experimental-validity-max-predicates`, `--builder.experimental-validity-max-predicates`, and `--experimental-validity-max-expiry-secs` now stop the node at startup. The limits also no longer depend on `--enable-experimental-validity-transactions`, so you can set them ahead of Cobalt without turning the feature on early. Check your launch scripts before you upgrade for the September 30 Mainnet window.
 </Aside>
 
+<Aside type="caution">
+`v1.5.0` removes the switch flags too (#5469). Cobalt is live on every network, so `--enable-experimental-validity-transactions` and `--builder.enable-experimental-validity-transactions` have no job left, and both are gone. A launch script that still passes either one stops at startup on `v1.5.0-rc.1` and later. The RPC-level Cobalt check on `base_sendRawTransactionValidity` and `base_insertValidatedTransaction` is gone as well. An RPC node now registers validity ingress only when it runs with transaction forwarding or with a sequencer URL. Before, the experimental flag alone was enough.
+</Aside>
+
 A bound equal to the block currently being built is fine. The transaction can still land in a later Flashblock of that same block.
 
-Once the block named by the bound is committed, the node drops the transaction from its pool, because no later block can include it. Before #5333 the node kept it for one more block. During that block the node still forwarded it and still counted it against admission capacity. The fix is on `main` after `v1.4.2` and is in no tagged release yet.
+Once the block named by the bound is committed, the node drops the transaction from its pool, because no later block can include it. Before #5333 the node kept it for one more block. During that block the node still forwarded it and still counted it against admission capacity. The fix is not in `v1.4.2`. It first ships in `v1.5.0-rc.1`.
 
-A `flashblock_index` upper bound now expires sooner too (#5477). The node drops the transaction as soon as the last Flashblock it allows is published, instead of waiting for the whole block to seal. This frees the nonce at once. An unbumped replacement with the same nonce can land in a later Flashblock of the same block, which an expired entry used to block. A failed publication does not trigger the drop. This change is also on `main` only.
+A `flashblock_index` upper bound now expires sooner too (#5477). The node drops the transaction as soon as the last Flashblock it allows is published, instead of waiting for the whole block to seal. This frees the nonce at once. An unbumped replacement with the same nonce can land in a later Flashblock of the same block, which an expired entry used to block. A failed publication does not trigger the drop. This change also first ships in `v1.5.0-rc.1`.
 
 <Aside type="caution">
 Compute the bound at submission time, not at signing time. A bound derived from a stale head can fall behind the build target while you are still preparing the request, and the node rejects it rather than holding it.

@@ -1,20 +1,20 @@
 ## Upstream snapshot
 
-Generated 2026-10-07T03:04:38Z
+Generated 2026-10-08T03:03:59Z
 
-### base/base @ e4a402d
+### base/base @ 4028d06
 
-117c8f7bba6a543791be4f046e76e0531497823c  docs/transaction-events/README.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 a19f2054c31cbbbca8ba06e16bfb4569c2cbe529  docs/guides/RELEASE.md
 b37a296671cfa4e52694880f773af13c584f0119  docs/guides/SNAPSHOT_BENCHMARKS.md
+bb3acaa16623851f5fd34911d020254b91b684e5  docs/transaction-events/README.md
 be2fb5397527d4c4075f9229133280507f3efde9  docs/guides/TESTING.md
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 
-### base/docs @ e810c79
+### base/docs @ 7ec9d41
 
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
 016665db95f8ad8300a0160c890b8f1514648036  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -84,7 +84,6 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 2f34ba15db9aebac25e03b0dde145d4258061d98  docs/base-chain/api-reference/ethereum-json-rpc-api/net_version.mdx
 2fb3cb93306b02b6da1af811797514a7800b79a6  docs/specifications/b20/reference/interfaces/i-activation-registry/admin.mdx
 30af868712aedcd64d0a545bc208c7d4e31e50d6  docs/specifications/b20/reference/interfaces/ib20-asset/new-ui-multiplier.mdx
-311237c275267fb74187f8704ca8c9198b2a6ba7  docs/sdks/tokenized-stocks/api-reference/get-token-total-supply.mdx
 31cb49cc4867553b1046684efb808a5146cae9a9  docs/build-on-base/accept-payments/send-a-payout.mdx
 3478941aa6977df628d062c40dd7dc536879c8b3  docs/build-on-base/accept-payments/batch-high-frequency-payments.mdx
 38b6e18452ef65990456712822b12145b7b2bf57  docs/specifications/transactions/transaction-ordering.mdx
@@ -100,6 +99,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 3f49e1ef76ea1de6e2578314bf920db61c8b9593  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByNumber.mdx
 3f9864c2370057880851df98dd95ed17ab2c568b  docs/specifications/base-protocol/execution/predeploys.mdx
 41191fc1f7d9ca0abf5bcae5ae7b79011014a56c  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByHash.mdx
+412b3bbfbbf6256dbc3aafe7c8a4fde5c8f27db6  docs/sdks/tokenized-stocks/api-reference/get-token-total-supply.mdx
 41465103a1ff1271a516b570c9a4ee8c60c0c17a  docs/sdks/overview.mdx
 42e77f00935a5146cf9334d5332e73893ee6ea24  docs/upgrades/ecotone/overview.mdx
 42f6ec3dba080cd9b65aca333bcfa80fab4fe175  docs/specifications/builder-codes/for-app-developers.mdx
@@ -189,6 +189,7 @@ ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 7f03c7e7651a61791bc0ea3fb4eb1373f4fd4a98  docs/upgrades/beryl/b20.mdx
 7f496c03ed78039e5d0c20b9c7b25fd7afc8cced  docs/specifications/b20/reference/interfaces/ib20/seize-role.mdx
 818bcf23bf0c200de3154f92c6055faeafebb2f1  docs/specifications/b20/reference/interfaces/ib20/get-role-admin.mdx
+81e2586dd1dd58cbbc95f3f72336f883a0069039  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
 82dbf460d4aa43fc0b6f942ddc722716e58e101c  docs/build-on-base/issue-rwa/pause-transfers.mdx
 83447e6e64649d627394731776ad0bc0e84b5e5e  docs/build-on-base/test-on-vibenet.mdx
 85558d255d016656d54a4ad31ab6c26119ab44b1  docs/specifications/node-operators/run-a-node.mdx
@@ -285,7 +286,6 @@ d6a3c74f14cb178c9002d07aa874ab5f59b8173a  docs/sdks/base-anvil.mdx
 d892091279d3a42853ce1c468ed689832cb57492  docs/specifications/b20/reference/interfaces/ib20-asset/to-raw-balance.mdx
 d8f9fe3ab2cd80903564d6851802412d7ffed931  docs/specifications/reference/smart-contracts.mdx
 d9d9f9351d5eb52005c08789618f11610c5bcee8  docs/specifications/reference/base-contracts.mdx
-da7f4284e08999c1fbebeb3bd793784a87b1799a  docs/build-on-base/integrate-defi/list-tokenized-stocks.mdx
 dc5ce2d4762331685a8f729743b3cca420ebe702  docs/specifications/b20/reference/interfaces/ib20/mint-with-memo.mdx
 dc6fcaaac34aecb99513d7f5f8c183322df3d07e  docs/specifications/b20/reference/interfaces/ib20-asset/total-supply-ui.mdx
 e00b107d0183380ca2fecfacb1f4438a98e1f3bc  docs/sdks/base-verify/overview.mdx
