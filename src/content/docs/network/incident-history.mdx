@@ -9,9 +9,11 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
-### 2026-10-08 — mainnet.base.org loses debug, trace, and txpool (scheduled)
+### 2026-10-08 — mainnet.base.org loses debug, trace, and txpool (completed)
 
-From Thursday, October 8th at 12:00 UTC, the free public endpoint `https://mainnet.base.org` stops answering the `debug`, `trace`, and `txpool` namespaces. Reads that remain get a tighter rate limit. The endpoint stays free and best-effort for basic reads. The notice went up on October 1 and gives a window that ends October 9 at 12:00 UTC. Any app that calls those namespaces on the public host, or needs more throughput than the new limit allows, must move to a dedicated [node provider](/node-operations/node-providers/) before the 8th.
+From Thursday, October 8th at 12:00 UTC, the free public endpoint `https://mainnet.base.org` stops answering the `debug`, `trace`, and `txpool` namespaces. Reads that remain get a tighter rate limit. The endpoint stays free and best-effort for basic reads. The notice went up on October 1 and gives a window that ends October 9 at 12:00 UTC. Any app that calls those namespaces on the public host, or needs more throughput than the new limit allows, must move to a dedicated [node provider](/node-operations/node-providers/).
+
+The status page closed the work on October 8 at 19:42 UTC, well inside the window. A probe of the public host on October 9 confirmed the cut: `txpool_status` came back as an unsupported method (`-32604`), a `debug_` call was refused by the request filter (`-32611`), and `eth_blockNumber` still answered normally.
 
 ### 2026-10-05 — V1 node snapshots retired (completed)
 

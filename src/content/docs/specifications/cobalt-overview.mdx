@@ -44,7 +44,7 @@ Two features carried the Cobalt label at some point and no longer do. Material w
 
 | Feature | Now shipped by | Status |
 |---|---|---|
-| Canonical 200ms blocks, BaseTime, millisecond RPC timestamps | [Denim](/specifications/denim-overview/) | Planning: Sepolia October 2026, Mainnet November 2026 |
+| Canonical 200ms blocks, BaseTime, millisecond RPC timestamps | [Denim](/specifications/denim-overview/) | Sepolia scheduled for 2026-10-21 18:00 UTC; Mainnet planning for November 2026 |
 | Native account abstraction (EIP-8130) | No scheduled fork | Gated behind `zenith`, which is unset everywhere |
 
 The 200ms work was briefly filed under Cobalt in early September 2026 and has since moved back to Denim. The node source never followed it across: block-timing paths have gated on `is_denim_active_at_timestamp` throughout, so the reassignment restores agreement between the docs and the implementation.

@@ -15,12 +15,14 @@ Denim is the Base hardfork that follows [Cobalt](/specifications/cobalt-overview
 
 | Network | Status | Target |
 |---|---|---|
-| Base Sepolia | Planning | October 2026 |
+| Base Sepolia | Scheduled | October 21, 2026 at 18:00 UTC (`1792605600`) |
 | Base Mainnet | Planning | November 2026 |
 | vibenet | Live for experimental testing | Available to preview today |
 
 <Aside type="caution">
-Both months are planning targets, not booked activations. Upstream moved the Mainnet target from October to November on 2026-10-01 and left Sepolia at October. Neither Sepolia nor Mainnet has a published activation timestamp, the required client versions are still open, and `denim_timestamp` is unset on every canonical network in the node source. Vibenet already seals 200ms blocks, which makes it the place to exercise an integration early, but that deployment can still change.
+**Sepolia now has a date in the node itself.** On 2026-10-08 base/base set `denim_timestamp: Some(1_792_605_600)` for chain `84532` (#5694), which is Wednesday, October 21, 2026 at 18:00 UTC. That is the same time of day Sepolia took Cobalt. The first tag that carries the value is `v1.5.0-rc.4`; `rc.3` and earlier still read `None`, and no final `v1.5.0` exists yet. A Sepolia node on `v1.4.2` or an early `v1.5.0` candidate will not follow the fork, so plan the upgrade before the 21st.
+
+Mainnet is still a planning target. Upstream moved it from October to November on 2026-10-01, and `denim_timestamp` stays `None` for chain `8453`. The upstream upgrades page still lists Sepolia under Planning as well; the node source is ahead of it here. Vibenet already seals 200ms blocks, which makes it the place to exercise an integration early, but that deployment can still change.
 </Aside>
 
 ## What Denim ships
@@ -28,6 +30,7 @@ Both months are planning targets, not booked activations. Upstream moved the Mai
 - **200ms native blocks** — block production goes from one canonical block every two seconds to five per second, each a complete block with its own number, hash, state root, receipts, and forkchoice lifecycle. This retires [Flashblocks](/flashblocks/overview/). Full detail in [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/).
 - **BaseTime** — a predeploy that carries the sub-second part of each block's timestamp, supplied by a metadata deposit. Contracts can read the current block's millisecond component while EVM `block.timestamp` stays whole-second.
 - **Millisecond RPC timestamps** — blocks, headers, transactions, logs, and receipts gain optional `timestampMs` and `blockTimestampMs` fields derived from authenticated BaseTime metadata. The existing seconds-based `timestamp` field does not change.
+- **Longer sequencer drift** — the maximum sequencer drift rises from `1800` seconds to `21600` (six hours), so the sequencer can keep building on an old L1 origin through a much longer L1 RPC outage before it must stop including user transactions. As with the Fjord value, the L1 origin's timestamp picks which limit applies, not the L2 block's (#5696).
 - **B20 policy and receiver changes** — the node source also gates two B20 changes on Denim, and upstream added them to the fork page on 2026-09-29, flagging the receiver and executor changes as breaking. The policy registry gains inverted policy IDs (bit 63 as a NOT flag, plus `invertedPolicyId`). Tokens also refuse to credit their own address. Both are in [Arriving with Denim](/api-reference/b20-precompiles/#arriving-with-denim). A third change, B20 logic version 3, enforces `TRANSFER_EXECUTOR_POLICY` on every transfer path, including a holder's own `transfer`; see [B20 Issuer Operations](/integration-guides/b20-issuer-operations/#limit-who-may-initiate-transfers).
 
 <Aside type="caution">

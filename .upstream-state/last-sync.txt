@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-10-08T03:03:59Z
+Generated 2026-10-09T03:03:05Z
 
-### base/base @ 4028d06
+### base/base @ dfd1be1
 
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
@@ -360,7 +360,7 @@ Unm7vkJ9Mn9HUiAmMzA1	Flashblocks Deep Dive: How we made Base 10x faster	Tue, 09 
 
 ### base-l2.statuspage.io RSS
 
-https://base-l2.statuspage.io/incidents/jrs0dpj60tqz	mainnet.base.org public RPC changes: October 8th, 2026	Thu, 08 Oct 2026 12:00:00 +0000
+https://base-l2.statuspage.io/incidents/jrs0dpj60tqz	mainnet.base.org public RPC changes: October 8th, 2026	Thu, 08 Oct 2026 19:42:57 +0000
 https://base-l2.statuspage.io/incidents/jx4p15jppftm	V1 Node Snapshot Deprecation: October 5th, 2026	Tue, 06 Oct 2026 14:00:10 +0000
 https://base-l2.statuspage.io/incidents/zctq4rtnmlxd	Mainnet: Base Cobalt Upgrade - September 30th	Wed, 30 Sep 2026 20:00:08 +0000
 https://base-l2.statuspage.io/incidents/72b9wfwbn2yc	Sepolia Testnet: Base Cobalt Upgrade - September 23rd	Wed, 23 Sep 2026 20:00:07 +0000
