@@ -9,6 +9,14 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-10-09 — Mainnet output proposals stalled (resolved)
+
+The status page opened an incident at 13:48 UTC on Friday, October 9th: new output proposals for Base Mainnet had stopped, which holds up withdrawals already in flight. Proposals were flowing again by 14:21 UTC, and the incident closed at 19:15 UTC. Block production and deposits were not part of it.
+
+The onchain record shows a much longer gap than the status timeline suggests. On the Mainnet `DisputeGameFactoryProxy` (`0x43edB88C4B80fDD2AdFF2412A7BebF9dF42cB40e`), game `23770` was created on October 8 at 14:46 UTC, and the next one, game `23771`, not until October 9 at 14:08 UTC. Before that, a new game (type `621`) landed about every 20 minutes. So no proposals went up for roughly 23 hours, most of it before the incident was posted. After the restart the proposer moved slowly at first, then filed a burst of more than 80 games between about 18:28 and 19:37 UTC to catch up, and returned to its usual 20-minute pace.
+
+A withdrawal can only be proven against a proposal that covers its L2 block. Withdrawals started during the gap therefore waited up to about a day longer than usual before the proof step was possible. Once proven, the normal [finalization delay](/network/bridging-and-withdrawals/#standard-withdrawals) still applies on top.
+
 ### 2026-10-08 — mainnet.base.org loses debug, trace, and txpool (completed)
 
 From Thursday, October 8th at 12:00 UTC, the free public endpoint `https://mainnet.base.org` stops answering the `debug`, `trace`, and `txpool` namespaces. Reads that remain get a tighter rate limit. The endpoint stays free and best-effort for basic reads. The notice went up on October 1 and gives a window that ends October 9 at 12:00 UTC. Any app that calls those namespaces on the public host, or needs more throughput than the new limit allows, must move to a dedicated [node provider](/node-operations/node-providers/).

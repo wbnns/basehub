@@ -445,6 +445,7 @@ export default defineConfig({
 						{ label: 'Bug Bounty', slug: 'security/bug-bounty' },
 						{ label: 'Report a Vulnerability', slug: 'security/report-vulnerability' },
 						{ label: 'Security Council', slug: 'security/security-council' },
+						{ label: 'Reliability and Liveness', slug: 'security/reliability-and-liveness' },
 						{ label: 'Avoid Malicious Flags', slug: 'security/avoid-malicious-flags' },
 					],
 				},

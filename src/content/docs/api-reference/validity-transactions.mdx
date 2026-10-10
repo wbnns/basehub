@@ -22,7 +22,7 @@ The method accepts legacy, EIP-2930, and EIP-1559 transactions. EIP-1559 is the 
 
 ## How it works
 
-Submit two things: a signed raw transaction, and an object carrying a non-empty `validity` array. Base evaluates the predicates before inclusion. A transaction whose predicates do not all match stays pending rather than failing.
+Submit two things: a signed raw transaction, and an object carrying a non-empty `validity` array. Base checks the predicates against the state as it stands just before the transaction would run, not against the state at submission time. A transaction whose predicates do not all match stays pending rather than failing.
 
 That waiting behaviour is the useful part. An earlier transaction can move the storage value a pending transaction is watching, and the pending transaction then becomes eligible — possibly within the same Flashblock. No keeper has to watch the chain and race to submit.
 
@@ -37,7 +37,7 @@ Eligibility is not a reservation. A matching predicate set earns a place in the 
 | 1 | A signed, serialized transaction (legacy, EIP-2930, or EIP-1559) |
 | 2 | An object containing a non-empty `validity` array |
 
-The second parameter takes `validity` and nothing else. An unrecognised key fails the whole request, so a misspelled field name surfaces as a rejection rather than as a silently ignored setting.
+The second parameter takes `validity` and nothing else. An unrecognised key fails the whole request, so a misspelled field name surfaces as a rejection rather than as a silently ignored setting. From `v1.5.0-rc.7` the object also accepts an optional `validity_signature`, covered under [Signed predicates](#signed-predicates).
 
 Every submission also needs a `block_number` upper bound. The example below pairs the condition it actually cares about with that mandatory bound:
 
@@ -122,12 +122,48 @@ A nonce condition that has been passed does not evict the transaction. Suppose y
 </Aside>
 
 <Aside type="caution">
-The `balance` predicate was briefly withdrawn and is now back. Upstream removed it from the docs on 2026-10-01, and #5463 made ingress on `main` reject it. On 2026-10-06 both changes were reverted (#5528 in the node, #2080 in the docs). No tagged release ever carried the rejection, so `v1.4.2` and current `main` both accept `balance`. The reason #5463 gave still holds, though. Predicates are not covered by the signature, so whoever relays your signed transaction can attach a balance check of their own. It can watch your balance move around your gas payment and place its own transactions next to yours. If that matters to you, submit directly rather than through a relayer.
+The `balance` predicate was briefly withdrawn and is now back. Upstream removed it from the docs on 2026-10-01, and #5463 made ingress on `main` reject it. On 2026-10-06 both changes were reverted (#5528 in the node, #2080 in the docs). No tagged release ever carried the rejection, so `v1.4.2` and current `main` both accept `balance`. The reason #5463 gave still holds, though. Predicates are not covered by the signature, so whoever relays your signed transaction can attach a balance check of their own. It can watch your balance move around your gas payment and place its own transactions next to yours. If that matters to you, submit directly rather than through a relayer. [Signed predicates](#signed-predicates) are the longer-term answer, once enforcement is on.
 </Aside>
 
 Use `block_number` to pin a target block and `flashblock_index` to pin a position inside it. Both conditions need their own predicate — one entry cannot express both. The request sample in the Cobalt launch post folds both into a single object with repeated `type` and `params` keys, and it is not valid JSON as printed. Give each predicate its own entry in the `validity` array, as the examples on this page do.
 
 A usable `flashblock_index` runs from `1` to `10` inclusive, which is `0x1` to `0xa` in hex. Index `0` is the fallback block. It holds only the sequencer's own transactions, so no pooled transaction can ever match there. The node refuses at ingress any `flashblock_index` predicate whose largest reachable value is below `1`, for example `<= 0x0` or `< 0x1`, because such a transaction would wait forever.
+
+## Signed predicates
+
+The relayer problem above now has an opt-in fix (#5645). A sender can sign the predicate list itself, so nobody else can bolt different conditions onto the transaction. The motivating attack is a sandwich: someone holding your raw transaction adds a storage check that keeps it waiting until their own trade has moved a pool's reserves. Your calldata is untouched, and the damage stays inside your onchain slippage limit, which is why it is easy to miss.
+
+To sign, pass `validity_signature` next to `validity` in the second parameter. It is an Alloy signature object with `r`, `s`, and `yParity` as hex quantities. Produce it with `eth_signTypedData_v4`, not `personal_sign`, over this EIP-712 data:
+
+- **Domain:** `{ name: "Base Transaction Validity", version: "1", chainId }`, with the transaction's own chain ID and no verifying contract.
+- **Types:**
+
+```text
+ValidityPredicate(uint8 kind,uint8 operator,address account,uint256 slot,uint256 mask,uint256 value)
+ValidityAuthorization(bytes32 transactionHash,ValidityPredicate[] validity)
+```
+
+`transactionHash` is the hash of the full signed EIP-2718 envelope. `kind` is balance = 0, storage = 1, block number = 2, flashblock index = 3, nonce = 4. `operator` is `<` = 0, `<=` = 1, `=` = 2, `!=` = 3, `>` = 4, `>=` = 5. Fields a predicate does not use are zero, and a storage predicate with no mask signs `U256::MAX`. Before signing, sort the predicates by their EIP-712 struct hashes in ascending byte order and keep any duplicates. Reordering your list then gives the same digest, while any added, dropped, or edited predicate gives a different one.
+
+Only a secp256k1 key at the sender address can sign. Contract wallets and EIP-8130 actors without that key cannot use this, and neither can deposits or unprotected legacy transactions, which have no chain-bound domain. The node also refuses high-s signatures.
+
+Node operators control enforcement with `--validity-signature-mode off|verify-if-present|required`, on forwarding ingress nodes and on builders:
+
+| Mode | Unsigned predicates | Supplied signatures |
+| --- | --- | --- |
+| `off` (default) | Accepted | Kept and forwarded, never checked |
+| `verify-if-present` | Accepted | Checked at raw ingress |
+| `required` | Rejected for any non-empty batch | Checked at raw ingress |
+
+The intended rollout is `verify-if-present` across every ingress node and builder first, then wallets move to signing, then the fleet flips to `required`. The `txpool.validity_signature.accepted{site,signature}` and `txpool.validity_signature.rejected{site,reason}` metrics show how far that migration has got.
+
+<Aside type="caution">
+A signature protects you only once the whole path enforces it. While any hop still takes unsigned predicates, an intermediary can drop your signature and submit its own conditions. A `required` builder is not enough by itself, because `base_insertValidatedTransaction` only checks that a signature is present and trusts the forwarder to have verified it. An `off` forwarder can pass a dummy signature with altered predicates straight through. Keep that endpoint reachable by trusted forwarders only.
+
+Even then, signing stops unauthorized predicates, not every sandwich. Predicates are builder-side metadata, not consensus rules, so anyone holding the raw transaction can strip the whole sidecar and send the plain transaction instead.
+</Aside>
+
+This is on `main` and first ships in `v1.5.0-rc.7`. `v1.4.2` does not have it, and rejects `validity_signature` as an unknown key. The flag defaults to `off`, so until Base announces otherwise, assume the public sequencer does not enforce signatures.
 
 ## Safety
 
@@ -138,7 +174,7 @@ A predicate is not a simulation. It reads a value and compares it, and that is a
 Three further limits are worth internalising before writing one:
 
 - **Storage predicates read raw slots.** They cannot call a view function or evaluate anything computed. You need the target contract's storage layout, and that layout is an implementation detail the contract author can change under an upgrade.
-- **State moves during block building.** A condition true when you submit can be false at inclusion, and the reverse. Treat the predicate as a filter, not a guarantee.
+- **Only the state at execution counts.** The check runs against the state right before your transaction would execute. A condition true when you submit can be false by then, and the reverse. Treat the predicate as a filter, not a guarantee.
 - **A zero-valued slot proves nothing.** An uninitialized contract, a proxy before initialization, and a CREATE2 address that has not been deployed yet all read as zero. None of them is safe to call on that basis.
 
 Do not use a transaction's position as a randomness source.
@@ -259,7 +295,7 @@ Start by separating "not accepted" from "accepted but not included". A returned 
 
 **The method is unavailable.** The endpoint does not serve `base_sendRawTransactionValidity`. Today that means Vibenet or, on Base Sepolia, `https://sepolia-sequencer.base.org`; the regular `sepolia.base.org` endpoint returns `Method not found`.
 
-**Submission fails.** Check that the first parameter really is a signed legacy, EIP-2930, or EIP-1559 transaction, and that the second parameter carries a non-empty `validity` array and no other key. Then check each predicate's type, operator, and that every value is `0x`-prefixed hex.
+**Submission fails.** Check that the first parameter really is a signed legacy, EIP-2930, or EIP-1559 transaction, and that the second parameter carries a non-empty `validity` array and no other key (apart from `validity_signature` on `v1.5.0-rc.7` and later). Then check each predicate's type, operator, and that every value is `0x`-prefixed hex.
 
 Four rejections come from the expiry and batch rules rather than from malformed input. Each arrives as an invalid-parameters error naming the predicate's position in the array:
 

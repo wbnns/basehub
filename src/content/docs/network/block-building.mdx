@@ -63,3 +63,7 @@ Operators running bundlers for smart contract wallets need to size each bundle s
 ## Vanilla ordering
 
 Under the legacy configuration, [op-geth](https://github.com/ethereum-optimism/op-geth) builds a block every 2 seconds and orders transactions inside the block by priority fee. See the [reference implementation](https://github.com/ethereum-optimism/op-geth/blob/optimism/miner/worker.go#L627).
+
+## Source code
+
+The software that applies these ordering rules is public, from base-builder to the transaction pool. [Reliability and Liveness](/security/reliability-and-liveness/#open-source-sequencer-components) lists each component and links to its repository.

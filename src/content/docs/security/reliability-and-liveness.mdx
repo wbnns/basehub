@@ -1,0 +1,66 @@
+---
+title: Reliability and Liveness
+description: Where Base reports outages and publishes postmortems and audits, how bug bounties are split, what you can do if the sequencer censors or halts, and which sequencer components are open source.
+sources:
+- base/docs:docs/specifications/security/reliability-and-liveness.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This page collects the places to look when you need to judge how dependable Base is: live status, past incidents, audits, bounties, the escape hatch for censored transactions, and the source for the software that orders blocks.
+
+## Status and incident history
+
+Live component health for Base Mainnet and Base Sepolia sits on [status.base.org](https://status.base.org). Covered components include producing blocks, posting batches to L1, the Flashblocks stream, the mempool, deposits and withdrawals, and the public RPC endpoints.
+
+- **Past incidents** are listed with timelines and resolutions at [status.base.org/history](https://status.base.org/history). BaseHub keeps a paraphrased running record in [Incident History](/network/incident-history/).
+- **Alerts** are available by subscribing on [status.base.org](https://status.base.org).
+- **Postmortems** for major incidents go out on the [Base Engineering Blog](https://blog.base.dev/). The [June 25th block production outage postmortem](https://blog.base.dev/postmortem-june-25th-block-production-outage) is one example, and the [Engineering Blog index](/architecture/engineering-blog/) lists the rest.
+
+## Audits
+
+Each third-party audit report lives in the repository whose code it reviewed. A report states its scope, the commit it looked at, what it found, and how each finding was closed out.
+
+- **Smart contracts:** [base/contracts audits](https://github.com/base/contracts/tree/main/audits). These include the multiproof, proof, Cobalt, and dynamic upgrade contract reviews.
+- **Node and precompiles:** [base/base audits](https://github.com/base/base/tree/main/audits). These include the B20 precompile and the dynamic upgrade node reviews. The folder is organised by upgrade (`azul`, `beryl`, `cobalt`).
+- **Audit competitions:** [Immunefi reports](https://reports.immunefi.com/base), including the contest held for the Azul hardfork.
+
+For the OP Stack pieces Base relied on up to and including OP Stack Upgrade 18, such as the bridge and the `OptimismPortal` contract, the reviews sit with Optimism in its [security reviews folder](https://github.com/ethereum-optimism/optimism/tree/develop/docs/security-reviews).
+
+## Bug bounties
+
+Two standing programs split the ground between them. HackerOne takes offchain components and infrastructure. Cantina takes deployed smart contracts. The Azul upgrade also had a one-off public audit competition on Immunefi. Scope, reward ceilings, and how to file are on [Report a Vulnerability](/security/report-vulnerability/) and [Bug Bounty](/security/bug-bounty/).
+
+## Censorship resistance and sequencer liveness
+
+Base has one active sequencer at a time. It runs as a high-availability cluster, and if the leader stops producing blocks, a follower takes over leadership. The [Flashblocks architecture](/flashblocks/architecture/) page shows the parts involved.
+
+When the sequencer refuses your transaction, or stops altogether, you still have a route in. Send the transaction as a deposit through the `OptimismPortal` contract on Ethereum (see [Deposits to Base](/network/bridging-and-withdrawals/#deposits-to-base)). Two protocol rules make that route reliable:
+
+- **The sequencer cannot skip deposits.** Each L1 block fixes the deposits that must appear in the first L2 block of its [sequencing epoch](/specifications/glossary/#sequencing-epoch). An L2 block that leaves them out breaks the derivation rules and is invalid.
+- **The wait is bounded.** Should batches stop arriving on Ethereum, every node waits out one [sequencing window](/specifications/glossary/#sequencing-window), then fills in the absent L2 blocks itself, with the queued deposits inside them. Base sets that window to 3,600 L1 blocks, which is roughly 12 hours at 12 seconds per L1 block (see [Configuration](/specifications/configuration/#consensus-parameters)).
+
+<Aside type="note">
+The deposit route trades speed for certainty. Expect hours, not seconds, in the worst case. It is a guarantee that a transaction gets in, not a fast lane.
+</Aside>
+
+Halts and slow inclusion are announced on [status.base.org](https://status.base.org). If the sequencer has to stop streaming Flashblocks, preconfirmations switch off and confirmation falls back to whole blocks, which arrive every 2 seconds until [Denim](/specifications/denim-overview/) shortens them.
+
+## Open-source sequencer components
+
+All the software that orders and sequences Base transactions is published:
+
+| Component | What it does | Source |
+| --- | --- | --- |
+| base-consensus | Consensus client run both by the sequencer and by independent node operators | [base/base](https://github.com/base/base/tree/main/crates/consensus) |
+| base-reth-node | Execution layer client, transaction pool included | [base/base](https://github.com/base/base/tree/main/crates/execution) |
+| base-builder | Block builder that arranges transactions into Flashblocks | [base/base](https://github.com/base/base/tree/main/crates/builder) |
+| websocket-proxy | Fans the Flashblocks stream out to subscribers | [base/base](https://github.com/base/base/tree/main/bin/websocket-proxy) |
+| rollup-boost | Flashbots-maintained proxy that sits on the Engine API between consensus and execution | [flashbots/rollup-boost](https://github.com/flashbots/rollup-boost) |
+| op-conductor | High-availability controller that picks the sequencer leader | [ethereum-optimism/optimism](https://github.com/ethereum-optimism/optimism/tree/develop/op-conductor) |
+
+[Block Building](/network/block-building/) covers the ordering rules these components carry out. You do not have to trust the sequencer's word for the result: node operators rebuild and check the canonical chain themselves from the batches and deposits posted to Ethereum.
+
+## Planned upgrades
+
+Upcoming network upgrades and their target months are tracked on upstream's [Upgrades](https://docs.base.org/upgrades/overview) page. BaseHub covers the current ones in the [Cobalt](/specifications/cobalt-overview/) and [Denim](/specifications/denim-overview/) overviews.

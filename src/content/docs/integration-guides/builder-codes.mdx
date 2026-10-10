@@ -34,7 +34,7 @@ An app registered on [Base Dashboard](https://dashboard.base.org/) gets attribut
 
 Everything outside the Base App is on you. If users reach your app on the web or through another client, wire up `dataSuffix` yourself to capture that traffic.
 
-Registration hands you a Builder Code — a random string along the lines of `bc_b7k3p9da`. Configure it once at the client level and every transaction that client sends carries it.
+Registration hands you a Builder Code — a random string along the lines of `bc_b7k3p9da`. How you attach it depends on the library. A Viem wallet client takes it once and applies it to everything it sends. Wagmi does not, so there you pass it with each write.
 
 ### Wagmi
 
@@ -44,34 +44,29 @@ Both examples need viem `2.45.0` or newer.
 npm i ox wagmi viem
 ```
 
-Set `dataSuffix` on the config and leave your hooks alone:
+<Aside type="caution">
+Do not put `dataSuffix` in `createConfig` and expect it to stick. Wagmi hands `createConfig` options to its public client only. The connector client, which is what actually sends `sendTransaction`, `writeContract`, and `sendCalls` through a connected wallet such as a browser extension, never sees it. Those transactions leave without your code, and nothing warns you. Upstream used to recommend the config approach and switched to per-call on 2026-10-09. The tracking issue is [wagmi #5248](https://github.com/wevm/wagmi/issues/5248).
+</Aside>
+
+Build the suffix once in its own module so every call site can import it:
 
 ```typescript
-// config.ts
-import { createConfig, http } from "wagmi";
-import { base } from "wagmi/chains";
+// attribution.ts
 import { Attribution } from "ox/erc8021";
 
 // Get your Builder Code from Base Dashboard > Settings > Project Settings > Builder Code
-const DATA_SUFFIX = Attribution.toDataSuffix({
+export const DATA_SUFFIX = Attribution.toDataSuffix({
   codes: ["YOUR-BUILDER-CODE"],
-});
-
-export const config = createConfig({
-  chains: [base],
-  transports: {
-    [base.id]: http(),
-  },
-  dataSuffix: DATA_SUFFIX,
 });
 ```
 
-With that in place, `useSendTransaction` and `useSendCalls` both pick the suffix up. No component changes:
+Then hand it to every write. `useSendTransaction` and `useWriteContract` take `dataSuffix` directly and add it to the calldata before the wallet signs:
 
 ```tsx
-// App.tsx
+// SendButton.tsx
 import { useSendTransaction } from "wagmi";
 import { parseEther } from "viem";
+import { DATA_SUFFIX } from "./attribution";
 
 function SendButton() {
   const { sendTransaction } = useSendTransaction();
@@ -82,6 +77,7 @@ function SendButton() {
         sendTransaction({
           to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
           value: parseEther("0.01"),
+          dataSuffix: DATA_SUFFIX,
         })
       }
     >
@@ -90,6 +86,71 @@ function SendButton() {
   );
 }
 ```
+
+```tsx
+// MintButton.tsx
+import { useWriteContract } from "wagmi";
+import { abi } from "./abi";
+import { DATA_SUFFIX } from "./attribution";
+
+function MintButton() {
+  const { writeContract } = useWriteContract();
+
+  return (
+    <button
+      onClick={() =>
+        writeContract({
+          address: "0xYourContractAddress",
+          abi,
+          functionName: "mint",
+          args: [1n],
+          dataSuffix: DATA_SUFFIX,
+        })
+      }
+    >
+      Mint
+    </button>
+  );
+}
+```
+
+`useSendCalls` works differently. The suffix goes in the `dataSuffix` capability, and the wallet does the appending, so the connected wallet has to [support that capability](#for-wallet-developers):
+
+```tsx
+// SendCallsButton.tsx
+import { useSendCalls } from "wagmi";
+import { parseEther } from "viem";
+import { DATA_SUFFIX } from "./attribution";
+
+function SendCallsButton() {
+  const { sendCalls } = useSendCalls();
+
+  return (
+    <button
+      onClick={() =>
+        sendCalls({
+          calls: [
+            {
+              to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+              value: parseEther("0.01"),
+            },
+          ],
+          capabilities: {
+            dataSuffix: {
+              value: DATA_SUFFIX,
+              optional: true,
+            },
+          },
+        })
+      }
+    >
+      Send calls
+    </button>
+  );
+}
+```
+
+Send one test transaction and inspect its input data, as in [Confirming attribution works](#confirming-attribution-works), before you trust the setup.
 
 ### Viem
 
@@ -117,7 +178,7 @@ export const walletClient = createWalletClient({
 });
 ```
 
-Send as usual and the suffix goes along:
+`sendTransaction` and `writeContract` on this client add the suffix for you. `sendCalls` passes it on to the wallet as the `dataSuffix` capability instead:
 
 ```typescript
 // send-transaction.ts
@@ -127,27 +188,6 @@ import { walletClient } from "./client";
 const hash = await walletClient.sendTransaction({
   to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
   value: parseEther("0.01"),
-});
-```
-
-### Per-transaction, if you must
-
-Client-level configuration is the recommended path. Where you genuinely need per-call control, `dataSuffix` can be passed straight to `useSendTransaction`. With `useSendCalls` it goes through `capabilities` instead, which requires the connected wallet to advertise the `dataSuffix` capability:
-
-```tsx
-sendCalls({
-  calls: [
-    {
-      to: "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
-      value: parseEther("1"),
-    },
-  ],
-  capabilities: {
-    dataSuffix: {
-      value: DATA_SUFFIX,
-      optional: true,
-    },
-  },
 });
 ```
 
@@ -270,7 +310,7 @@ Upstream used to list the base.dev dashboard as a third check. It removed that s
 
 ## Measuring your own users
 
-Base Dashboard reports a narrow set of numbers from your code's activity: spot trading volume, borrow TVL, and lending TVL. It does not report users, retention, or funnels. For those you join two data sets yourself. One is what your app sees in the browser. The other is the attributed transactions onchain. The connected wallet address, in lowercase, is the join key. The transaction hash links each submit to its result.
+Base Dashboard reports a narrow set of numbers from your code's activity: spot trading volume, borrow TVL, and lending TVL. It does not report users, retention, funnels, or the raw ETH and USDC your attributed transactions move. For those you join two data sets yourself. One is what your app sees in the browser. The other is the attributed transactions onchain. The connected wallet address, in lowercase, is the join key. The transaction hash links each submit to its result.
 
 | Metric | What to count | Where it comes from |
 | --- | --- | --- |
@@ -278,6 +318,7 @@ Base Dashboard reports a narrow set of numbers from your code's activity: spot t
 | D1, D7, and D30 retention | Each address's first-seen date, and whether it returned later | Block timestamp of the address's first successful attributed transaction |
 | Conversion funnel | Open, connect, submit, success, joined on address and hash | Page load, `eth_requestAccounts`, the hash or call bundle ID from submit, the receipt |
 | Attributed onchain activity | Transactions whose ERC-8021 suffix holds your code | Transaction `input`, or each UserOperation's `callData` |
+| ETH and USDC volume | What the user moved out in each attributed transaction | The transaction's `value`, plus `Transfer` logs in its receipt |
 
 Capture the browser side at each step:
 
@@ -351,6 +392,35 @@ export async function getAttributedActivity(hash: Hash) {
 ```
 
 To backfill, or to catch transactions sent from outside your UI, scan Base blocks (or your contracts' logs via `eth_getLogs`) for calldata that ends in the marker, and decode each hit the same way.
+
+For volume, reuse the transaction and receipt you already fetched. Where the value shows up depends on the account type:
+
+- **ETH from an EOA** is the transaction's `value`.
+- **ETH from a smart account** moves in an internal call, so it is in neither the outer `value` nor any log. You need a call trace for it (`debug_traceTransaction` with the `callTracer`), from a node or provider that offers one. The public `mainnet.base.org` endpoint stopped serving `debug_` on 2026-10-08.
+- **USDC and other ERC-20 tokens** are `Transfer` logs from the token contract. Keep only transfers whose sender is your user. That filter also splits a bundle into its separate UserOperations, because each has its own `sender`.
+
+```typescript
+// get-attributed-volume.ts
+import { erc20Abi, isAddressEqual, parseEventLogs, type Address, type Transaction, type TransactionReceipt } from "viem";
+
+// USDC on Base
+const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+
+// Pass the transaction and receipt fetched in step 3, and the sender of each row where success and attributed are true
+export function getAttributedVolume(tx: Transaction, receipt: TransactionReceipt, sender: Address) {
+  const usdcTransfers = parseEventLogs({ abi: erc20Abi, eventName: "Transfer", logs: receipt.logs })
+    .filter((log) => isAddressEqual(log.address, USDC) && isAddressEqual(log.args.from, sender));
+
+  return {
+    // Native ETH sent directly by an EOA. Smart account ETH transfers need a call trace.
+    ethWei: isAddressEqual(tx.from, sender) ? tx.value : 0n,
+    // USDC uses 6 decimals: format with formatUnits(usdc, 6)
+    usdc: usdcTransfers.reduce((sum, log) => sum + log.args.value, 0n),
+  };
+}
+```
+
+Call it for each row from `getAttributedActivity` where `success` and `attributed` are both true. ("Step 3" in the upstream comment is that helper.) Roll the totals up by day, week, or month. For a single currency figure, price each amount at its block timestamp with whatever price source you trust.
 
 With both sides joined:
 
