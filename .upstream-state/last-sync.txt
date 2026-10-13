@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-10-12T03:01:20Z
+Generated 2026-10-13T03:03:18Z
 
-### base/base @ 85af58b
+### base/base @ 252f9ad
 
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
 9020dbdc0bf875648c6873e8d419d6dc5523f43f  docs/guides/P2P.md
@@ -14,7 +14,7 @@ be2fb5397527d4c4075f9229133280507f3efde9  docs/guides/TESTING.md
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ea622c8bc3e5fda9384f9f3c8b054d3856417ab4  docs/guides/UPGRADES.md
 
-### base/docs @ dcde64a
+### base/docs @ 2fccdff
 
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
 016665db95f8ad8300a0160c890b8f1514648036  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
@@ -311,6 +311,7 @@ ea9b0291d48d28422c76e098ede9c4a402e8d717  docs/specifications/build-transaction/
 eadec53657442eb6dd0644c471231a2b354f43af  docs/specifications/b20/reference/interfaces/ib20/transfer-with-memo.mdx
 eb33cd2034f15ecd694515be8d01c9f0dc38b7aa  docs/specifications/builder-codes/for-agent-developers.mdx
 eca6d45c1452cfd46865e852b93a2f2101f23d14  docs/specifications/base-protocol/bridging/base-solana-bridge.mdx
+ed82feb5c019618ac2c748f44fcb62c6282127c6  docs/build-on-base/run-a-local-devnet.mdx
 ee5f2cbebdb5f091152a3a58deea304e13a45835  docs/specifications/b20/reference/interfaces/ib20/eip712-domain.mdx
 ee88e1e64220786b72ae8aa4452e5917db3444cf  docs/sdks/API_MIGRATION_PLAN.md
 ef641d11ecff5dc7681d42e4f5a2299af384a154  docs/build-on-base/issue-stablecoins/burn-supply.mdx

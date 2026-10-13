@@ -1,159 +1,199 @@
 ---
 title: Local Devnet
-description: Start a Docker Compose devnet for integration testing, debugging, and flashblocks experiments.
+description: Run a throwaway Base network on your own machine with Docker, send a test transaction, and step through every hardfork in the first few blocks.
 ---
 
-The Docker Compose devnet bundled with `base/base` spins up a complete local Base network for integration testing, debugging, and flashblocks experiments without touching a public testnet. Its configuration lives in `etc/docker/docker-compose.yml`.
+The `base/base` repository ships a Docker devnet that brings up the whole Base stack locally: an L1 made of Reth and Lighthouse, a Base sequencer, two RPC nodes, and a batcher. A shadow batcher and shadow validator run alongside it so the Rust batcher gets exercised too. It is the place to try contracts, apps, and node or hardfork changes when you do not want a public network involved.
+
+If you only need to build against new Base features and have no interest in running infrastructure, the hosted Vibenet is the lighter option.
+
+:::caution
+Treat the devnet as disposable. `just devnet up`, `just devnet up-single`, and `just devnet down` all wipe the chain data in `.devnet/`. The stack also binds its ports on every interface, so keep it on an isolated development machine.
+:::
 
 ## Prerequisites
 
-Before starting the devnet, make sure you have:
+You need the following before the first start:
 
-- [Docker and Docker Compose](/getting-started/prerequisites/#docker-optional) installed and running.
-- The repository cloned and all [prerequisites](/getting-started/prerequisites/) in place.
+- [Docker](/getting-started/prerequisites/#docker-optional) with Compose v2 and Buildx. The first build compiles the Rust services, so give Docker plenty of memory.
+- [`just`](https://github.com/casey/just) `1.51.0` or newer.
+- [Foundry](https://getfoundry.sh), for `cast`.
+- [`jq`](https://jqlang.org), which `just devnet status` and `just devnet checks` rely on.
+- A clone of `base/base` with the other [prerequisites](/getting-started/prerequisites/) in place.
 
 ### Pre-Pulling Images
 
-The devnet uses several Docker images. To avoid long waits on the first start, pull them ahead of time:
+To shorten the first start, build the setup image and pull the L1 images ahead of time:
 
 ```bash
-just system-tests-pull-images
+just devnet pull-images
 ```
 
 ## Starting the Devnet
 
-The `devnet` recipe handles the full lifecycle: it stops any existing devnet, builds fresh images, and starts the stack:
+The devnet commands live in a `just` module, so each one is written `just devnet <command>`. Running `just devnet` on its own only prints the list.
+
+Run this from the root of the repo:
 
 ```bash
-just devnet
+just devnet up-single
 ```
 
-This is the recommended way to start or restart the devnet. It ensures you are running the latest code and that there is no stale state from a previous run.
+It shuts down any devnet that is already running, clears the old data, builds fresh images, and starts a stack with one sequencer. Expect the first run to take several minutes while the Rust services compile.
+
+| Command | Starts |
+| --- | --- |
+| `just devnet up-single` | One sequencer. The quickest choice for most testing. |
+| `just devnet up` | A 3-node high-availability sequencer cluster with conductor. |
+
+Confirm that blocks are being produced:
+
+```bash
+just devnet status
+```
 
 ## Stopping the Devnet
 
-To stop all containers and clean up resources:
-
 ```bash
-just devnet-down
+just devnet down
 ```
 
-This removes the containers and associated volumes, giving you a clean slate for the next start.
+This removes the containers and deletes everything under `.devnet/`, so the next start is clean.
 
-## Monitoring
+## Sending a Test Transaction
 
-### Block Status
-
-Check the current block numbers and sync status of the devnet nodes:
+The standard Foundry/Anvil test accounts are funded at genesis. Their addresses and keys are in `etc/docker/devnet-env`. This sends a little ETH through the sequencer:
 
 ```bash
-just devnet-status
+source etc/docker/devnet-env
+cast send "$ANVIL_ACCOUNT_2_ADDR" --value 0.001ether \
+  --private-key "$ANVIL_ACCOUNT_1_KEY" \
+  --rpc-url http://127.0.0.1:7545
 ```
 
-This prints block heights and indicates whether nodes are in sync.
+A receipt showing `status 1` means the sequencer took the transaction into a block. For a canned set of L1 and L2 checks, run `just devnet checks` instead.
 
-### Funded Test Accounts
+:::danger
+These test keys are public knowledge. Do not use them on Mainnet or Sepolia.
+:::
 
-View the pre-funded accounts available for testing:
+## Endpoints
 
-```bash
-just devnet-accounts
-```
+| Service | URL | Chain ID |
+| --- | --- | --- |
+| L2 sequencer (builder) RPC | `http://127.0.0.1:7545` | `84538453` |
+| L2 RPC node | `http://127.0.0.1:8545` | `84538453` |
+| L2 RPC node (`base-rpc`) | `http://127.0.0.1:8645` | `84538453` |
+| L1 RPC | `http://127.0.0.1:4545` | `1337` |
+| Grafana | `http://localhost:3000/d/devnet-overview` | |
 
-These accounts come with a balance of test ETH and are ready to use for sending transactions.
+All ports come from `etc/docker/devnet-env`. With `just devnet up`, port `7545` is only one of three sequencers that conductor manages. If leadership moves, a transaction sent there can sit pending. Send through the RPC node on `8545` instead, because it forwards to whichever sequencer currently leads.
 
-### Container Logs
+## Hardfork Activation
 
-Stream logs from one or more containers:
+A fresh devnet crosses every scheduled upgrade almost at once. Azul activates at L2 block 20, Beryl at 21, Cobalt at 22, and Denim at 25. Blocks come every 2 seconds until Denim, and then the sequencer drops to 200ms blocks.
 
-```bash
-# All containers
-just devnet-logs
+Two optional modes add the unscheduled forks:
 
-# Specific containers
-just devnet-logs sequencer proposer
-```
+| Command | Also activates |
+| --- | --- |
+| `just devnet up-single everest` | Everest (EIP-8130 transactions) at block 100 |
+| `just devnet up-single zenith` | Everest and Zenith at block 100 |
 
-Logs are streamed in real time. Press Ctrl+C to stop.
+:::caution
+The canonical batcher in the devnet (`op-batcher`) does not understand EIP-8130 transactions (type `0x79`). As soon as one lands in a block, that batcher stops moving forward and the canonical safe head stalls. The shadow `base-batcher` handles the type, so the shadow validator keeps deriving past those blocks.
+:::
 
-## Testing on the Devnet
+Each activation reads from an `L2_BASE_<HARDFORK>_BLOCK` variable, such as `L2_BASE_DENIM_BLOCK`. Set it before `up` or `up-single` to move that fork. An empty value leaves the fork unscheduled.
 
-### Smoke Tests
+## Common Commands
 
-Run a basic set of test transactions to verify the devnet is functioning correctly:
+| Command | Does |
+| --- | --- |
+| `just devnet status` | Prints block numbers and sync status |
+| `just devnet accounts` | Lists funded test accounts with balances and nonces |
+| `just devnet smoke` | Sends test transactions to L1 and L2 |
+| `just devnet checks` | Runs `status` and then `smoke` |
+| `just devnet logs [containers]` | Streams logs, for all containers or the ones you name |
+| `just devnet ps` | Shows container status |
+| `just devnet flashblocks` | Streams Flashblocks from the builder until Denim (block 25 by default). Nothing arrives after Denim. Needs Go; the first run installs the client and can exit silently, so run it a second time. |
+| `just devnet profiling` | Restarts the devnet with Pyroscope and optimized profiling builds |
+| `just devnet tests` | Runs the system tests against the devnet |
+| `just devnet down` | Stops the devnet and deletes its data |
 
-```bash
-just devnet-smoke
-```
-
-This sends a few transactions and verifies they are included in blocks.
-
-### Combined Status and Smoke
-
-Run both status checks and smoke tests together:
-
-```bash
-just devnet-checks
-```
-
-This is a convenient single command that first prints the devnet status and then runs the smoke tests.
+The devnet README in `etc/docker/README.md` and the recipes in `etc/docker/Justfile` are the full reference. They also cover the Anvil + Nitro proving variant and upgrade-signal testing.
 
 ### Load Testing
 
-Start the Contender load generator to stress-test the devnet:
+The load generator is a separate module that targets the devnet by default:
 
 ```bash
-just devnet-load
+just load-test-continuous
 ```
 
-This generates a sustained stream of transactions, which is useful for benchmarking block production, measuring throughput, and testing behavior under pressure.
+### Proving
 
-## Flashblocks Streaming
+No prover runs inside the devnet. To prove against it, start the separate [standalone proving](/node-operations/standalone-proving/) stack. ZK proving against a local devnet only works with Beryl and Cobalt turned off.
 
-The devnet supports flashblocks -- sub-block-time transaction confirmations streamed over WebSocket. To connect and watch flashblocks:
+## Snapshot Dev Chain (`base dev`)
+
+:::note
+`base dev` is on `main` only. No release tag includes it yet, including `v1.5.0-rc.9`.
+:::
+
+There is a second, lighter way to get a local chain. `base dev` takes a copy of a real snapshot and keeps producing blocks on top of it, with no L1 behind it. One process holds both an embedded execution node and a standalone sequencer, talking over Engine IPC. Docker is not needed, because the recipes build `base` with Cargo.
 
 ```bash
-just devnet-flashblocks
+just devnet snapshot download --dir "$HOME/data/my-devnet"
+just devnet snapshot run --dir "$HOME/data/my-devnet"
 ```
 
-This opens a WebSocket connection to the devnet and prints flashblock messages as they arrive (typically every 200ms). It is a quick way to verify that the flashblocks pipeline is working end-to-end.
+What it does and does not do:
 
-## Typical Workflow
+- It never creates, downloads, or resets data on its own. `run` only continues a datadir that already exists.
+- Peers and discovery are off. HTTP RPC listens on `http://127.0.0.1:8545` and WS on `ws://127.0.0.1:8546`, with the `eth_*`, `debug_*`, and `trace_*` methods.
+- If the snapshot head is from before Denim, Denim activates on the next block. The schedule and starting head are written to `base-dev.json` in the datadir and reused after a restart.
+- Ctrl+C stops it, and the same command resumes it. Downtime does not create catch-up blocks.
+- It is for local execution only. L1 derivation, bridges, safe and finalized heads, and proofs are out of scope. Use the Docker devnet for those.
 
-A common development loop with the devnet looks like this:
+The download recipe keeps 1,339,200 blocks of transactions, receipts, and state history. That is about 31 days of 2-second blocks. The plain `--full` preset keeps 13,392,000 blocks, which is 31 days only once blocks are 200ms, and about ten times longer before Denim.
 
-1. Make code changes.
-2. Start a fresh devnet:
-   ```bash
-   just devnet
-   ```
-3. Verify it is running:
-   ```bash
-   just devnet-status
-   ```
-4. Run smoke tests:
-   ```bash
-   just devnet-smoke
-   ```
-5. Stream flashblocks to test your changes:
-   ```bash
-   just devnet-flashblocks
-   ```
-6. Check logs for issues:
-   ```bash
-   just devnet-logs
-   ```
-7. When finished, tear it down:
-   ```bash
-   just devnet-down
-   ```
+For Sepolia, select the chain on both steps. Note that `download` refuses the `BASE_CHAIN` variable and takes its own `--chain` flag:
+
+```bash
+env -u BASE_CHAIN just devnet snapshot download --chain sepolia --dir "$HOME/data/sepolia-devnet"
+BASE_CHAIN=sepolia just devnet snapshot run --dir "$HOME/data/sepolia-devnet"
+```
+
+:::danger
+Use a throwaway copy. Never point `base dev` at a live node's datadir or at your only Mainnet copy. Once development blocks exist, the data has left Mainnet for good, and deleting `base-dev.json` does not reverse it. Only a clean backup does.
+:::
+
+### `dev_impersonateTransaction`
+
+`base dev` adds one RPC method that runs a call as any account without its key. It is handy for funding accounts or making privileged calls:
+
+```text
+dev_impersonateTransaction({from, to?, input?, value?, gas, mint?}) -> txHash
+```
+
+- `from` and `gas` are required. `mint` wei is credited to `from` before the call runs.
+- The request becomes a deposit transaction. Signature, nonce, and fee checks are skipped, and no fee is paid. Use signed transactions when you want to test admission or fees.
+- The returned hash only means the request is queued. Poll `eth_getTransactionReceipt` to see it included. A reverting call still lands, with status `0`, and any minted ETH stays.
+- Invalid requests return `-32602`. A `-32000` error means try again later: sequencing has not started, or 256 requests are already waiting.
+
+:::caution
+Because impersonation can act as any account, keep the dev RPC endpoints private.
+:::
 
 ## Troubleshooting
 
-**Containers fail to start** -- Make sure Docker is running and your user is in the `docker` group. Run `docker compose version` to verify the Compose plugin is installed.
+**Containers fail to start.** Check that Docker is running and that your user belongs to the `docker` group. `docker compose version` confirms the Compose plugin is present.
 
-**Port conflicts** -- If another service is using the ports the devnet needs, stop that service first or edit `etc/docker/docker-compose.yml` to remap ports.
+**Port conflicts.** Stop whatever else holds the port, or change the value in `etc/docker/devnet-env`.
 
-**Stale state** -- If the devnet behaves unexpectedly after code changes, run `just devnet-down` followed by `just devnet` to start from a clean state.
+**Stale state.** If behavior looks wrong after a code change, run `just devnet up-single` again. It always clears data before it starts.
 
-**Slow first start** -- The first run pulls several Docker images and may build containers from scratch. Run `just system-tests-pull-images` ahead of time to pre-pull base images.
+**Slow first start.** The first run pulls images and compiles the Rust services. Running `just devnet pull-images` beforehand saves part of that wait.
+
+**Transactions pending in HA mode.** After a leader change, send through `8545` rather than `7545`.

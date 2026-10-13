@@ -21,16 +21,16 @@ The devnet includes built-in monitoring commands:
 
 ```bash
 # Check block numbers and sync status across all nodes
-just devnet-status
+just devnet status
 
 # View funded test accounts with balances and nonces
-just devnet-accounts
+just devnet accounts
 
 # Run smoke tests (send test transactions to L1 and L2)
-just devnet-smoke
+just devnet smoke
 
 # Full check suite
-just devnet-checks
+just devnet checks
 ```
 
 ## Log Streaming
@@ -39,10 +39,10 @@ Stream logs from devnet containers:
 
 ```bash
 # All containers
-just devnet-logs
+just devnet logs
 
 # Specific containers
-just devnet-logs l2-node builder
+just devnet logs base-builder base-client
 ```
 
 ## Profiling
@@ -50,7 +50,7 @@ just devnet-logs l2-node builder
 For performance profiling, build with the `profiling` profile:
 
 ```bash
-just devnet-profiling
+just devnet profiling
 ```
 
 This starts the devnet with Pyroscope integration and optimized builds that retain frame pointers for accurate profiling.
