@@ -5,9 +5,16 @@ sources:
 - blog.base.dev:native-account-abstraction
 - base/docs:docs/base-chain/specs/reference/native-account-abstraction.mdx
 - base/docs:docs/base-chain/network-information/native-account-abstraction.mdx
+- base/docs:docs/specifications/base-transactions.mdx
 ---
 
-Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, with the rest of the OP Stack to follow. It has no activation date on Base, and as of mid-September 2026 it has no fork either. **[Cobalt](/specifications/cobalt-overview/)** was to carry it, then **[Denim](/specifications/denim-overview/)** was, and upstream has now dropped it from both upgrade pages without naming a successor. The node source points the same way: EIP-8130 transactions sit on a separate `zenith` gate that no canonical network sets, reserved for genesis-level testing. Vibenet is still the only place you can exercise it. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
+import { Aside } from '@astrojs/starlight/components';
+
+Native Account Abstraction folds the capabilities of smart accounts directly into the chain through **EIP-8130**, rather than layering them on top of the EVM the way **ERC-4337** did. Base is building it alongside Optimism, Coinbase, and WalletConnect, with the rest of the OP Stack to follow. Because the transaction type is co-designed with the protocol instead of bolted on, Base reports it can more than halve the per-transaction cost users paid under ERC-4337 without giving up any of the chain's scaling targets.
+
+<Aside type="caution">
+**Base now ships a smaller part of this design.** On 2026-10-13 upstream replaced its EIP-8130 spec with [Base Transactions](/specifications/base-transactions/), defined in EIP-8430 and carried by a new fork, [Everest](/specifications/everest-overview/). EIP-8430 keeps the type `0x79` transaction: call phases, sponsored and open payers, parallel and nonce-free nonces, and a single delegation entry. It drops the actor, scope, policy, and pluggable authenticator model below, so passkey signatures are not part of it. Everest has no date yet, and `everest_timestamp` is `None` on every built-in chain. The node still holds account creation and config batches as entry types `0x02` and `0x03`, valid only under the test-only `zenith` gate. Read the rest of this page as the background design, and use the Base Transactions page for the format Base is building.
+</Aside>
 
 ## Why move account abstraction into the protocol
 
@@ -66,7 +73,7 @@ A transaction under this model always does three things: it names the account it
 | `calls` | The batch to run atomically. |
 | `payer` | Optional. The account that covers gas instead of the sender. |
 
-The set of account changes is shrinking in the node. The same September change reorders the `accountChanges` type bytes so that code delegation takes `0x01` (`ACCOUNT_CHANGE_TYPE_DELEGATION`) and the signed config batch moves to `0x02` (`ACCOUNT_CHANGE_TYPE_CONFIG`), with creation still at `0x00`. Source comments call delegation the one entry the launch wire keeps, and mark both `Create` and `ConfigChange` for deletion in follow-up work. Encoders built against the earlier byte order will now decode as the wrong change type, so rebuild any 8130 tooling against the current node.
+The set of account changes has shrunk in the node. Code delegation is `0x01` (`ACCOUNT_CHANGE_TYPE_DELEGATION`), and it is the only entry type in EIP-8430. `0x00` is reserved and never decodes. As of October 2026, account creation is `0x02` (`ACCOUNT_CHANGE_TYPE_CREATE`) and the signed config batch is `0x03` (`ACCOUNT_CHANGE_TYPE_CONFIG`). Source comments assign both to a Keystore integration that is valid only once Zenith is active. The byte values moved more than once in 2026, so encoders built against an older order decode as the wrong change type. Rebuild any 8130 tooling against the current node.
 
 Delegation is now opt-in only. Before late September 2026 (#5255), the node pointed a sender with no code at `DEFAULT_ACCOUNT` on its own during execution and charged an `auto_delegation_cost` of 4,600 gas for it. That path is gone: a code-less sender is delegated only when the transaction carries an explicit `0x01` delegation entry, and the intrinsic gas formula no longer has an auto-delegation term. Delegation updates also stop adding a `DelegationApplied` log to the receipt, so the protocol-injected logs are now only `ActorAuthorized`, `ActorRevoked`, and `AccountCreated`. An indexer that watched for `DelegationApplied` must read delegation from the transaction's `accountChanges` instead.
 
@@ -87,7 +94,7 @@ The `viem/experimental/eip8130` helpers let a single transaction create an accou
 - **Users.** A standard EOA gains access to new behaviors such as gas sponsorship and batching. In the current node that takes an explicit delegation entry, not an automatic upgrade (see above). An existing ERC-4337 smart account takes a one-time upgrade to move onto the cheaper, faster-to-include path.
 - **Application developers.** Existing integrations keep working unchanged — for example, `wallet_sendCalls` continues to function against Native AA — while new capabilities like memos (for attribution), session keys, and sub-accounts become available.
 - **Wallets.** No changes are required to keep working as they do today. Adding Native AA support opens new revenue paths through subscriptions and **ERC-8168** payer services.
-- **Node operators.** Nothing to do yet, because no fork carrying EIP-8130 is scheduled. When Denim gets a date, the required step is moving nodes onto that build and opening access to several new RPC methods. Upstream publishes the version requirements at that point.
+- **Node operators.** Nothing to do yet. The transaction type now waits for [Everest](/specifications/everest-overview/), which has no date. When Everest is scheduled, upstream will publish the release that carries it. The RPC changes are listed in [Base Transactions](/specifications/base-transactions/#receipts-and-rpc).
 
 ## Testing ahead of activation
 

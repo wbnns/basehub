@@ -1,0 +1,228 @@
+---
+title: Base Transactions (EIP-8430)
+description: Reference for Base Transactions, the type 0x79 transaction from EIP-8430 that Everest adds. It covers batched call phases, gas sponsorship, token gas payments, parallel and nonce-free nonces, and code delegation.
+sources:
+- base/docs:docs/specifications/base-transactions.mdx
+- base/docs:docs/upgrades/everest/overview.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Base Transactions are a new [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) typed transaction, specified in [EIP-8430](https://github.com/ethereum/EIPs/pull/12385). They give an ordinary EOA, with its existing secp256k1 key, the features that used to need a smart account and a bundler. One transaction can:
+
+- **Batch calls** into atomic phases, and each call can carry its own native value.
+- **Use a sponsor** that pays gas, with no paymaster contract.
+- **Pay for gas in a token** by paying back a sponsor inside the same transaction (see [Token gas payments](#token-gas-payments)).
+- **Run in parallel** on separate nonce lanes, or with no nonce at all.
+- **Set code delegation** in the style of [EIP-7702](https://eips.ethereum.org/EIPS/eip-7702).
+
+Validation has a fixed cost. A node checks one secp256k1 signature for each role, and then the nonce, the balance, and the validity window. It never runs wallet code to decide if a transaction is valid. So there are no bundlers, no relays, and no second mempool.
+
+EIP-8430 was split out of [EIP-8130](/architecture/native-account-abstraction/). It keeps the transaction type and drops the onchain actor and authenticator model. Upstream replaced its EIP-8130 spec page with this one on 2026-10-13.
+
+<Aside type="caution">
+**Base Transactions are not live.** They activate with the [Everest](/specifications/everest-overview/) upgrade, and Everest has no date on any network. The node source agrees: `everest_timestamp` is `None` for Mainnet, Sepolia, and every other built-in chain. Until a date is set, you can only use this type on a devnet started with `just devnet up-single everest` (see [Local devnet](/getting-started/devnet/#hardfork-activation)).
+</Aside>
+
+## Transaction format
+
+The type byte is `0x79`:
+
+```text
+0x79 || rlp([
+  chain_id,
+  sender,             // empty = recover from sender_auth | 20-byte address
+  nonce_key,          // uint256: nonce channel selector
+  nonce_sequence,     // uint64: sequence number
+  valid_after,        // uint64: Unix timestamp (ms or s); 0 = no lower bound
+  valid_before,       // uint64: Unix timestamp (ms or s); 0 = no expiry
+  max_priority_fee_per_gas,
+  max_fee_per_gas,
+  gas_limit,
+  account_changes,    // typed entries | empty
+  calls,              // [[call, ...], ...] | empty
+  metadata,           // opaque attribution/annotation bytes | empty
+  payer,              // empty = self-pay | 0x00 = open | 20-byte payer address
+  sender_auth,
+  payer_auth
+])
+
+call = rlp([to, value, data])
+```
+
+| Field | What it does |
+|---|---|
+| `chain_id` | The [EIP-155](https://eips.ethereum.org/EIPS/eip-155) chain ID. |
+| `sender` | Leave it empty and the node recovers the sender from `sender_auth`. Or give a 20-byte address. |
+| `nonce_key` | Picks the nonce channel. `0` is the account nonce. `1` through `2^256 - 2` are parallel channels. `2^256 - 1` turns nonces off. See [Nonces](#nonces). |
+| `nonce_sequence` | The sequence number the sender expects in that channel. It goes up when the transaction is included, even if execution fails. It must be `0` when nonces are off. |
+| `valid_after` | The earliest time the transaction is valid. `0` sets no lower limit. |
+| `valid_before` | The latest time the transaction is valid. `0` sets no expiry. You must set it when nonces are off. |
+| `max_priority_fee_per_gas`, `max_fee_per_gas` | [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559) fee limits. |
+| `gas_limit` | Gas for the sender's intrinsic cost and for the calls. Payer authentication is paid for separately. |
+| `account_changes` | Typed state changes that run before the calls. See [Code delegation](#code-delegation). |
+| `calls` | The phases of calls, in order. See [Call phases](#call-phases). |
+| `metadata` | Free-form bytes, for example builder or app attribution or a payment reference. Both signatures cover them and they cost payload gas, but validation and execution ignore them. |
+| `payer` | Who pays for gas. See [Payers](#payers). |
+| `sender_auth` | The sender's authorization. See [Authentication](#authentication). |
+| `payer_auth` | The payer's authorization. Empty when the sender pays. |
+
+The two time fields take seconds or milliseconds. A value below `100_000_000_000` counts as seconds, and the node multiplies it by 1,000. A larger value counts as milliseconds. Every window check compares the result with `block.timestamp * 1000`.
+
+## Authentication
+
+One rule covers both `sender_auth` and `payer_auth`:
+
+- If the identity is **recovered**, the blob is a plain 65-byte ECDSA signature, `r || s || v`.
+- If the identity is **named** by a 20-byte address, the blob is a 20-byte authenticator selector and then the signature.
+
+| `sender` | `sender_auth` | Sender used |
+|---|---|---|
+| Empty | `r \|\| s \|\| v` (65 bytes) | The address recovered from the sender signature hash |
+| 20-byte address | `address(1) \|\| r \|\| s \|\| v` | `sender`. The recovered address must match it. |
+
+`address(1)` selects native secp256k1. It is the only selector the protocol accepts, and any other selector or blob length makes the transaction invalid. Passkeys (P-256 and WebAuthn) are not part of this type.
+
+The sender and the payer sign separate hashes, so one signature can never stand in for the other. Both hashes cover every field up to and including `payer`, and leave out `sender_auth` and `payer_auth`:
+
+```text
+sender_hash = keccak256(0x79 || rlp([chain_id, sender, nonce_key, nonce_sequence,
+  valid_after, valid_before, max_priority_fee_per_gas, max_fee_per_gas, gas_limit,
+  account_changes, calls, metadata, payer]))
+
+payer_hash  = keccak256(0x7A || rlp([chain_id, resolved_sender, nonce_key, nonce_sequence,
+  valid_after, valid_before, max_priority_fee_per_gas, max_fee_per_gas, gas_limit,
+  account_changes, calls, metadata, payer]))
+```
+
+The payer hash always puts in the resolved sender address, even if `sender` is empty in the encoded transaction. A payer signature is therefore tied to one sender. Another account cannot copy the same transaction body and reuse it.
+
+## Payers
+
+| `payer` | `payer_auth` | Mode | Payer used |
+|---|---|---|---|
+| Empty | Empty | Self-pay | `sender` |
+| `0x00` | `r \|\| s \|\| v` (65 bytes) | Open | The address recovered from the payer signature hash |
+| `sender` | `address(1) \|\| r \|\| s \|\| v` | Explicit self-pay | `sender` |
+| Any other address | `address(1) \|\| r \|\| s \|\| v` | Sponsored | `payer`. The recovered address must match it. |
+
+**Sponsored** mode locks the transaction to one named payer. **Open** mode names no payer, and any key that agrees to pay can sign the payer hash. While an open transaction waits in the pool, a third party can add its own `payer_auth` and send it again as a replacement. That replacement must still meet the minimum fee bump, and the payer is the only thing it changes.
+
+The most a payer can spend is `max_fee_per_gas * effective_gas_limit`. `payer_auth` is metered outside `gas_limit`, so a payer cannot use up the sender's call gas through its choice of authorization.
+
+A contract can read the resolved payer from the Transaction Context precompile (see [Precompiles](#precompiles)). For example, a sponsor's payment contract in phase 0 can check that the sponsor really is the one paying.
+
+### Token gas payments
+
+To pay for gas in a token, the sender sets a sponsor as `payer`. The first phase of `calls` sends the token to that sponsor, and the user's own actions go in later phases. The sponsor pays the gas in ETH. Phase 0 commits even if a later phase reverts, so the sponsor gets its token in all cases.
+
+## Nonces
+
+| `nonce_key` | Mode | How it works |
+|---|---|---|
+| `0` | Standard | The account nonce, shared with every other transaction type. |
+| `1` through `2^256 - 2` | Parallel | Separate sequential channels, kept by the Nonce Manager precompile. Each one is its own lane. |
+| `2^256 - 1` | Nonce-free | No nonce is read or changed. `nonce_sequence` must be `0` and `valid_before` must be set. |
+
+A nonce-free transaction gets its replay protection from a `replay_id`:
+
+```text
+replay_id = keccak256(0x7901 || rlp([chain_id, resolved_sender, valid_after, valid_before,
+  account_changes, calls, metadata, payer]))
+```
+
+The chain keeps each `replay_id` in a ring buffer of fixed size and refuses any `replay_id` that is still in it. An entry expires after its `valid_before`, so this state does not grow forever. The chain also limits how far ahead `valid_before` can be.
+
+The node source sets that limit. The onchain window is 30,000 ms. The txpool uses a smaller limit, `NONCE_FREE_MAX_EXPIRY_WINDOW` of `20_000` ms, so it never accepts a transaction that the block check would later refuse. A nonce-free transaction must therefore expire within about 20 seconds of when you send it.
+
+`replay_id` does not cover the fee fields, `gas_limit`, or either authorization blob. A fee bump or a new signature keeps the same identity. Do not deduplicate nonce-free transactions by transaction hash, because the hash changes when the fees change.
+
+### Replacement in the mempool
+
+- **Standard and parallel:** a pending transaction replaces another one with the same `(sender, nonce_key, nonce_sequence)`. On `nonce_key` `0`, a pending transaction of a different type with the same account nonce can also be replaced.
+- **Nonce-free:** a pending transaction replaces another one from the same sender with the same `replay_id`. A block cannot hold two transactions with the same `(sender, replay_id)`.
+
+A replacement must raise both `max_fee_per_gas` and `max_priority_fee_per_gas` by at least the node's minimum bump. A sponsored replacement also needs a new `payer_auth`, because the payer signs the fee fields and `gas_limit`.
+
+## Call phases
+
+`calls` is a list of **phases**, and each phase is a list of calls. The protocol sends every call directly from the sender. So `msg.sender` and `tx.origin` are both `sender`, and `call.value` goes from the sender to `call.to`.
+
+Each phase is all-or-nothing. If one call in it reverts, the node throws away that whole phase and skips every phase after it. Phases that finished before it stay in place.
+
+| Pattern | `calls` |
+|---|---|
+| One call | `[[call]]` |
+| Atomic batch | `[[call_a, call_b, call_c]]` |
+| Sponsor payment, then user actions | `[[sponsor_payment], [action_a, action_b]]` |
+
+<Aside type="caution">
+**A receipt with `status` `0` can still have changed state.** Phases that already committed, applied `account_changes`, the used nonce, and the fee all stay. Read `phaseStatuses` to see which phases went through.
+</Aside>
+
+## Code delegation
+
+`account_changes` is a list of typed entries that run before the calls. Delegation (`0x01`) is the only entry type:
+
+```text
+rlp([0x01, target])   // target: contract to delegate to, or address(0) to clear
+```
+
+This entry sets EIP-7702-style delegation for the sender. `sender_auth` already authorizes it, so it needs no extra signature, and it uses the same nonce as the calls that run the new code.
+
+- A transaction can hold one delegation entry at most.
+- The sender must authenticate with native secp256k1, recovered or named with `address(1)`.
+- The sender's code must be empty or an existing delegation indicator (`0xef0100 || address`). Other bytecode is never overwritten.
+- A non-zero `target` sets the code to `0xef0100 || target`. `address(0)` removes it.
+
+A Base Transaction never delegates an account on its own.
+
+The node still knows two more entry types, `0x02` (account creation) and `0x03` (signed config batch). Source comments assign them to a Keystore integration that is valid only under Zenith, a test-only gate that no public network sets. They are not part of EIP-8430 and not part of Everest.
+
+## Gas and fees
+
+```text
+intrinsic_gas = AA_BASE_COST + tx_payload_cost + nonce_key_cost + value_transfer_cost
+              + account_changes_cost + sender_auth_cost + payer_auth_cost
+
+effective_gas_limit = gas_limit + payer_gas_reserve
+```
+
+| Part | Cost |
+|---|---|
+| `AA_BASE_COST` | 15,000 |
+| `tx_payload_cost` | 16 gas for each non-zero byte and 4 for each zero byte of the encoded transaction, not counting `payer_auth` |
+| `nonce_key_cost` | 0 for key `0`. 22,100 the first time a parallel key is used, then 5,000. 13,000 when nonces are off. |
+| `value_transfer_cost` | 6,000 for each call with `value > 0` and `to != sender` |
+| `account_changes_cost` | 4,600 for a delegation entry |
+| `sender_auth_cost` | 5,100 |
+| `payer_auth_cost` | 0 for self-pay. Otherwise 5,100, plus payload cost for the bytes of `payer_auth`. |
+
+`gas_limit` pays for the sender's intrinsic gas and for the calls. The payer pays for its own authentication on top of `gas_limit`, up to `MAX_AUTHENTICATION_GAS` (100,000 in the node). An [EIP-7623](https://eips.ethereum.org/EIPS/eip-7623)-style calldata floor applies to the whole transaction, `payer_auth` included.
+
+Fees use EIP-1559 rules over `effective_gas_limit`. Before execution, the node takes `effective_gas_limit * effective_gas_price` from the payer. After execution, the payer pays for the gas used and gets the rest back. Gas for payer authentication is not refunded.
+
+The node source shows how these numbers add up. `sender_auth_cost` is 3,000 for the `ECRECOVER` work plus one cold storage read (2,100). The 13,000 nonce-free charge is a fixed sum of storage costs for the replay buffer. For the precharge, the node prices the `payer_auth` bytes at the EIP-7623 floor rate. At settlement it uses the normal calldata rate, unless the floor applies to the whole transaction.
+
+## Receipts and RPC
+
+The receipt has the same shape as an EIP-1559 receipt: `rlp([status, cumulative_gas_used, logs_bloom, logs])`. `status` is `1` only when every phase succeeded, or when `calls` is empty. Logs from phases that reverted are dropped.
+
+| Method | What changes |
+|---|---|
+| `eth_getTransactionReceipt` | Adds `payer` (the resolved payer) and `phaseStatuses` (`0x01` or `0x00` for each phase). `gasUsed` includes payer authentication. |
+| `eth_getTransactionCount` | Takes an optional `nonceKey`. With no key, or `0`, it returns the account nonce. Any other key reads the Nonce Manager. |
+| `eth_estimateGas`, `eth_call` | Take `sender`, `nonceKey`, `accountChanges`, `calls`, `validAfter`, `validBefore`, `metadata`, `payer`, `senderAuth`, and `payerAuth`, and run the request as a Base Transaction. Signatures are not checked. Missing auth fields are priced as secp256k1 placeholders of the correct shape. |
+
+## Precompiles
+
+| Precompile | Address | Interface |
+|---|---|---|
+| Nonce Manager | `0x813000000000000000000000000000000000aa01` | `getNonce(address account, uint256 nonceKey) returns (uint64)`. Read-only. Key `0` gives the account nonce. |
+| Transaction Context | `0x813000000000000000000000000000000000aa02` | `getTransactionPayer() returns (address)`. Gives the resolved payer for a Base Transaction, and `tx.origin` for every other type. |
+
+## Related pages
+
+- [Everest Upgrade Overview](/specifications/everest-overview/): the fork that carries this type
+- [Native Account Abstraction](/architecture/native-account-abstraction/): the EIP-8130 design that EIP-8430 came from
+- [EIP-8430 specification](https://github.com/ethereum/EIPs/pull/12385) and the [Ethereum Magicians thread](https://ethereum-magicians.org/t/eip-8430-aa-transaction-type-split-out-from-8130/29810)

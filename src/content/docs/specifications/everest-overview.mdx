@@ -1,0 +1,38 @@
+---
+title: Everest Upgrade Overview
+description: Summary of the Everest hardfork, which adds Base Transactions (EIP-8430), a native transaction type for batching, gas sponsorship, token gas payments, and parallel nonces.
+sources:
+- base/docs:docs/upgrades/everest/overview.mdx
+- base/docs:docs/upgrades/overview.mdx
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Everest is the Base hardfork planned after [Denim](/specifications/denim-overview/). Upstream added it to the upgrades tracker on 2026-10-13. It has one feature: [Base Transactions](/specifications/base-transactions/), the new transaction type from EIP-8430.
+
+## Status
+
+| Network | Status | Target |
+|---|---|---|
+| Base Sepolia | Planning | No date |
+| Base Mainnet | Planning | No date |
+
+<Aside type="caution">
+**Everest has no date anywhere.** Upstream lists both networks as TBD. The node source matches: `everest_timestamp` is `None` for every built-in chain. No release can follow the fork yet, so there is no version to plan for. A local devnet can turn it on with `just devnet up-single everest`, which activates Everest at block 100 (see [Local devnet](/getting-started/devnet/#hardfork-activation)).
+</Aside>
+
+## What Everest ships
+
+- **Base Transactions (EIP-8430)** - a typed transaction (`0x79`) that lets an ordinary EOA batch calls into atomic phases, have a sponsor pay its gas, pay that sponsor back in a token, and run parallel or nonce-free lanes. It can also set EIP-7702-style delegation. Nodes check one secp256k1 signature for each role and never run wallet code, so no bundler or relay is involved. The full format, gas table, and RPC changes are in [Base Transactions](/specifications/base-transactions/).
+
+## Where native account abstraction went
+
+For most of 2026, Base described this work as native account abstraction under EIP-8130. Cobalt was to carry it, then Denim, and from September it had no fork at all (see [What moved out of Cobalt](/specifications/cobalt-overview/#what-moved-out-of-cobalt)). Everest gives the transaction type a fork again, but in a smaller form.
+
+EIP-8430 is the transaction part of EIP-8130, split out on its own. The onchain actor and authenticator model, with P-256 and WebAuthn passkeys, is not in it. In the node, the gate for this transaction type moved from `zenith` to `is_everest_active_at_timestamp`. The txpool and the RPC layer both check it, and the EVM sets up the Nonce Manager system account at the same fork. Account creation and signed config batches are still in the source as entry types `0x02` and `0x03`. Comments mark them as valid only under Zenith, which stays a test-only gate with no canonical schedule. The background is in [Native Account Abstraction](/architecture/native-account-abstraction/).
+
+## Related pages
+
+- [Base Transactions](/specifications/base-transactions/)
+- [Denim Upgrade Overview](/specifications/denim-overview/)
+- [Cobalt Upgrade Overview](/specifications/cobalt-overview/)

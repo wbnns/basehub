@@ -97,11 +97,11 @@ Two optional modes add the unscheduled forks:
 
 | Command | Also activates |
 | --- | --- |
-| `just devnet up-single everest` | Everest (EIP-8130 transactions) at block 100 |
+| `just devnet up-single everest` | Everest ([Base Transactions](/specifications/base-transactions/), type `0x79`) at block 100 |
 | `just devnet up-single zenith` | Everest and Zenith at block 100 |
 
 :::caution
-The canonical batcher in the devnet (`op-batcher`) does not understand EIP-8130 transactions (type `0x79`). As soon as one lands in a block, that batcher stops moving forward and the canonical safe head stalls. The shadow `base-batcher` handles the type, so the shadow validator keeps deriving past those blocks.
+The canonical batcher in the devnet (`op-batcher`) does not understand Base Transactions (EIP-8430, type `0x79`; the node code still calls them EIP-8130). As soon as one lands in a block, that batcher stops moving forward and the canonical safe head stalls. The shadow `base-batcher` handles the type, so the shadow validator keeps deriving past those blocks.
 :::
 
 Each activation reads from an `L2_BASE_<HARDFORK>_BLOCK` variable, such as `L2_BASE_DENIM_BLOCK`. Set it before `up` or `up-single` to move that fork. An empty value leaves the fork unscheduled.

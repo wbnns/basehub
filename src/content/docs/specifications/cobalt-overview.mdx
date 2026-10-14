@@ -45,11 +45,11 @@ Two features carried the Cobalt label at some point and no longer do. Material w
 | Feature | Now shipped by | Status |
 |---|---|---|
 | Canonical 200ms blocks, BaseTime, millisecond RPC timestamps | [Denim](/specifications/denim-overview/) | Sepolia scheduled for 2026-10-21 18:00 UTC; Mainnet planning for November 2026 |
-| Native account abstraction (EIP-8130) | No scheduled fork | Gated behind `zenith`, which is unset everywhere |
+| Native account abstraction (EIP-8130) | [Everest](/specifications/everest-overview/), as Base Transactions (EIP-8430) | Planning, no date on any network |
 
 The 200ms work was briefly filed under Cobalt in early September 2026 and has since moved back to Denim. The node source never followed it across: block-timing paths have gated on `is_denim_active_at_timestamp` throughout, so the reassignment restores agreement between the docs and the implementation.
 
-Account abstraction is the murkier of the two. It has no fork of its own now. Its runtime gate is `zenith`, which sits off the execution fork ladder and is hardcoded to `None` for every canonical network, with a source comment stating the gate exists for genesis-level testing and must not reach a canonical schedule. Devnets opt in through their own genesis config. The model itself is documented in [Native Account Abstraction](/architecture/native-account-abstraction/); what is missing is a date and a fork to carry it.
+Account abstraction took longer to settle. From September to mid-October 2026 it had no fork, and its runtime gate was `zenith`, a test-only gate that no canonical network sets. On 2026-10-13 upstream gave it a new home in a smaller form. The transaction type is now [Base Transactions](/specifications/base-transactions/) under EIP-8430, carried by [Everest](/specifications/everest-overview/), and the node gates it on `is_everest_active_at_timestamp`. The actor and authenticator parts of the original model stay behind `zenith`. Everest has no date yet. The background design is in [Native Account Abstraction](/architecture/native-account-abstraction/).
 
 ## Required software
 

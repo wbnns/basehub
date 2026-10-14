@@ -36,7 +36,7 @@ The full schema lives upstream in `openapi/tokenized-equities.json`.
 curl https://api.coinbase.com/v1/tokenized-stocks
 ```
 
-The response is a `tokens` array. Each entry is a `v1TokenizedEquityToken`:
+The response is a `tokens` array and, when more records exist, a `next_page_token`. Each entry is a `v1TokenizedEquityToken`:
 
 | Field | Type | Meaning |
 |-------|------|---------|
@@ -51,6 +51,16 @@ The response is a `tokens` array. Each entry is a `v1TokenizedEquityToken`:
 | `paused_features` | integer[] | Feature flags currently paused on the token contract. |
 | `nav_price` | double | Latest Chainlink NAV/reference value, adjusted for the feed's decimals. |
 | `nav_price_updated_at` | date-time | When `nav_price` last changed onchain (the feed's `updatedAt`). |
+
+### Paging through the list
+
+The list is paged, so one call can miss records. If a response has `next_page_token`, send it back as the `page_token` query parameter to get the next page. Stop when a response has no `next_page_token`. `page_size` sets how many records come back on each page.
+
+```bash
+curl "https://api.coinbase.com/v1/tokenized-stocks?page_token=<next_page_token>"
+```
+
+This is not a corner case. On 2026-10-14 a call with no parameters returned 100 records and a `next_page_token`. Walking every page returned 145 records. Code that reads only the first response misses about a third of the tokens and gets no error. Upstream added pagination to its docs on 2026-10-13.
 
 ## List protocol contract addresses
 
