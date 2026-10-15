@@ -9,6 +9,8 @@ import { Aside } from '@astrojs/starlight/components';
 
 `base-bench snapshot` measures node performance against a prepared Base datadir, with no L1 in the loop. It exists for local performance investigation: you restore a snapshot, drive a workload at it, and publish the artifacts somewhere they can be compared.
 
+It is not the tool for testing an application against real chain state. For that, use the `base dev` snapshot chain described in [Local Devnet](/getting-started/devnet/#snapshot-dev-chain-base-dev).
+
 The important property is repeatability. Two runs are only worth comparing if everything except the variable under test held still, and most of this guide is about the discipline that requires.
 
 <Aside type="caution">

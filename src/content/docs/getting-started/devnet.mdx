@@ -1,9 +1,11 @@
 ---
 title: Local Devnet
-description: Run a throwaway Base network on your own machine with Docker, send a test transaction, and step through every hardfork in the first few blocks.
+description: Run Base locally from base/base, either as a throwaway Docker network that crosses every hardfork in its first blocks, or as a snapshot dev chain that continues real Mainnet state.
 ---
 
 The `base/base` repository ships a Docker devnet that brings up the whole Base stack locally: an L1 made of Reth and Lighthouse, a Base sequencer, two RPC nodes, and a batcher. A shadow batcher and shadow validator run alongside it so the Rust batcher gets exercised too. It is the place to try contracts, apps, and node or hardfork changes when you do not want a public network involved.
+
+There is also a [snapshot dev chain](#snapshot-dev-chain-base-dev) that picks up from real Base Mainnet or Sepolia state instead of a fresh genesis. The table further down helps you choose.
 
 If you only need to build against new Base features and have no interest in running infrastructure, the hosted Vibenet is the lighter option.
 
@@ -138,25 +140,50 @@ No prover runs inside the devnet. To prove against it, start the separate [stand
 ## Snapshot Dev Chain (`base dev`)
 
 :::note
-`base dev` is on `main` only. No release tag includes it yet, including `v1.5.0-rc.9`.
+`base dev` is on `main` only. No release ships it yet. The final `v1.5.0` (2026-10-14) does not include it, so build from a `main` checkout.
 :::
 
-There is a second, lighter way to get a local chain. `base dev` takes a copy of a real snapshot and keeps producing blocks on top of it, with no L1 behind it. One process holds both an embedded execution node and a standalone sequencer, talking over Engine IPC. Docker is not needed, because the recipes build `base` with Cargo.
+There is a second, lighter way to get a local chain. `base dev` takes a copy of a real snapshot and keeps producing blocks on top of it, with no L1 behind it. One process holds both an embedded execution node and a standalone sequencer, talking over Engine IPC. Contracts, balances, and storage start out exactly as they were on the network at the snapshot head.
+
+### Picking Between the Two
+
+| | Docker devnet | Snapshot dev chain |
+| --- | --- | --- |
+| Starting state | A fresh genesis | Base Mainnet or Sepolia at the snapshot head |
+| Good for | Sequencing, derivation, batching, fork activation, HA failover | Real deployed contracts and liquidity, acting as any account, 200ms blocks |
+| Out of reach | Mainnet contracts and state | L1 derivation, bridges, safe and finalized heads, proofs |
+| Needs | Docker | A native Rust build and at least 1.5 TB of free disk; no Docker |
+| First start | Several minutes of image builds | About an hour of download, then a one-time index rebuild |
+
+Pick the Docker devnet when the test touches node behavior or L1. Pick `base dev` when you want your app to meet the same contracts it will see on Mainnet.
+
+### Requirements
+
+On top of `just`, Foundry, and `jq`, the recipes compile `base` with Cargo, so you need:
+
+- The Rust toolchain pinned in `rust-toolchain.toml` (through [rustup](https://rustup.rs)), Go, a C/C++ compiler, libclang, OpenSSL development headers, `pkg-config`, CMake, and `protoc`.
+- At least 1.5 TB free, ideally on fast NVMe. A Base Mainnet download in October 2026 came to about 830 GiB and unpacked to about 1.4 TB. Upstream has only tested the flow on Linux.
+
+### Download and Run
 
 ```bash
 just devnet snapshot download --dir "$HOME/data/my-devnet"
 just devnet snapshot run --dir "$HOME/data/my-devnet"
 ```
 
-What it does and does not do:
+`download` only fetches data and writes a node config into the directory. It does not start anything. Add `--print-plan-json` to list the exact archives and sizes first. If the transfer breaks off, run the same command again and verified archives are reused. Add `--manifest-url <url>` to stay on one specific snapshot across a resume.
+
+The download keeps 1,339,200 blocks of transactions, receipts, and state history, which covers about 31 days of 2-second blocks. The `--full` preset keeps 13,392,000 blocks instead. That is 31 days only once blocks are 200ms, and about 310 days today, so a Mainnet `--full` pull is about 1.9 TB and unpacks to about 3.7 TB.
+
+`run` builds `base`, prints the endpoints and the snapshot head, and stays in the foreground. The snapshot ships without the transaction and history indexes, so the first `run` rebuilds them. RPC calls work within seconds, but no new blocks appear until the rebuild ends. Upstream measured about 22 minutes for a Mainnet snapshot. Later starts begin sequencing almost at once.
+
+What else to expect:
 
 - It never creates, downloads, or resets data on its own. `run` only continues a datadir that already exists.
-- Peers and discovery are off. HTTP RPC listens on `http://127.0.0.1:8545` and WS on `ws://127.0.0.1:8546`, with the `eth_*`, `debug_*`, and `trace_*` methods.
+- Peers and discovery are off. HTTP RPC listens on `http://127.0.0.1:8545` and WS on `ws://127.0.0.1:8546`, with the `eth_*`, `debug_*`, and `trace_*` methods. `--http.port` and `--ws.port` move them.
+- The chain ID stays the snapshot's own: `8453` for Mainnet, `84532` for Sepolia.
 - If the snapshot head is from before Denim, Denim activates on the next block. The schedule and starting head are written to `base-dev.json` in the datadir and reused after a restart.
 - Ctrl+C stops it, and the same command resumes it. Downtime does not create catch-up blocks.
-- It is for local execution only. L1 derivation, bridges, safe and finalized heads, and proofs are out of scope. Use the Docker devnet for those.
-
-The download recipe keeps 1,339,200 blocks of transactions, receipts, and state history. That is about 31 days of 2-second blocks. The plain `--full` preset keeps 13,392,000 blocks, which is 31 days only once blocks are 200ms, and about ten times longer before Denim.
 
 For Sepolia, select the chain on both steps. Note that `download` refuses the `BASE_CHAIN` variable and takes its own `--chain` flag:
 
@@ -166,24 +193,47 @@ BASE_CHAIN=sepolia just devnet snapshot run --dir "$HOME/data/sepolia-devnet"
 ```
 
 :::danger
-Use a throwaway copy. Never point `base dev` at a live node's datadir or at your only Mainnet copy. Once development blocks exist, the data has left Mainnet for good, and deleting `base-dev.json` does not reverse it. Only a clean backup does.
+Use a throwaway copy. Never point `base dev` at a live node's datadir or at your only Mainnet copy. Once development blocks exist, the data has left Mainnet for good, and deleting `base-dev.json` does not reverse it. Only a clean backup does. For the same reason, never run `download` again into a directory that has already made dev blocks.
 :::
+
+### Block Timing
+
+Blocks come every 200ms, but header timestamps only count whole seconds, so roughly five blocks in a row share one timestamp. Code that counts blocks sees time run ten times faster than on a 2-second chain. Code that reads `block.timestamp` sees normal time. A busy disk or CPU can make blocks late.
 
 ### `dev_impersonateTransaction`
 
-`base dev` adds one RPC method that runs a call as any account without its key. It is handy for funding accounts or making privileged calls:
+`base dev` adds one RPC method that runs a call as any account without its key. It is handy for funding accounts, moving tokens out of real holders, or calling owner-only functions:
 
 ```text
 dev_impersonateTransaction({from, to?, input?, value?, gas, mint?}) -> txHash
 ```
 
-- `from` and `gas` are required. `mint` wei is credited to `from` before the call runs.
-- The request becomes a deposit transaction. Signature, nonce, and fee checks are skipped, and no fee is paid. Use signed transactions when you want to test admission or fees.
-- The returned hash only means the request is queued. Poll `eth_getTransactionReceipt` to see it included. A reverting call still lands, with status `0`, and any minted ETH stays.
-- Invalid requests return `-32602`. A `-32000` error means try again later: sequencing has not started, or 256 requests are already waiting.
+- `from` and `gas` are required. `input` defaults to empty, and `value` and `mint` default to zero. `mint` wei is credited to `from` before the call runs. Leave out `to` to deploy a contract from `input`.
+- The request becomes a deposit transaction. Signature, nonce, and fee checks are skipped, and no fee is paid. Checks that live inside contracts, such as `ecrecover`, EIP-1271, or `permit`, still run. Use signed transactions when you want to test admission or fees.
+- The receipt has type `0x7e`, an `effectiveGasPrice` of zero, and `from` set to the impersonated account. Each request bumps that account's nonce.
+- The returned hash only means the request is queued. It normally lands in the next block, about 200ms later. Poll `eth_getTransactionReceipt` rather than sending again, because a repeat is a second transaction. A reverting call still lands, with status `0`, and any minted ETH stays. Queued requests live in memory and vanish if the process stops.
+
+A quick way to fund a fresh key with 1 ETH:
+
+```bash
+RPC=http://127.0.0.1:8545
+DEV_KEY=$(cast wallet new --json | jq -er '(if type == "array" then . else .data end)[0].private_key')
+ACCOUNT=$(cast wallet address --private-key "$DEV_KEY")
+cast rpc --rpc-url "$RPC" dev_impersonateTransaction \
+  "{\"from\":\"$ACCOUNT\",\"to\":\"$ACCOUNT\",\"gas\":\"0x5208\",\"mint\":\"0xde0b6b3a7640000\"}"
+```
+
+| Error code | Meaning |
+| --- | --- |
+| `-32602` | Bad request: `from` or `gas` missing, gas under the intrinsic cost or above the block gas limit minus 2,000,000, calldata over 131,072 bytes, or init code over 49,152 bytes |
+| `-32000` | Try again later: sequencing has not started (for example during the first-run rebuild), or 256 requests are already waiting |
 
 :::caution
-Because impersonation can act as any account, keep the dev RPC endpoints private.
+The receipt's `contractAddress` is wrong for a contract deployed this way. It shows the address for nonce zero. The code actually lands at the address derived from the sender's nonce before the request. Read that nonce with `cast nonce` first, then get the address with `cast compute-address <from> --nonce <nonce>`.
+:::
+
+:::caution
+Because impersonation can act as any account, keep the dev RPC endpoints private. The chain also keeps its real chain ID, so anything you sign here is valid on that network too. Act as real accounts through impersonation, and sign only with throwaway keys.
 :::
 
 ## Troubleshooting

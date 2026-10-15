@@ -118,7 +118,7 @@ A nonce predicate works the same way, but on the account's protocol nonce (#5637
 A nonce condition that has been passed does not evict the transaction. Suppose you write `=`, `<`, or `<=` and the nonce then moves above your value. Nonces only go up, so the condition can never match again, but the node still parks the transaction and does not drop it. Only your mandatory `block_number` bound ends its life. Keep that bound tight when you rely on a nonce ceiling.
 
 <Aside type="caution">
-`nonce` is new. It first appears in `v1.5.0-rc.1` (tagged 2026-10-07). `v1.4.2`, the newest final release, decodes predicates strictly and refuses an unknown `type`, so a submission that carries `nonce` fails there. Check the version on the endpoint before you depend on it.
+`nonce` is new. It first appeared in `v1.5.0-rc.1` (tagged 2026-10-07) and ships in the final `v1.5.0` (2026-10-14). `v1.4.2` and earlier decode predicates strictly and refuses an unknown `type`, so a submission that carries `nonce` fails there. Check the version on the endpoint before you depend on it.
 </Aside>
 
 <Aside type="caution">
@@ -163,7 +163,7 @@ A signature protects you only once the whole path enforces it. While any hop sti
 Even then, signing stops unauthorized predicates, not every sandwich. Predicates are builder-side metadata, not consensus rules, so anyone holding the raw transaction can strip the whole sidecar and send the plain transaction instead.
 </Aside>
 
-This is on `main` and first ships in `v1.5.0-rc.7`. `v1.4.2` does not have it, and rejects `validity_signature` as an unknown key. The flag defaults to `off`, so until Base announces otherwise, assume the public sequencer does not enforce signatures.
+This first appeared in `v1.5.0-rc.7` and ships in the final `v1.5.0`. `v1.4.2` does not have it, and rejects `validity_signature` as an unknown key. The flag defaults to `off`, so until Base announces otherwise, assume the public sequencer does not enforce signatures.
 
 ## Safety
 
@@ -196,7 +196,7 @@ These limit flags were renamed in `v1.4.2`, and the old names are gone rather th
 </Aside>
 
 <Aside type="caution">
-`v1.5.0` removes the switch flags too (#5469). Cobalt is live on every network, so `--enable-experimental-validity-transactions` and `--builder.enable-experimental-validity-transactions` have no job left, and both are gone. A launch script that still passes either one stops at startup on `v1.5.0-rc.1` and later. The RPC-level Cobalt check on `base_sendRawTransactionValidity` and `base_insertValidatedTransaction` is gone as well. An RPC node now registers validity ingress only when it runs with transaction forwarding or with a sequencer URL. Before, the experimental flag alone was enough.
+`v1.5.0` removes the switch flags too (#5469). Cobalt is live on every network, so `--enable-experimental-validity-transactions` and `--builder.enable-experimental-validity-transactions` have no job left, and both are gone. A launch script that still passes either one stops at startup on `v1.5.0-rc.1` and later, including the final `v1.5.0`. The RPC-level Cobalt check on `base_sendRawTransactionValidity` and `base_insertValidatedTransaction` is gone as well. An RPC node now registers validity ingress only when it runs with transaction forwarding or with a sequencer URL. Before, the experimental flag alone was enough.
 </Aside>
 
 A bound equal to the block currently being built is fine. The transaction can still land in a later Flashblock of that same block.

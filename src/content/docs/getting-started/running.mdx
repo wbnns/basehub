@@ -150,7 +150,7 @@ Retention is set by `--proofs-history.window` (alias `--proofs.window`), counted
 | Build | Default window | At 2s blocks | At 200ms blocks |
 | --- | --- | --- | --- |
 | `v1.4.2` and earlier | `1296000` | 30 days | 3 days |
-| `main` since late September 2026 (#5362) | `6480000` | 150 days | 15 days |
+| `v1.5.0` and later (#5362) | `6480000` | 150 days | 15 days |
 
 The new default is sized for [200ms blocks under Denim](/specifications/denim-200ms-blocks/). Until Denim activates, a node on the new default keeps five times as much history as before, so plan disk for that or set the window yourself. The same change lowers the minimum from just over 12 hours of 2s blocks to a single block.
 
