@@ -115,7 +115,7 @@ store.add_enr(enr);
 
 After bootstrapping, the driver enters its main loop, doing several things concurrently via `tokio::select!` (a Rust macro that waits on multiple async operations and runs the code for whichever completes first). It runs periodic random node queries (every 5 seconds by default) to keep discovering peers. It listens for discv5 events such as `Discovered`, `SessionEstablished`, and `UnverifiableEnr`, and when it sees a valid ENR it forwards it through an `mpsc` (multi-producer, single-consumer) channel to the gossip layer so it can dial the peer. An `mpsc` channel is a thread-safe queue where multiple senders push to a single receiver — the primary way components communicate in async Rust. The driver also persists the current set of known ENRs to the boot store every 60 seconds.
 
-The driver communicates with the rest of the system through a [`Discv5Handler`](https://github.com/base/base/blob/main/crates/consensus/disc/src/handler.rs), a thin wrapper around an `mpsc::Sender`. Other parts of the system can request metrics, peer lists, the local ENR, or ask discovery to ban specific addresses. This channel-based design avoids shared mutable state across async boundaries.
+The driver communicates with the rest of the system through a [`Discv5Handler`](https://github.com/base/base/blob/main/crates/consensus/disc/src/handler.rs), a thin wrapper around an `mpsc::Sender`. Callers elsewhere in the node use it to ask for the peer count, peer lists, routing table details, and the local ENR, and to tell discovery to ban particular addresses. This channel-based design avoids shared mutable state across async boundaries.
 
 ### Gossip — broadcasting blocks with libp2p and gossipsub
 

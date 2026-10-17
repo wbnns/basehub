@@ -1,0 +1,152 @@
+---
+title: Glamsterdam EIP Port (Design)
+description: Draft plan for which Ethereum Glamsterdam EIPs Base would adopt, which it would modify, and which it would leave out, including block-level access lists, SLOTNUM, and a 128 gas/byte calldata floor.
+sources:
+- base/base:docs/guides/GLAMSTERDAM.md
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Glamsterdam is Ethereum's next L1 upgrade (meta-EIP [7773](https://eips.ethereum.org/EIPS/eip-7773)). On 2026-10-16, base/base added a design document (#5759) that sorts each Glamsterdam EIP into one of three buckets for Base: take it unchanged, take it with Base-specific changes, or skip it. This page summarizes that plan.
+
+<Aside type="caution">
+**This is a design draft, not a scheduled upgrade.** It is not tied to any named Base hardfork. The node source still treats Ethereum's `Amsterdam` fork as `ForkCondition::Never` on every Base chain, and a code comment in the EVM notes that EIP-8037 is therefore never enabled. Several prices below are still open (see [Open items](#open-items)). The [Cobalt launch post](/architecture/engineering-blog/) named "part of Glamsterdam" as upcoming work, which matches this scope.
+</Aside>
+
+## Open items
+
+Upstream lists four decisions that are still pending:
+
+- **Base Transactions (EIP-8430):** pricing for the new transaction type is not yet defined. See [Base Transactions](/specifications/base-transactions/).
+- **State creation (EIP-8037):** Base has not picked its per-byte gas price for newly created state.
+- **State access (EIP-8038):** the account and storage access and write prices for Base are undecided.
+- **BAL bandwidth:** a comparison of payload sizes with and without block-level access lists, both raw and compressed, has not been done yet.
+
+## EIPs Base would modify
+
+| EIP | What it does on L1 | Base's planned change |
+|---|---|---|
+| [7928](https://eips.ethereum.org/EIPS/eip-7928) | Block-level access lists (BALs): each block records the state it read and wrote, which enables parallel execution and quicker state processing. | Ship the BAL inside gossiped Base blocks, leave it out of L1 batches, and rebuild it during CL sync. See [design](#block-level-access-lists-eip-7928). |
+| [2780](https://eips.ethereum.org/EIPS/eip-2780) | Replaces the flat per-transaction overhead with charges tied to the resources a transaction uses. | Extend the model to Base Transactions (EIP-8430), covering batching, sponsorship, and nonce modes. |
+| [7843](https://eips.ethereum.org/EIPS/eip-7843) | Adds the `SLOTNUM` opcode and a matching header field for the consensus slot. | Report the L2 block number as the slot instead of the beacon slot. See [design](#slot-number-eip-7843). |
+| [7976](https://eips.ethereum.org/EIPS/eip-7976) | Lifts the calldata floor to 64 gas per byte. | Use 128 gas/byte instead. See [design](#calldata-floor-eip-7976). |
+| [8037](https://eips.ethereum.org/EIPS/eip-8037) | Reprices new state and meters state creation apart from execution. | Same mechanism; Base's state-byte price is still to be chosen. |
+| [8038](https://eips.ethereum.org/EIPS/eip-8038) | Updates gas for account and storage accesses and writes. | Same mechanism; Base-specific values are still to be chosen. |
+| [7981](https://eips.ethereum.org/EIPS/eip-7981) | Charges access lists for the data they carry. | Price at 128 gas/byte to line up with the calldata floor. See [design](#access-list-pricing-eip-7981). |
+
+## EIPs Base would take unchanged
+
+| EIP | Effect |
+|---|---|
+| [7708](https://eips.ethereum.org/EIPS/eip-7708) | Native ETH transfers produce a protocol-level log. |
+| [7778](https://eips.ethereum.org/EIPS/eip-7778) | Block capacity counts execution gas before refunds, while users still receive their refunds. |
+| [7954](https://eips.ethereum.org/EIPS/eip-7954) | Deployed code may be up to 64 KiB and initcode up to 128 KiB. |
+| [7997](https://eips.ethereum.org/EIPS/eip-7997) | The standard `CREATE2` factory must exist at a shared address across EVM chains. |
+| [8024](https://eips.ethereum.org/EIPS/eip-8024) | New `SWAPN`, `DUPN`, and `EXCHANGE` instructions reach deeper into the stack. |
+| [8246](https://eips.ethereum.org/EIPS/eip-8246) | When an eligible self-destructed account is cleared, its leftover ETH is kept rather than burned. |
+| [7975](https://eips.ethereum.org/EIPS/eip-7975) | Networking: `eth/70` lets peers send long receipt lists in pieces. |
+| [8159](https://eips.ethereum.org/EIPS/eip-8159) | Networking: `eth/71` adds request and response messages for BALs. |
+| [8189](https://eips.ethereum.org/EIPS/eip-8189) | Networking: `snap/2` uses BALs to move forward and patch state during sync. |
+
+## Design notes
+
+### Block-level access lists (EIP-7928)
+
+The two goals are fast validator sync, at the chain tip and for history, and keeping L1 blob usage low.
+
+The planned data flow:
+
+- **Sequencer:** builds each block and its BAL together. It gossips the payload and BAL as one unit, but posts only the transactions to L1.
+- **Unsafe sync (P2P):** a validator receives the payload with its BAL, executes the block, and checks the BAL against the result.
+- **Safe sync (CL):** a validator derives block inputs from L1. If they match a block it has already validated, it reuses that execution and promotes the block to safe. If there is no match, it treats the case as a reorg, replays the block, and rebuilds the BAL.
+- **Historical sync (EL):** a validator pulls blocks, state, and BALs from other nodes over `eth/71` and `snap/2`, then catches up and verifies state.
+
+Two deliberate departures from L1:
+
+- **BAL travels inside the block.** On Base the BAL sits in the gossiped execution payload instead of a separate sidecar, so a validator never needs a second fetch. The cost is more peer bandwidth, which upstream accepts because validators are expected to run on data-center links.
+- **No BALs in L1 blobs.** Batches carry transactions only. Any BAL can be rebuilt by execution, including deposits and system inputs that come from L1. The trade-off is slower CL sync during unusual recovery. In normal operation, history uses EL sync and CL reconciliation matches blocks that were already validated, so the replay cost rarely applies. Base avoids paying blob fees for a BAL on every block.
+
+### Slot number (EIP-7843)
+
+| Option | Upside | Downside | Fits |
+|---|---|---|---|
+| **L2 block number (recommended)** | Easy to validate; every Base block gets its own slot; leaves space for a later Base slot counter that also advances over skipped blocks. | Duplicates what `NUMBER` already returns. | Scheduling local execution or tracking recent state per L2 block. |
+| **Beacon slot of the L1 origin** | Matches the OP precedent for L1 consensus data (as with EIP-4399 and EIP-4788). | Many L2 blocks share one slot, and it only moves when the L1 origin moves. | Lining up with Ethereum oracle reporting windows or beacon-proof slots. |
+
+### Calldata floor (EIP-7976)
+
+The floor formula is:
+
+`charged gas = max(txn cost, base_tx_cost + bytes * constant)`
+
+Upstream recommends **`constant = 128` gas/byte**, applied to zero and nonzero bytes alike. Compared with L1's 64, that halves the worst-case calldata size and growth, and in the sampled transactions nobody pays more.
+
+The ranking used to pick the number, highest priority first:
+
+1. Do not price out payments, swaps, and other everyday transactions.
+2. Cap the worst-case size of incompressible blocks on the P2P network.
+3. Keep yearly calldata growth manageable.
+
+<Aside>
+Upstream points out that a calldata floor is a blunt tool for an L1 data-availability backlog. It charges raw bytes, ignoring compression and how much L1 DA capacity is free. A more accurate L1 DA price is the right fix for that problem.
+</Aside>
+
+#### Effect on sample transactions
+
+Receipt gas for five real Base Mainnet transactions under different floors. Bold cells are where the floor starts to bind.
+
+| Constant (gas/byte) | USDC payment (68 B) | Aerodrome Router (324 B) | Slipstream (260 B) | Uniswap Router02 (228 B) | Universal Router (644 B) |
+|---|---|---|---|---|---|
+| 64 | 40,271 | 181,916 | 186,366 | 105,413 | 171,148 |
+| **128** (recommended) | 40,271 | 181,916 | 186,366 | 105,413 | 171,148 |
+| 256 | 40,271 | 181,916 | 186,366 | 105,413 | **185,864** |
+| 512 | **49,816** | 181,916 | 186,366 | **137,736** | **350,728** |
+| 1,024 | **84,632** | **346,776** | **281,240** | **254,472** | **680,456** |
+
+At 128 none of the five samples changes. The first sample to pay more is the Universal Router swap at 256.
+
+#### Block size and storage growth
+
+Under today's pricing, worst-case calldata per block is large. At 400M gas per 2-second block, zero bytes at 10 gas allow 40 MB per block (105.12 TB a year); nonzero bytes at 40 gas allow 10 MB (26.28 TB a year). Denim's 40M gas per 200 ms block cuts the per-block figures by ten (4 MB and 1 MB) but leaves the yearly growth the same.
+
+With a floor in place, at a 200M gas/s limit and 33.33M gas/s target:
+
+| Floor | Max calldata/block | Yearly growth | Gas to fill 10 MiB |
+|---|---|---|---|
+| 64 gas | 625 kB | 16.43 TB | ~671M |
+| **128 gas** | **312.5 kB** | **8.21 TB** | **~1.34B** |
+| 256 gas | 156.25 kB | 4.11 TB | ~2.68B |
+| 512 gas | 78.13 kB | 2.05 TB | ~5.37B |
+
+At a 1G gas/s limit and 166.67M gas/s target, the 128 gas row becomes 1.56 MB per block and 41.06 TB a year.
+
+### Access-list pricing (EIP-7981)
+
+Access lists take block space just like calldata, so they get the same **128 gas/byte** rate. Otherwise they would be a cheaper side door for stuffing data into a block.
+
+| Entry | Bytes | L1 surcharge (64 gas/byte) | Base surcharge (128 gas/byte) |
+|---|---|---|---|
+| Address | 20 | 1,280 gas | 2,560 gas |
+| Storage key | 32 | 2,048 gas | 4,096 gas |
+
+## EIPs Base would leave out
+
+| EIP | Topic | Why it does not apply |
+|---|---|---|
+| [7688](https://eips.ethereum.org/EIPS/eip-7688) | Forward-compatible consensus data structures | Changes beacon-chain structures, not Base execution. |
+| [7732](https://eips.ethereum.org/EIPS/eip-7732) | Enshrined proposer-builder separation | Base sequencing does not use Ethereum's proposer and builder roles. |
+| [8045](https://eips.ethereum.org/EIPS/eip-8045) | Bar slashed validators from proposing | Base does not pick L2 block proposers from Ethereum validators. |
+| [8061](https://eips.ethereum.org/EIPS/eip-8061) | Higher exit and consolidation churn | Staking queues sit outside the Base protocol. |
+| [8282](https://eips.ethereum.org/EIPS/eip-8282) | Builder execution requests | Manages staked ePBS builders, which Base does not have. |
+| [8070](https://eips.ethereum.org/EIPS/eip-8070) | `eth/72` sparse blobpool | Base posts blobs to L1 and runs no L2 blob pool. |
+| [8136](https://eips.ethereum.org/EIPS/eip-8136) | Cell-level deltas for data column broadcast | PeerDAS networking on L1; Base gains only indirectly through L1 DA. |
+| [7904](https://eips.ethereum.org/EIPS/eip-7904) | Compute gas cost analysis | Informational; no protocol change to adopt. |
+| [8261](https://eips.ethereum.org/EIPS/eip-8261) | Gas limit schedule | Informational; Base sets its L2 gas limit on its own. |
+
+## Related pages
+
+- [Base Transactions](/specifications/base-transactions/)
+- [Everest Upgrade Overview](/specifications/everest-overview/)
+- [Denim Upgrade Overview](/specifications/denim-overview/)
+- [Access Lists](/specifications/access-lists/)
+- [Original design doc (base/base)](https://github.com/base/base/blob/main/docs/guides/GLAMSTERDAM.md)

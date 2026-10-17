@@ -1,11 +1,16 @@
 ---
 title: Tokenized Stocks API
-description: Reference for the public, read-only Coinbase Tokenized Stocks API — token records, protocol contract addresses, normalized supplies, multipliers, and Chainlink NAV values on Base.
+description: Reference for the public, read-only Coinbase Tokenized Stocks API — token records, protocol contract addresses, normalized supplies, metadata, icons, prospectuses, corporate actions, and Chainlink NAV values on Base.
 sources:
 - base/docs:docs/sdks/tokenized-stocks/overview.mdx
 - base/docs:docs/sdks/tokenized-stocks/api-reference/list-tokenized-stocks.mdx
 - base/docs:docs/sdks/tokenized-stocks/api-reference/list-protocol-contract-addresses.mdx
 - base/docs:docs/sdks/tokenized-stocks/api-reference/get-token-total-supply.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/get-token-metadata.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/get-token-icon.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/get-token-prospectus.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/list-cached-prospectuses.mdx
+- base/docs:docs/sdks/tokenized-stocks/api-reference/get-corporate-action.mdx
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -27,6 +32,11 @@ https://api.coinbase.com/v1/tokenized-stocks
 | `GET` | `/` | Every tokenized-stock record the API currently exposes. |
 | `GET` | `/chains` | The tokenized-stocks protocol contracts, per supported chain. |
 | `GET` | `/total-supply/{contract_address}` | One token's total supply, normalized by its decimals. |
+| `GET` | `/metadata/{ticker}` | A `contractURI`-style metadata document for one token. |
+| `GET` | `/images/{symbol}` | A `302` redirect to the token's icon. |
+| `GET` | `/prospectus/{ticker}` | A `302` redirect to the token's approved prospectus PDF. |
+| `GET` | `/prospectuses` | Tickers that currently have a cached prospectus, with ISINs where known. |
+| `GET` | `/corporate-actions/{id}` | One announced or applied corporate action. |
 
 The full schema lives upstream in `openapi/tokenized-equities.json`.
 
@@ -51,16 +61,22 @@ The response is a `tokens` array and, when more records exist, a `next_page_toke
 | `paused_features` | integer[] | Feature flags currently paused on the token contract. |
 | `nav_price` | double | Latest Chainlink NAV/reference value, adjusted for the feed's decimals. |
 | `nav_price_updated_at` | date-time | When `nav_price` last changed onchain (the feed's `updatedAt`). |
+| `description` | string | Long-form description of the tokenized stock. |
+| `first_mint_date` | date-time | UTC block time of the token's first positive mint. This is not the deploy time, and later mints or burns never move it. |
+
+Not every field appears on every record. The API drops scalar fields that hold their default value, empty arrays, and timestamps that were never set. `first_mint_date` is also missing when a token has never been minted or when its first mint has not been resolved yet. On 2026-10-17 the full list had 174 records. 116 of them had no `total_supply` key (zero supply), and only 58 carried `first_mint_date`. Write your parser so a missing key means "default or unknown", and never read a missing `nav_price` as a usable price.
 
 ### Paging through the list
 
-The list is paged, so one call can miss records. If a response has `next_page_token`, send it back as the `page_token` query parameter to get the next page. Stop when a response has no `next_page_token`. `page_size` sets how many records come back on each page.
+The list is paged, so one call can miss records. If a response has `next_page_token`, send it back as the `page_token` query parameter to get the next page. Stop when a response has no `next_page_token`. Leave every other query parameter the same from one page to the next. Records come back sorted by contract address.
+
+`page_size` sets the page length. Omitting it, or sending `0`, gives `100`. Anything above `500` is quietly cut to `500`. A negative or malformed `page_size`, or a malformed `page_token`, fails with HTTP `400`.
 
 ```bash
 curl "https://api.coinbase.com/v1/tokenized-stocks?page_token=<next_page_token>"
 ```
 
-This is not a corner case. On 2026-10-14 a call with no parameters returned 100 records and a `next_page_token`. Walking every page returned 145 records. Code that reads only the first response misses about a third of the tokens and gets no error. Upstream added pagination to its docs on 2026-10-13.
+This is not a corner case. On 2026-10-14 a call with no parameters returned 100 records and a `next_page_token`. Walking every page returned 145 records (174 by 2026-10-17). Code that reads only the first response misses about a third of the tokens and gets no error. Upstream added pagination to its docs on 2026-10-13.
 
 ## List protocol contract addresses
 
@@ -80,13 +96,86 @@ The policy registry is the B20 [PolicyRegistry precompile](/api-reference/b20-pr
 
 ## Get token total supply
 
-The example below uses the AAPLc contract. For any other token, swap in its address from the [Base assets page](https://www.base.org/assets) or from the list endpoint above.
+The example below uses the AAPLc contract. For any other token, take its address from the list endpoint above.
 
 ```bash
 curl https://api.coinbase.com/v1/tokenized-stocks/total-supply/0xb200000000000000000000C2e324d24d7eEcd1fb
 ```
 
-Returns a single `total_supply` field with the same meaning as in the list response.
+The body is a bare JSON number, such as `7459.11648989` for AAPLc on 2026-10-17. There is no wrapping object and no `total_supply` key, so a parser that looks for one gets nothing. The value is already divided by the token's decimals; do not divide it again.
+
+A badly formed address gets HTTP `400` with service code `3`. A well-formed address that is not a supported tokenized stock gets HTTP `404` with service code `5`.
+
+## Get token metadata
+
+Pass the token symbol with its suffix, for example `TSLAc`. Case does not matter.
+
+```bash
+curl https://api.coinbase.com/v1/tokenized-stocks/metadata/TSLAc
+```
+
+The document has `contract_address`, `name`, `symbol`, `description`, `image`, and `prospectus_url`. Both URLs point back at this API and redirect to whatever asset is current, so they stay stable. A `prospectus_url` is always present, but that does not mean a PDF is cached right now. Check the cached prospectus list below before you rely on it.
+
+## Get token icon
+
+Pass the symbol with its suffix. Case does not matter, and the `.png` ending is optional.
+
+```bash
+curl -L https://api.coinbase.com/v1/tokenized-stocks/images/TSLAc.png --output TSLAc.png
+```
+
+A hit returns HTTP `302` with the real image location in the `Location` header; `-L` tells curl to follow it. There is no JSON body. An unknown symbol gets `404`, and missing token data gets `503`, both as plain text.
+
+## Get token prospectus
+
+Pass the ticker with its suffix. Case does not matter, the `.pdf` ending is optional, and dotted share classes such as `BRK.Bc` work.
+
+```bash
+curl -L https://api.coinbase.com/v1/tokenized-stocks/prospectus/TSLAc.pdf --output TSLAc.pdf
+```
+
+A hit returns HTTP `302` to the approved prospectus PDF; on 2026-10-17 the TSLAc redirect pointed at a file on `adgm.com`. A malformed ticker gets `400`, and a ticker with no prospectus available gets `404`. Both errors are plain text, not JSON.
+
+## List cached prospectuses
+
+```bash
+curl https://api.coinbase.com/v1/tokenized-stocks/prospectuses
+```
+
+The body holds a `prospectuses` array in alphabetical order of the upper-cased ticker. Each item has a `ticker` and, if known, the underlying equity's `isin`. The tickers come back fully upper-cased (`AAPLC`, not `AAPLc`), which is fine because the prospectus endpoint ignores case. No PDF links are included; feed the ticker to the prospectus endpoint instead.
+
+The cache fills in the background. Until its first good refresh it can be empty, and then the `prospectuses` key can be absent altogether. This list tells you which prospectuses are on hand. It is not a list of tradable tokens. On 2026-10-17 it held 177 entries.
+
+## Get a corporate action
+
+```bash
+curl https://api.coinbase.com/v1/tokenized-stocks/corporate-actions/e82812a6-0b24-41c4-8ed1-322d1b466d33
+```
+
+That ID is a GOOGLc cash dividend. Get the ID from the UUID at the end of the `uri` in the token's onchain `Announcement` event. Do not use the event's `id` argument; it can be a plain number or carry a suffix like `:pre` or `-1`. The GOOGLc example shows why: its announcement history has one entry with ID `2097` and a second whose ID is the UUID. Announcements that have no addressable URI cannot be fetched here.
+
+The body is the action itself, not wrapped in a `corporate_action` key. It carries the token, a description, the status, the first announcement time, and the onchain announcements in time order. Announcement `block_number` values are decimal strings.
+
+- `CORPORATE_ACTION_STATUS_ANNOUNCED`: published, but the token's multiplier has not changed yet.
+- `CORPORATE_ACTION_STATUS_APPLIED`: the multiplier change is in effect. Only in this state are `applied_at`, `multiplier_before`, and `multiplier_after` filled in.
+
+The multiplier values are already converted out of their 18-decimal fixed-point form. A malformed UUID gets `400`. An unknown action, or one on a test or non-live token, gets `404`. Stale or unavailable action data gets `503`.
+
+## Errors
+
+The JSON endpoints report failures as an object with `code` and `message`. `code` is a service error code, not the HTTP status:
+
+```json
+{"code": 3, "message": "page_token is invalid"}
+```
+
+| HTTP status | `code` | When |
+|-------------|--------|------|
+| `400` | `3` | Bad input: malformed page token, negative page size, invalid contract address, or malformed corporate action UUID. |
+| `404` | `5` | The token, ticker, or corporate action is unsupported or does not exist. |
+| `503` | `14` | Data the request needs is temporarily unavailable. |
+
+The icon and prospectus endpoints are the exception. They answer success with a `302` and send their errors as plain text.
 
 ## Reading the numbers correctly
 
@@ -104,8 +193,8 @@ The field names look familiar from the onchain interface, but several of them ca
 
 Two response details surfaced when this page was checked against the live API on 2026-09-25:
 
-- `paused_features` is left out entirely when nothing is paused, rather than sent as an empty array. Treat a missing key as "no pauses".
-- The list held exactly the ten launched tokens (AAPLc through TSLAc). COINc, CRCLc, and INTCc, which are registered onchain but have zero supply, were not in it.
+- `paused_features` is left out entirely when nothing is paused, rather than sent as an empty array. Treat a missing key as "no pauses". Upstream now documents this as the general rule for all default-valued fields.
+- The list held exactly the ten launched tokens (AAPLc through TSLAc). COINc, CRCLc, and INTCc, which are registered onchain but have zero supply, were not in it. That is no longer true: by 2026-10-17 the list included zero-supply tokens such as RKTc, with `total_supply` simply omitted.
 
 ## Related pages
 

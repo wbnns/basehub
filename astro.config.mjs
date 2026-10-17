@@ -434,6 +434,7 @@ export default defineConfig({
 						{ label: 'Denim Upgrade Overview', slug: 'specifications/denim-overview' },
 						{ label: 'Denim 200ms Native Blocks', slug: 'specifications/denim-200ms-blocks' },
 						{ label: 'Everest Upgrade Overview', slug: 'specifications/everest-overview' },
+						{ label: 'Glamsterdam EIP Port (Design)', slug: 'specifications/glamsterdam' },
 						{ label: 'Base Transactions (EIP-8430)', slug: 'specifications/base-transactions' },
 						{ label: 'B20 Token Standard', slug: 'specifications/b20' },
 						{ label: 'Reth V2', slug: 'specifications/reth-v2' },

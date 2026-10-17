@@ -240,15 +240,9 @@ upgrades: UpgradeConfig {
 
 **File:** [`crates/common/chains/tests/upgrade_consistency.rs`](https://github.com/base/base/blob/main/crates/common/chains/tests/upgrade_consistency.rs)
 
-For every `BaseUpgrade` variant, these tests check that `BaseChainConfig::mainnet().upgrade_activation(fork)` agrees with `BaseChainUpgrades::mainnet().upgrade_activation(fork)`. No edits should be needed as long as both sides return `ForkCondition::Never` for an unscheduled upgrade — or, once scheduled, the same timestamp.
+The tests walk every entry in `BaseUpgrade::VARIANTS` and compare two sources of truth per network. On mainnet, the derived rollup config's `fork_condition(fork)` has to equal `ChainUpgrades::mainnet().fork_condition(fork)`; on Sepolia, the comparison is against `ChainUpgrades::sepolia().fork_condition(fork)`. The rollup configs under test are `BASE_MAINNET_ROLLUP_CONFIG` and `BASE_SEPOLIA_ROLLUP_CONFIG`, both exported from `base_common_chains::test_utils`.
 
-If there is a known discrepancy (say, the cascade produces a mismatch for an unset upgrade), insert a skip with an explanatory comment, following the `Regolith` precedent:
-
-```rust
-if *fork == BaseUpgrade::Azul {
-    continue; // explanation of why the two sides differ
-}
-```
+There is no skip list anymore: every variant is checked. The two sides must report the same activation condition, and that includes both returning `ForkCondition::Never` while an upgrade is still unscheduled. Any mismatch fails the test.
 
 ## Part 2 — Required when the upgrade changes EVM execution
 
