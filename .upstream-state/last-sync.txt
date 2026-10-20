@@ -1,28 +1,29 @@
 ## Upstream snapshot
 
-Generated 2026-10-19T03:03:00Z
+Generated 2026-10-20T03:03:10Z
 
-### base/base @ dfc8424
+### base/base @ 536bcfd
 
-0556996bc618781ba40083ad5e7a514d93919f0a  docs/guides/GLAMSTERDAM.md
+221c546644a22c577b65259cb68cb9624e5a4c44  docs/guides/P2P.md
 29283e6eb0e509842e909695afdf4dc6acdee0c4  docs/guides/SNAPSHOT_BENCHMARKS.md
 448a3c9d751beda473ea5179d1d0dd8e51a7dc91  docs/guides/UPGRADES.md
+6fd149f4bab848ac467365aae9f7d1fa793f72d3  docs/guides/TESTING.md
 707c92a2ba2ad69597fc878f10a5b68eb68206b1  docs/transaction-events/tips-parity-checklist.md
+84d4292b1bccf6b33d466d999fccf9ea25414d52  docs/guides/GLAMSTERDAM.md
 86de2c7490e956825fa954626191199bfdc7206e  docs/guides/DEVNET.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
 a19f2054c31cbbbca8ba06e16bfb4569c2cbe529  docs/guides/RELEASE.md
 bb3acaa16623851f5fd34911d020254b91b684e5  docs/transaction-events/README.md
-be2fb5397527d4c4075f9229133280507f3efde9  docs/guides/TESTING.md
 d48b0667126abf87848642737f58813d2811c0a7  docs/guides/BLOCK_PRODUCTION_REVIEW.md
-e3ec64ccbe58ef3474e8c919cd68d3db9154d31c  docs/guides/P2P.md
 
-### base/docs @ 3fbf6a9
+### base/docs @ efe7cf8
 
 000009a0dad78ce898155102fe61b6c03e7e3bfa  docs/build-on-base/issue-rwa/announce-a-distribution.mdx
 0072665f2f2a7e90a120f86b10581891ef886f0b  docs/specifications/node-operators/performance-tuning.mdx
 016665db95f8ad8300a0160c890b8f1514648036  docs/base-chain/api-reference/debug-api/debug_traceBlockByNumber.mdx
 01f3d24f169a4a5e2d7571dede9a7ac4df7f2e5d  docs/specifications/b20/reference/interfaces/ib20/renounce-last-admin.mdx
 02381f86ffc5f58752158b43f1511c301f298a2c  docs/upgrades/isthmus/exec-engine.mdx
+02d446eadc6e0c17d05d8fe3b3fc6c0e26f30199  docs/base-chain/network-information/ecosystem-bridges.mdx
 03459bbb87b9cc20a74040da70358f290772e47c  docs/build-on-base/run-a-local-devnet.mdx
 0439e33f956c8f2cfbe86adb27af20f60cedcb50  docs/specifications/b20/reference/interfaces/i-policy-registry/pending-policy-admin.mdx
 04d8805815f3db7adbeaf8536e2411d0f119932a  docs/specifications/b20/reference/interfaces/ib20/seize-receiver-policy.mdx
@@ -66,7 +67,6 @@ e3ec64ccbe58ef3474e8c919cd68d3db9154d31c  docs/guides/P2P.md
 21493092899f48a491b3ff8c4af630e1a8fc1ea7  docs/specifications/b20/reference/interfaces/ib20/transfer.mdx
 21800a575e302b98f240ddfca8bede9968c28f31  docs/specifications/b20/reference/interfaces/ib20-asset/to-ui-amount.mdx
 21f7ea8f2ddfd7d7a289ed69f4273cca3a02af5d  docs/specifications/b20/reference/interfaces/ib20/grant-role.mdx
-225fde89f960f734997b9b442c0fbf0d7c846e0b  docs/specifications/base-protocol/bridging/withdrawals.mdx
 22b0db7ad6bd53bd6f073daa01583dd54d22fd93  docs/base-chain/api-reference/ethereum-json-rpc-api/eth_chainId.mdx
 22ff4bfe13837988a1070d1b3a43c8c328a46d33  docs/build-on-base/issue-stablecoins/block-an-account.mdx
 23064725a07df3febbe4d43e860a9457aece727c  docs/specifications/b20/reference/interfaces/ib20/unpause-role.mdx
@@ -128,6 +128,7 @@ e3ec64ccbe58ef3474e8c919cd68d3db9154d31c  docs/guides/P2P.md
 4f9cd72da911f2202effe9ca3ec2d5b854bcd3aa  docs/build-on-base/accept-payments/void-an-authorization.mdx
 526abc24a9bf7268d91bb97eddd0479ac1059827  docs/base-chain/api-reference/flashblocks-api/eth_simulateV1.mdx
 527965206af588e71b3156218d7bd3437d45ec5f  docs/build-on-base/accept-payments/refund-a-payment.mdx
+5304e81a85d4b847d05f9d953614697207280c74  docs/specifications/base-protocol/bridging/withdrawals.mdx
 533cd3133e95846ea1708b1bfab44ca95f7ae1cf  docs/build-on-base/ledgers/withdraw.mdx
 53e57f15ee184f698c696c094401c0687e68fdea  docs/specifications/base-protocol/proofs/proposer.mdx
 545b356d47b51b4d8e96272b87c5e91d5dc5a842  docs/specifications/b20/reference/interfaces/ib20/update-policy.mdx
@@ -267,7 +268,6 @@ c6584dd4a1fafe1c8e2c0ed5ad26f0050823f60f  docs/base-chain/api-reference/ethereum
 c6bdcc63e0e0037fc4ff4cb2a6dc5f779e42bcb3  docs/specifications/b20/reference/interfaces/ib20-asset/batch-mint.mdx
 c6c6eea7584e251687f918e143d9b8a234b621a8  docs/specifications/reference/configuration.mdx
 c705ecd3bed8386de1b89e31f5354fee23fc2e42  docs/specifications/b20/reference/interfaces/ib20/transfer-executor-policy.mdx
-c8b269d91c213095a3759325af6d9fb6f90388d8  docs/base-chain/network-information/ecosystem-bridges.mdx
 c981e4efdb783e576883a6656956af9f3e4c8d22  docs/specifications/base-protocol/proofs/challenger.mdx
 cab6e5efd744299caf877f2b73cbc835e6c6a56c  docs/specifications/base-protocol/execution/preinstalls.mdx
 cb0372c39a8410f5eababb2e10efe02e1a37c4e6  docs/upgrades/isthmus/predeploys.mdx
@@ -369,6 +369,7 @@ Unm7vkJ9Mn9HUiAmMzA1	Flashblocks Deep Dive: How we made Base 10x faster	Tue, 09 
 
 ### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/prm0ybfpk6yv	Sepolia Testnet: Base Denim Upgrade - October 21st	Wed, 21 Oct 2026 18:00:00 +0000
 https://base-l2.statuspage.io/incidents/3sryt3zgjxxk	Base Mainnet proposals halted	Fri, 09 Oct 2026 19:15:21 +0000
 https://base-l2.statuspage.io/incidents/jrs0dpj60tqz	mainnet.base.org public RPC changes: October 8th, 2026	Thu, 08 Oct 2026 19:42:57 +0000
 https://base-l2.statuspage.io/incidents/jx4p15jppftm	V1 Node Snapshot Deprecation: October 5th, 2026	Tue, 06 Oct 2026 14:00:10 +0000
@@ -393,4 +394,3 @@ https://base-l2.statuspage.io/incidents/c77jzbhxb4hs	Sepolia safe head delayed	S
 https://base-l2.statuspage.io/incidents/12kbvdhhc2km	Sepolia Testnet: Flashblocks down	Tue, 07 Apr 2026 00:55:34 +0000
 https://base-l2.statuspage.io/incidents/dg4m8nxd622r	Base Mainnet Flashblocks Degraded	Wed, 01 Apr 2026 13:41:40 +0000
 https://base-l2.statuspage.io/incidents/xsdj7p6fhdm8	Base Mainnet Gas Limit Increase from 187.5Mgas/s to 200Mgas/s	Wed, 25 Mar 2026 21:00:07 +0000
-https://base-l2.statuspage.io/incidents/kn3x59zv9ssz	Transaction Inclusion Delays	Tue, 24 Mar 2026 13:13:59 +0000

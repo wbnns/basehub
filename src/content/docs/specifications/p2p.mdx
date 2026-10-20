@@ -385,6 +385,12 @@ Order is fixed once a transaction enters the queue. The queue is now two batches
 | `--tx-forwarding-fifo-percent` | `20` | Share of picks taken oldest-first, from `0` to `100`. `100` gives pure arrival order |
 | `--tx-forwarding-queue-capacity` | 2x the batch size | Per-builder queue depth. A deeper queue fixes the order earlier |
 
+On `main` (#5816, not yet in any tag up to `v1.5.1-rc.6`), a forwarder can also hand a whole batch to the builder in a single call. Turn on `--tx-forwarding-batched-insert` and each batch made only of inserts goes out as one `base_insertValidatedTransactions` request instead of a JSON-RPC batch of single `base_insertValidatedTransaction` calls. The builder admits the batch together, validating it against one state provider, and returns one result per transaction in the same order. A batch holds at most `1024` transactions (`MAX_VALIDATED_INSERT_BATCH`); bigger batches, or ones that mix in requests with no batched form, fall back to single calls.
+
+:::caution
+The flag is off by default, and every builder the node forwards to must serve the plural method. Roll it out in order: first upgrade the builders and sequencers, then enable the flag on the mempool nodes. The singular `base_insertValidatedTransaction` remains the method used when the flag is off.
+:::
+
 ### EL P2P configuration flags
 
 The execution layer P2P is configured through Reth's standard network flags plus Base-specific rollup flags defined in [`args.rs`](https://github.com/base/base/blob/main/crates/execution/node/src/args.rs). Key flags:

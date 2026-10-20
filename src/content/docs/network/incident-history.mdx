@@ -9,6 +9,10 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-10-21 — Sepolia Denim upgrade (scheduled)
+
+Base Sepolia is set to activate the Denim hardfork on Wednesday, October 21st at 18:00 UTC (Unix timestamp `1792605600`), inside a maintenance window that runs until 20:00 UTC. The notice went up on October 19 at 13:52 UTC, and the testnet is expected to keep running through the upgrade. Sepolia node operators need [`v1.5.0`](https://github.com/base/base/releases/tag/v1.5.0) of `github.com/base/base` or a later release. The notice also calls out a startup trap: `v1.5.0` no longer knows `--enable-experimental-validity-transactions`, so a `base-reth-node` launched with that flag will not start until the flag is removed (the builder twin, `--builder.enable-experimental-validity-transactions`, is gone too). See the [Denim overview](/specifications/denim-overview/) for what the fork changes.
+
 ### 2026-10-09 — Mainnet output proposals stalled (resolved)
 
 The status page opened an incident at 13:48 UTC on Friday, October 9th: new output proposals for Base Mainnet had stopped, which holds up withdrawals already in flight. Proposals were flowing again by 14:21 UTC, and the incident closed at 19:15 UTC. Block production and deposits were not part of it.
