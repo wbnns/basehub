@@ -73,6 +73,8 @@ Every submission also needs a `block_number` upper bound. The example below pair
 }
 ```
 
+The `block_number` value here is only a placeholder. Right before you sign, call `eth_blockNumber`, add `10` to the result, and send that as a `0x`-prefixed hex string. A bound that close stays inside the 60-second expiry window described under [Fees, ordering, and lifecycle](#fees-ordering-and-lifecycle). An old value copied from an example fails the check that rejects a bound behind the block being built.
+
 ### Limits
 
 | Limit | Value |
@@ -118,7 +120,7 @@ A nonce predicate works the same way, but on the account's protocol nonce (#5637
 A nonce condition that has been passed does not evict the transaction. Suppose you write `=`, `<`, or `<=` and the nonce then moves above your value. Nonces only go up, so the condition can never match again, but the node still parks the transaction and does not drop it. Only your mandatory `block_number` bound ends its life. Keep that bound tight when you rely on a nonce ceiling.
 
 <Aside type="caution">
-`nonce` is new. It first appeared in `v1.5.0-rc.1` (tagged 2026-10-07) and ships in the final `v1.5.0` (2026-10-14). `v1.4.2` and earlier decode predicates strictly and refuses an unknown `type`, so a submission that carries `nonce` fails there. Check the version on the endpoint before you depend on it.
+`nonce` is new. It first appeared in `v1.5.0-rc.1` (tagged 2026-10-07) and ships in the final `v1.5.0` (2026-10-14). `v1.4.2` and earlier decode predicates strictly and refuses an unknown `type`, so a submission that carries `nonce` fails there. Upstream confirmed on 2026-10-20 that `nonce` is live on Base Mainnet (#2165). It does not wait for a hardfork. On 2026-10-21 the public `mainnet.base.org` endpoint reported `base/v1.5.0` from `web3_clientVersion`. The sequencer host refuses that method, so check your own endpoint if you route through a different provider.
 </Aside>
 
 <Aside type="caution">

@@ -14,7 +14,7 @@ Denim changes how Base produces blocks. Instead of one canonical block every two
 <Aside type="caution">
 200ms native blocks now run on Vibenet, the experimental preview network, so developers can try them early. That deployment can still change. Do not base production decisions on it.
 
-Denim activates on Sepolia on **October 21, 2026 at 18:00 UTC**. The node source pins that time, and the final [`v1.5.0`](https://github.com/base/base/releases/tag/v1.5.0) release (2026-10-14) carries it. Run `v1.5.0` or later on Sepolia. Mainnet still targets **November 2026** with no timestamp.
+Denim activates on Sepolia on **October 21, 2026 at 18:00 UTC**. The node source pins that time, and the final [`v1.5.0`](https://github.com/base/base/releases/tag/v1.5.0) release (2026-10-14) carries it. Run `v1.5.0` or later on Sepolia. For Mainnet, the node source now pins **November 5, 2026 at 18:00 UTC**, but no stable release carries it yet and Base has not announced the date.
 
 Denim makes `block.number` advance ten times faster in wall-clock time. Any contract that counts blocks to measure a duration is affected. Read [Block-number contract logic](#block-number-contract-logic) before activation.
 </Aside>
@@ -35,13 +35,13 @@ The Ethereum block header does not change. Its `timestamp` field stays Unix time
 | --- | --- | --- | --- |
 | `vibenet` | Live for experimental testing | — | — |
 | `sepolia` | Scheduled | `1792605600` (2026-10-21 18:00 UTC) | `v1.5.0` or later |
-| `mainnet` | Planning for November 2026 | `TBD` | `TBD` |
+| `mainnet` | Pinned in node source, not yet announced | `1793901600` (2026-11-05 18:00 UTC) | `v1.5.1-rc.7` or later; no final release yet |
 
 Vibenet carries 200ms blocks today, which makes it the place to exercise an integration ahead of time.
 
 Sepolia moved from a planning month to a fixed moment on 2026-10-08, when base/base set `denim_timestamp: Some(1_792_605_600)` for chain `84532` (#5694). The release candidates split cleanly on this: the chain config in `v1.5.0-rc.3` and earlier ships `None`, while `rc.4` and every later candidate carry the timestamp. The final `v1.5.0` landed on 2026-10-14, built from the same commit as `rc.12`, so a stable release now follows Sepolia into Denim. It still ships `None` for Mainnet.
 
-Mainnet is unchanged: a **November 2026** target, slipped from October on 2026-10-01, with `denim_timestamp` still `None` for chain `8453`. Treat that month as soft until a timestamp lands in the source.
+Mainnet followed on 2026-10-20. The November target, which slipped from October on 2026-10-01, became a fixed moment when base/base set `denim_timestamp: Some(1_793_901_600)` for chain `8453` (#6124): **November 5, 2026 at 18:00 UTC**. Only release candidates carry it so far. `v1.5.1-rc.6` and earlier ship `None`, `rc.7` is the first with the value, and the stable `v1.5.0` still ships `None`. Wait for the final release and for Base's announcement before you plan around the exact time.
 
 The fork name is no longer in doubt. Upstream briefly filed 200ms blocks under Cobalt in early September 2026 and has since moved them back to Denim, which matches what the node has done throughout: every block-timing path gates on `is_denim_active_at_timestamp`, and the BaseTime helper lives under the same gate.
 
