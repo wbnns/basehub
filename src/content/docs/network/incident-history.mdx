@@ -9,7 +9,33 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
-### 2026-10-21 — Sepolia Denim upgrade (scheduled)
+### 2026-11-05 — v1.5.3 patches a state root risk (completed)
+
+On November 4, a bug turned up in Reth that could, in rare cases, lead a node to compute the wrong state root. The upstream fix is [paradigmxyz/reth#28264](https://github.com/paradigmxyz/reth/pull/28264). Because Base runs on Reth, the team applied the same mitigation to every block builder that day, so no new block was exposed. They also recomputed the chain's state root and found it correct, and noted that the proof system checks every state root with an independent implementation and would have flagged a mismatch. No user was affected. Base posted the notice on November 5 at 16:18 UTC and published [`v1.5.3`](https://github.com/base/base/releases/tag/v1.5.3) at 16:19 UTC. That release stops a validator from halting when it meets an invalid state root. Base recommends that every operator upgrade to it; no resync or other step is needed. The maintenance closed on November 7 at 16:19 UTC.
+
+### 2026-11-05 — Mainnet Denim upgrade (completed)
+
+Base posted the schedule on October 30 at 22:16 UTC: Mainnet would take the Denim hardfork on Thursday, November 5 at 18:00 UTC (Unix timestamp `1793901600`) and stay up through the window. Operators had to run [`v1.5.1`](https://github.com/base/base/releases/tag/v1.5.1) of base/base, and anyone coming from an older release had to drop `--enable-experimental-validity-transactions` from `base-reth-node` first or the node would not start. Denim went live on time. At 18:14 UTC Base confirmed activation and said it was looking into periodic delays in transaction inclusion, which left more empty blocks than expected. The notice closed on November 9 at 19:45 UTC with all systems reported stable. See the [Denim overview](/specifications/denim-overview/).
+
+### 2026-11-02 — Slow transaction inclusion on Mainnet (resolved)
+
+At 13:36 UTC on November 2, Base began looking into reports that Mainnet transactions were taking longer than usual to reach a block or a preconfirmation. Blocks kept coming at the normal pace. An hour later the team had found a performance problem and pushed optimizations; a fix was in place and under watch by 14:55 UTC. The incident was formally closed on November 9 at 20:08 UTC.
+
+### 2026-10-29 — Slow transaction inclusion on Mainnet (resolved)
+
+Base opened an investigation at 16:34 UTC on October 29 after reports of slow inclusion on Mainnet. Block production stayed normal throughout. A fix went out and early monitoring looked clean by October 30 at 19:28 UTC, and the incident closed on October 31 at 16:37 UTC.
+
+### 2026-10-24 — Mempool congestion delays transactions (resolved)
+
+Posted after the fact, on October 24 at 12:30 UTC: an unexpected build-up in the mempool caused some transactions to be delayed, and some were dropped from the mempool outright. The status page gives no network label, start time, or duration.
+
+### 2026-10-23 — Slow Sepolia public RPC (resolved)
+
+The public Base Sepolia RPC answered slowly in the early hours of October 23. Base had identified the cause by 04:58 UTC, deployed a fix by 05:04 UTC, and closed the incident at 06:00 UTC.
+
+### 2026-10-21 — Sepolia Denim upgrade (completed)
+
+The window opened on schedule at 18:00 UTC, and Base marked it complete at 18:50 UTC with Denim active on Base Sepolia.
 
 Base Sepolia is set to activate the Denim hardfork on Wednesday, October 21st at 18:00 UTC (Unix timestamp `1792605600`), inside a maintenance window that runs until 20:00 UTC. The notice went up on October 19 at 13:52 UTC, and the testnet is expected to keep running through the upgrade. Sepolia node operators need [`v1.5.0`](https://github.com/base/base/releases/tag/v1.5.0) of `github.com/base/base` or a later release. The notice also calls out a startup trap: `v1.5.0` no longer knows `--enable-experimental-validity-transactions`, so a `base-reth-node` launched with that flag will not start until the flag is removed (the builder twin, `--builder.enable-experimental-validity-transactions`, is gone too). See the [Denim overview](/specifications/denim-overview/) for what the fork changes.
 

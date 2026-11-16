@@ -1,13 +1,14 @@
 ---
 title: Flashblocks Overview
-description: Flashblocks deliver 200ms preconfirmed sub-blocks on Base, streaming state updates 10x faster than the standard 2-second block cadence.
+description: Historical reference for Flashblocks, the 200ms preconfirmed sub-blocks Base streamed inside 2-second blocks until Denim retired them in 2026.
 sources:
 - base/docs:docs/base-chain/flashblocks/overview.mdx
+- docs.base.org:upgrades/denim/migrate-from-flashblocks
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Flashblocks are 200ms preconfirmed sub-blocks streamed by the Base sequencer, giving applications fee-ordered state updates ten times per standard 2-second block.
+Flashblocks were 200ms preconfirmed sub-blocks streamed by the Base sequencer. They gave applications fee-ordered state updates ten times per 2-second block, until Denim made every 200ms interval a canonical block.
 
 ## What are Flashblocks
 
@@ -15,12 +16,8 @@ Flashblocks add **200ms** incremental state updates to Base, cutting perceived l
 
 The mechanism, built with [Flashbots](https://www.flashbots.net/), streams sub-blocks inside the regular 2-second block interval. Apps see preconfirmations from the sequencer well before the full block is gossiped to the network.
 
-<Aside>
-Flashblocks are always live on Base — every block is built by the Flashblocks builder. Apps choose whether to consume preconfirmations or wait for the standard 2-second finality.
-</Aside>
-
-<Aside type="caution" title="Denim will retire Flashblocks">
-Upstream plans to deprecate Flashblocks in the [Denim](/specifications/denim-200ms-blocks/) hardfork, which turns each 200ms interval into a canonical block and ends Flashblocks production. Upstream briefly filed this retirement under Cobalt in early September 2026 and has since moved it back to Denim. Sepolia is now scheduled: the node activates Denim there on October 21, 2026 at 18:00 UTC, starting with `v1.5.0-rc.4`, which is when Sepolia Flashblocks are due to stop. On Mainnet, the node source now pins November 5, 2026 at 18:00 UTC, starting with `v1.5.1-rc.7`. No stable release carries it yet, and Base has not announced the date. Canonical 200ms blocks are live on Vibenet, so you can test the new behaviour early. [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) lists the application changes each integration eventually needs. Everything else on this page describes how Base works today.
+<Aside type="caution" title="Flashblocks are retired">
+Base stopped producing Flashblocks when [Denim](/specifications/denim-200ms-blocks/) activated: on Sepolia on October 21, 2026 at 18:00 UTC, and on Mainnet on November 5, 2026 at 18:00 UTC. Every 200ms interval is now a full canonical block. Flashblocks subscriptions, the Flashblocks WebSocket streams, and Flashblocks pending state no longer return data. [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) pairs each old call with its replacement. The rest of this section describes how Flashblocks worked before Denim and is kept for reference.
 </Aside>
 
 ### Key concepts

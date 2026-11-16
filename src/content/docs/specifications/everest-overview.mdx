@@ -8,7 +8,7 @@ sources:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Everest is the Base hardfork planned after [Denim](/specifications/denim-overview/). Upstream added it to the upgrades tracker on 2026-10-13. It has one feature: [Base Transactions](/specifications/base-transactions/), the new transaction type from EIP-8430.
+Everest is the Base hardfork planned after [Denim](/specifications/denim-overview/), which is now live. Upstream added it to the upgrades tracker on 2026-10-13. Upstream's tracker lists one feature: [Base Transactions](/specifications/base-transactions/), the new transaction type from EIP-8430.
 
 ## Status
 
@@ -24,6 +24,7 @@ Everest is the Base hardfork planned after [Denim](/specifications/denim-overvie
 ## What Everest ships
 
 - **Base Transactions (EIP-8430)** - a typed transaction (`0x79`) that lets an ordinary EOA batch calls into atomic phases, have a sponsor pay its gas, pay that sponsor back in a token, and run parallel or nonce-free lanes. It can also set EIP-7702-style delegation. Nodes check one secp256k1 signature for each role and never run wallet code, so no bundler or relay is involved. The full format, gas table, and RPC changes are in [Base Transactions](/specifications/base-transactions/).
+- **Gas-limit billing** - the node source also registers `BaseFeature::GasLimitBilling` under Everest. User transactions would pay for the gas they declare as their limit, not the gas they burn, and receipts would report the reserved figure. Unused gas and refunds no longer lower the fee. Upstream's docs site does not list it as an Everest feature yet; the design is in [Gas-Limit Billing](/specifications/gas-limit-billing/).
 
 ## Where native account abstraction went
 
@@ -34,5 +35,6 @@ EIP-8430 is the transaction part of EIP-8130, split out on its own. The onchain 
 ## Related pages
 
 - [Base Transactions](/specifications/base-transactions/)
+- [Gas-Limit Billing](/specifications/gas-limit-billing/)
 - [Denim Upgrade Overview](/specifications/denim-overview/)
 - [Cobalt Upgrade Overview](/specifications/cobalt-overview/)

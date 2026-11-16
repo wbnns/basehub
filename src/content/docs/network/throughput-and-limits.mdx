@@ -1,8 +1,9 @@
 ---
 title: Throughput and Limits
-description: Gas limits, Flashblock performance figures, fee parameters, data availability throttling, and endpoint limits that shape practical throughput on Base.
+description: Gas limits, 200ms block production, fee parameters, data availability throttling, and endpoint limits that shape practical throughput on Base.
 sources:
 - base/docs:docs/base-chain/network-information/throughput-and-limits.mdx
+- docs.base.org:specifications/transactions/throughput-and-limits
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -15,26 +16,37 @@ Base has sustained several bursts above 5,000 TPS, and capacity keeps growing as
 
 | Limit | Value |
 |-------|-------|
-| Full block gas budget | ~400M gas |
-| First Flashblock gas budget | ~40M gas |
 | Per-transaction gas maximum | 16,777,216 gas (2^24) |
 | Deposit transaction limit | Maximum gas includable in an L1 block (20,000,000 gas) |
 
-While a block is being assembled, the full gas budget is divided across its Flashblocks: Flashblock 1 can use one tenth of the limit, Flashblock 2 two tenths, and so on up to Flashblock 10, which has the full budget. See [Block Building](/network/block-building/#flashblocks) for how this shapes transaction ordering.
+### Block gas limit
 
-## Flashblock performance
+Since [Denim](/specifications/denim-overview/), Base seals five blocks every second. Per-second capacity is therefore the per-block gas limit times five.
 
-Flashblocks emit incremental block updates roughly every 200ms, so apps receive sub-second preconfirmations inside the standard 2-second block.
+| Network | Gas limit per block | Gas per second at the limit |
+|---------|---------------------|-----------------------------|
+| Base Mainnet | 40,000,000 gas | 200,000,000 gas |
+| Base Sepolia | 120,000,000 gas | 600,000,000 gas |
+
+The gas limit lives in the onchain `SystemConfig`, so Base can raise or lower it without a hardfork. To see the value in force, fetch a recent block and read its `gasLimit`:
+
+```bash
+curl -s https://mainnet.base.org \
+  -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest",false],"id":1}' \
+  | jq -r '.result.gasLimit' | xargs printf "%d\n"
+```
+
+## Block production
+
+Every 200ms Base seals a full canonical block. Each one carries its own hash, state root, and receipts, and moves through the unsafe, safe, and finalized stages on its own.
 
 | Metric | Value |
 |--------|-------|
-| Flashblock build time (P50) | ~10ms |
-| Preconfirmation latency | ~200ms |
-| Full block time | 2 seconds |
-| Flashblocks per block | 10 |
-| Reorg rate | < 0.1% |
+| Block time | 200ms |
+| Blocks per second | 5 |
 
-For how reorgs are handled — and other recurring questions — see the [Flashblocks FAQ](/flashblocks/faq/).
+Before Denim, a 2-second block was split into ten Flashblocks that served as preconfirmations. Base retired Flashblocks when Denim activated (Sepolia on October 21, 2026, Mainnet on November 5, 2026). [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/) covers the design, and [Migrate from Flashblocks](/flashblocks/migrate-to-200ms-blocks/) lists the replacements.
 
 ## Per-transaction gas maximum
 
@@ -50,12 +62,14 @@ Operators running bundlers for smart contract wallets need to size each bundle t
 
 Fees feed back into real-world throughput: as load climbs toward the ceiling, the fee a transaction offers governs whether it makes it into a block.
 
-| Parameter | Current value |
+| Parameter | Current value (Mainnet) |
 |-----------|---------------|
 | Minimum base fee | 5,000,000 wei (0.005 gwei) |
-| EIP-1559 elasticity | 6 |
-| EIP-1559 denominator | 125 |
-| Maximum L2 base fee change per block | 4% |
+| EIP-1559 elasticity | 5 |
+| EIP-1559 denominator | 1000 |
+| Maximum L2 base fee increase per block | 0.4% |
+
+Sepolia uses a different elasticity. Both networks are listed under [EIP-1559 fee parameters](/network/network-fees/#eip-1559-fee-parameters).
 
 For how Base fees are structured — the L2 execution fee and the L1 security fee — see [Network Fees](/network/network-fees/).
 

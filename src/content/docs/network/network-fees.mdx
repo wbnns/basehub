@@ -3,6 +3,7 @@ title: Network Fees
 description: How Base fees are split between L2 execution and L1 data, plus the minimum base fee, EIP-1559 parameters, and the GasPriceOracle.
 sources:
 - base/docs:docs/base-chain/network-information/network-fees.mdx
+- docs.base.org:specifications/transactions/network-fees
 ---
 
 Every Base transaction pays an L2 execution fee plus an L1 security fee — the cost of posting transaction data back to Ethereum. The L1 component is typically the larger of the two.
@@ -42,11 +43,11 @@ Base uses the OP Stack implementation of EIP-1559 to adjust the L2 base fee in r
 
 ### Elasticity multiplier
 
-The **elasticity multiplier** sets the maximum block gas relative to the target. With elasticity 6, a block can hold up to 6× the target gas, absorbing short demand spikes.
+The **elasticity multiplier** sets the maximum block gas relative to the target. The target is the block gas limit divided by the elasticity. Base Mainnet runs elasticity 5 with a 40,000,000 gas limit, which puts the target at 8,000,000 gas per block and lets a busy block hold up to 5× that target.
 
 ### Base fee change denominator
 
-The **base fee change denominator** controls how aggressively the base fee moves between blocks. Larger denominators yield smoother changes; with a denominator of 125, the fee adjusts more gradually than under lower values.
+The **base fee change denominator** controls how aggressively the base fee moves between blocks. A larger denominator means smaller steps. Since [Denim](/specifications/denim-overview/) the denominator is `1000`, up from `100`. Blocks now arrive ten times as often, so the tenfold increase keeps the fee's pace of change per second about where it was.
 
 ### Maximum rate of change
 
@@ -54,19 +55,24 @@ Per-block change is capped at:
 
 **Max increase per block = (Elasticity − 1) / Denominator**
 
-With the current parameters (Elasticity = 6, Denominator = 125):
+**Max decrease per block = 1 / Denominator**
 
-- Maximum increase per block: (6 − 1) / 125 = **4%**
-- Minimum time to double the base fee: 18 blocks × 2 seconds = **36 seconds**
+With the current Mainnet parameters (Elasticity = 5, Denominator = 1000):
+
+- Maximum increase per block: (5 − 1) / 1000 = **0.4%**
+- Maximum decrease per block: 1 / 1000 = **0.1%**
+- Minimum time to double the base fee: 174 blocks, or about **35 seconds** of 200ms blocks
 
 The smoothed adjustment limits fee volatility during traffic spikes while still letting the network track sustained demand.
 
 ### Current configuration
 
-| Network      | Elasticity | Denominator | Max change per block |
-|--------------|------------|-------------|----------------------|
-| Base Mainnet | 6          | 125         | 4%                   |
-| Base Sepolia | 6          | 125         | 4%                   |
+| Network      | Elasticity | Denominator | Gas target per block | Max increase per block |
+|--------------|------------|-------------|----------------------|------------------------|
+| Base Mainnet | 5          | 1000        | 8,000,000 gas        | 0.4%                   |
+| Base Sepolia | 15         | 1000        | 8,000,000 gas        | 1.4%                   |
+
+The `SystemConfig` contract holds these values onchain, so Base can change them without a hardfork. Every block header records the values in force for that block in its `extraData`: a 1-byte version, then the 4-byte denominator, the 4-byte elasticity, and the 8-byte minimum base fee. Mainnet's `extraData` of `0x01000003e80000000500000000004c4b40` decodes to a denominator of 1000 (`0x3e8`), an elasticity of 5, and a minimum base fee of 5,000,000 wei (`0x4c4b40`).
 
 ## Querying the L1 fee
 

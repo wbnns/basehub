@@ -1,0 +1,70 @@
+---
+title: Hot-Path Performance Review
+description: How base/base reviewers judge the cost of code that runs per candidate transaction, per submitted transaction, or per block, with the hot-path registry and its Mainnet rates.
+sources:
+- base/base:docs/guides/HOT_PATH_PERFORMANCE_REVIEW.md
+---
+
+`base/base` keeps a short guide for changes to its hot paths: the loops that run once per candidate transaction, once per submitted transaction, or once per block. Authors read it before they touch that code, and reviewers (people and LLMs alike) apply it to pull requests that do. A diff almost never shows how often the changed code runs, so the first job is to establish the call frequency. Only then does a cost estimate mean anything. It sits alongside [Block Production Review](/getting-started/block-production-review/), which covers halts and stalls rather than speed.
+
+## Hot-path registry
+
+The rates below are Mainnet orders of magnitude. Candidates vastly outnumber the transactions that land: the builder re-evaluates pooled transactions on every build, and it comes back to rejected, deferred, and parked ones.
+
+[Denim](/specifications/denim-200ms-blocks/) moved block production to native 200ms blocks from the native payload builder. The native builder, block execution, and all per-block work therefore run about ten times as often as they did with 2-second blocks, and changes to them are judged at that post-Denim rate.
+
+| Path | Entry point | Runs per | Mainnet rate |
+|---|---|---|---|
+| Native builder selection and execution (production after Denim) | `crates/execution/payload/src/builder.rs` `execute_best_transactions` loop body, plus everything it calls, including resource metering and validity predicates | candidate transaction, per 200 ms block | ~10^9 candidates/day vs ~10^7 included |
+| Native block assembly | `crates/execution/payload/src/builder.rs` `build_payload`/`try_build`, sealing, state root | block | ~4×10^5/day after Denim |
+| Best-transaction iteration and parking | `crates/execution/payload/src/parkable.rs`, `crates/execution/txpool` ordering and validity predicates | candidate transaction | same order as above |
+| Best-transaction snapshot | `crates/execution/txpool/src/pool.rs` `merged_best_transactions`, reth's pending snapshot, `TwoDNoncePool::best_transactions` for the sidecar and the validity pool | block | ~4×10^5/day; `cargo bench -p base-execution-txpool --bench best_transactions` |
+| Transaction pool admission | `crates/execution/txpool` validation, RPC `eth_sendRawTransaction` | submitted transaction | ~10^8/day; `cargo bench -p base-execution-txpool --bench admission` |
+| Block execution and state root | `crates/execution/*` executor, trie | block and touched account/slot | ~4×10^4 blocks/day, ~4×10^5 after Denim |
+
+Code counts as hot whenever it runs inside one of these loops, and that includes indirect routes: closures, trait impls, `Drop`, metrics recorders, and tracing layers.
+
+## Why small costs matter
+
+Since Denim, the sequencer asks for each native block roughly 150ms into its 200ms slot, and the state root and import have to fit into what is left. Per-candidate costs multiply fast. One microsecond per candidate, at 10^9 candidates a day, adds up to about 17 CPU-minutes a day inside the latency-critical build loop, and that time comes straight out of the transactions a block can hold.
+
+## What reviewers flag
+
+On a hot path, any new per-unit work that block building does not actually need gets flagged, together with its per-unit cost and its multiplier. The usual suspects:
+
+- **Serialization and formatting:** `serde_json`, `to_value`, `format!`, `to_string`, `{:#x}` hex encoding, or assembling a `Map<String, Value>`.
+- **Allocation and cloning:** building a `Vec`, `String`, or `Map`, calling `clone()` on non-`Copy` data, `Arc` churn, boxed closures.
+- **Eager observability:** events, logs, or metrics whose fields are built before the level or enabled check, and metric labels allocated on every call. Handing the work to a background thread still pays for the allocation and still moves the data. The better answer is usually to stop emitting per-candidate records.
+- **Per-unit metric handle lookups:** a labeled `counter!` or `histogram!` call, or a generated accessor such as `BuilderMetrics::foo_total(label)`, builds a key and looks it up in the recorder every time. Resolve the handle once per loop instead.
+- **Blocking operations:** locks, channel sends, syscalls, and file or network I/O.
+- **Repeated work:** recomputing per candidate something that is fixed for the whole block, or emitting the same record again for the same transaction.
+- **Super-linear growth** in the number of candidates, parked transactions, or predicates.
+
+### Judge default-off features as if they were on
+
+Production turns on features that tests, benchmarks, and the devnet leave off, such as `--builder.transaction-events.enabled` or the native builder's resource metering schedule, `--payload.resource-metering-schedule`. An early return for the disabled case hides the real cost from every measurement taken before production. Reviewers look at the enabled branch, at production frequency.
+
+### What a finding contains
+
+A finding names the hot path and its multiplier, the added per-unit work, a rough per-unit cost, and a cheaper option: hoist it out of the loop, aggregate per block, sample it, or drop it. When the cost is unclear, reviewers ask for a benchmark of the enabled path:
+
+- `crates/execution/payload/benches/resource_metering.rs` covers the per-transaction resource-metering checks.
+- `native_candidate_scan.rs` and `native_build_loop.rs` drive the native `execute_best_transactions` loop.
+
+Wall-clock numbers from these benches move with machine load. To compare two commits, use `etc/scripts/local/bench_abba.py`. It builds both, runs them interleaved (A B B A), and reports the per-arm medians of criterion's per-run estimates.
+
+There are also deterministic instruction-count benchmarks (`*_iai.rs`). They cover the native builder in `crates/execution/payload` (candidate scan, validity predicates, the multi-block build loop), block execution and assembly in `crates/execution/evm`, and pool admission and builder inserts in `crates/execution/txpool`. The `bench-iai.yml` workflow posts base-versus-head counts for them on every PR. To run one locally, use the command below; it needs Valgrind and `iai-callgrind-runner` 0.16.1.
+
+```bash
+cargo bench -p <crate> --bench <name>_iai
+```
+
+## What reviewers leave alone
+
+Cold paths are out of scope: startup, configuration, and per-block work that is O(1) next to execution (bearing in mind that blocks are ten times as frequent since Denim). So are micro-optimizations with no hot-path multiplier behind them, and matters of style.
+
+## Related pages
+
+- [Block Production Review](/getting-started/block-production-review/)
+- [Testing](/getting-started/testing/)
+- [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/)

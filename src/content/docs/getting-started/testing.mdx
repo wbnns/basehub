@@ -80,7 +80,7 @@ just devnet tests
 
 That recipe builds the test contracts, then runs `cargo nextest run -p base-system-tests`. Docker is required.
 
-Their cost keeps them off pull requests altogether. The merge queue runs them instead, as the required `ci / System Tests` check — and that requirement is what does the real work. A failing run blocks the merge outright, so nothing lands on `main` without clearing it.
+Their cost keeps them off pull requests by default. They run on every merge-queue entry instead, through `system-tests.yml`. To run them on a pull request before it is queued, add the `ci:system` or `ci:full` label and then push a commit (or close and reopen the PR). Adding the label alone does nothing, because labels are only read on the next push or reopen.
 
 ### Fuzz Tests
 
@@ -116,16 +116,17 @@ Which checks run depends on where a change sits in its lifecycle:
 | Stage | Trigger | Workflow | Scope |
 |---|---|---|---|
 | Pull request | `pull_request` | `ci-pr.yml` → `ci-core.yml` | Build/clippy/test, **affected crates only** vs. the base branch |
-| Pull request | `pull_request` | `no-std.yml`, `zepter.yml`, `lychee.yml`, `action-tests.yml`, `base-std-fork-tests.yml` | Full workspace — these are already fast |
-| Merge queue | `merge_group` | `ci-merge-queue.yml` → `ci-core.yml` | **Full** workspace build/clippy/test, plus **system tests** |
-| Push to `main` | `push` | `ci-main-cache.yml` | Warms the shared Rust build cache |
+| Pull request | `pull_request` | `no-std.yml`, `zepter.yml`, `lychee.yml` | Full workspace — these are already fast |
+| Merge queue | `merge_group` | `ci-merge-queue.yml` → `ci-core.yml` | **Full** workspace build/clippy/test |
+| Merge queue | `merge_group` | `system-tests.yml`, `action-tests.yml`, `base-std-fork-tests.yml` | System and action tests on every entry; Base Std fork tests only when an entry touches their inputs |
+| Push to `main` | `push` | `bench-iai.yml`, `bench-storage.yml` | Benchmarks against the previous `main` commit; a regression gets fixed in a follow-up PR |
 | Nightly | `schedule` (07:00 UTC) | `fuzz-nightly.yml` | Sharded sync-parity fuzzing |
 | Nightly | `schedule` (13:00 UTC) | `udeps-report.yml` | Unused-dependency report; opens a GitHub issue on findings |
 | Release | manual / push to `releases/v*` | See [Release Process](/node-operations/release-process/) | Release builds, RC tags, Docker images |
 
-Pull requests scope to affected crates through `etc/scripts/local/affected-crates.py`, which is exactly why the two local recipes differ: `just pr` mirrors what PR CI will do, while `just ci` mirrors the broader bar the merge queue eventually enforces. Holding system tests back to the queue is what keeps that PR stage quick, and making them a required check is what keeps the trade-off safe — the queue refuses to merge when they fail.
+Pull requests scope to affected crates through `etc/scripts/local/affected-crates.py`, which is exactly why the two local recipes differ: `just pr` mirrors what PR CI will do, while `just ci` mirrors the broader bar the merge queue eventually enforces. System tests, action tests, and Base Std fork tests all wait for the merge queue instead of running on each PR push, and benchmarks run only after merge, on `main`. That is what keeps the PR stage quick. To run one of those suites earlier, add `ci:system`, `ci:base-std`, `ci:perf`, or `ci:full` to the pull request; as with system tests, the label counts from the next push or reopen.
 
-One naming trap worth knowing: `action-tests.yml` is not a workflow that tests GitHub Actions, despite how it reads. It drives the [action-test](#action-tests) tier covered earlier on this page, via `just actions::lint-ci` and `just actions::test-ci`, and does so for both pull requests and merge-queue runs. Its verdict is binding as well: action tests are a required status check too.
+One naming trap worth knowing: `action-tests.yml` is not a workflow that tests GitHub Actions, despite how it reads. It drives the [action-test](#action-tests) tier covered earlier on this page, via `just actions::lint-ci` and `just actions::test-ci`, on every merge-queue run. It is a required status check. On a pull request the job is skipped, which counts as passing, unless the PR carries the `ci:full` label.
 
 ## Conventions
 

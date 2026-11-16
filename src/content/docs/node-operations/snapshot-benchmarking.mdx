@@ -19,7 +19,7 @@ The harness writes to its builder and validator datadirs as it runs. Every attem
 
 ## Before you start
 
-You need an optimised `base-bench` binary. A debug build will not give you a meaningful number at 400M gas — it measures the build profile, not the node.
+You need an optimised `base-bench` binary. A debug build will not give you a meaningful number at the gas limits of a real snapshot block — it measures the build profile, not the node.
 
 You also need a fully prepared Base datadir snapshot to restore from. Materialise a writable pair for one run using whatever snapshot and restore mechanism your environment provides, then point the paths at it:
 

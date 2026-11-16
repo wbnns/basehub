@@ -1,11 +1,11 @@
 ---
 title: Block Production Review
-description: The halt and stall scenarios reviewers must check when a base/base pull request touches builder, execution, precompile, payload, or flashblocks publishing paths.
+description: The halt and stall scenarios reviewers must check when a base/base pull request touches builder, execution, precompile, payload assembly, or data transport paths.
 sources:
 - base/base:docs/guides/BLOCK_PRODUCTION_REVIEW.md
 ---
 
-`base/base` keeps a dedicated review guide for changes that can stop the chain. It drives automated reviews of block-production-sensitive pull requests, and it is worth reading before you open one. A change counts as block-production-sensitive when it touches the builder, execution, precompiles, payload assembly, state root, transaction selection, metering, payload or data transport, or flashblocks publishing.
+`base/base` keeps a dedicated review guide for changes that can stop the chain. It drives automated reviews of block-production-sensitive pull requests, and it is worth reading before you open one. A change counts as block-production-sensitive when it touches the builder, execution, precompiles, payload assembly, state root, transaction selection, metering, or payload or data transport. Flashblocks publishing dropped off this list once Denim retired Flashblocks.
 
 The scenarios below are the patterns already known to be dangerous — not a closed list. Analogous changes deserve the same scrutiny even when no rule names the exact code path. What reviewers are looking for is any change that can halt block production, stall payload finalization, block validator re-execution, or shut valid transactions out indefinitely.
 
@@ -15,7 +15,7 @@ An unmitigated change of that kind earns an inline **Critical** finding. A usefu
 
 Where a pull request adds, replaces, or alters any path that pushes block-production data over an I/O boundary, it has to answer the size questions below before it can be called safe. That holds even when the change is presented as a latency optimization, an encoding swap, a fallback path, or a way around an earlier size cap.
 
-Read "data" broadly here: commit messages, responses and requests, state updates, receipts and transactions, frames, batches, flashblocks, payloads, and whole blocks all qualify. So does the full range of boundaries they travel over — external services and conductor payload commits, batcher/blob/calldata frames, database writes, HTTP handlers, gossip and RPC messages, websocket publishers, and channels that never leave the process.
+Read "data" broadly here: commit messages, responses and requests, state updates, receipts and transactions, frames, batches, payloads, and whole blocks all qualify. So does the full range of boundaries they travel over — external services and conductor payload commits, batcher/blob/calldata frames, database writes, HTTP handlers, gossip and RPC messages, and channels that never leave the process.
 
 Five questions have to be answered per boundary the change touches:
 
@@ -51,7 +51,7 @@ A **Critical** finding is warranted whenever such a change leaves the downstream
 
 **Symptoms.** `PayloadBuilderError::EvmExecutionError`, `PayloadBuilderError::evm`, or a panic ahead of the receipt and state update.
 
-**Halt mode.** The builder abandons the payload or flashblock attempt instead of producing a valid payload or fallback.
+**Halt mode.** The builder abandons the payload attempt instead of producing a valid payload or fallback.
 
 **Rule.** It is critical when user-controlled transaction input can produce fatal EVM errors in production builder paths.
 
@@ -61,7 +61,7 @@ A **Critical** finding is warranted whenever such a change leaves the downstream
 
 **Triggers.** Derived payload attributes carrying invalid transactions, blob transactions, unrecoverable transactions, deposit account load failures, or pre-execution failures.
 
-**Surfaces.** `execute_pre_steps`, `execute_sequencer_transactions`, payload attributes, deposit nonce loading, blob transaction checks.
+**Surfaces.** `execute_sequencer_transactions`, payload attributes, deposit nonce loading, blob transaction checks.
 
 **Symptoms.** `BlobTransactionRejected`, `TransactionEcRecoverFailed`, `AccountLoadFailed`, `EvmExecutionError`.
 
@@ -75,7 +75,7 @@ A **Critical** finding is warranted whenever such a change leaves the downstream
 
 **Triggers.** A missing parent block, a failed `state_by_block_hash`, a failed state root or trie update, a failed Isthmus withdrawals root, a missing parent beacon block root, invalid fork extra-data derivation, or inconsistent block number context.
 
-**Surfaces.** Payload job creation, `build_payload`, `build_block`, `finalize_payload`, state provider and trie APIs.
+**Surfaces.** Payload job creation, `build_payload`, state provider and trie APIs.
 
 **Symptoms.** `MissingParentBlock`, a provider error, a state-root error, `PayloadBuilderError::Other`, or invalid fields on a finalized payload.
 
@@ -85,27 +85,13 @@ A **Critical** finding is warranted whenever such a change leaves the downstream
 
 **Mitigation.** Tests for parent, state-root, and fork-boundary errors wherever practical; error context identifying the block number, hash, and failing component; no silent fallback to an invalid state root.
 
-### Flashblock loop, deadline, and publish failures
-
-**Triggers.** Flashblock build errors, websocket serialization failures, a closed payload handler channel, cancellation and deadline races, or a late FCU or clock skew that yields zero flashblocks. Reordering publish against finalize belongs here as well.
-
-**Surfaces.** `build_next_flashblock`, `finalize_payload`, `payload_tx`, the websocket publisher, the publish guard, and job deadline and cancellation code.
-
-**Symptoms.** A flashblock build returning `Err`, `failed to publish flashblock`, a closed channel, a missing finalized payload, or a missed cancellation.
-
-**Halt mode.** Flashblocks stop, payload finalization gets skipped or delayed, or external consumers are left with stale or missing updates.
-
-**Rule.** It is critical when a change can stop building or publishing without finalizing a valid payload or falling back cleanly.
-
-**Mitigation.** Cancellation race tests or explicit reasoning; tests for closed-channel and serialization behavior when that behavior changes; evidence that the final payload survives a failure on the publish path.
-
 ### Payload and data size limits across I/O boundaries
 
-**Triggers.** Block, payload, flashblock, batch, frame, transaction, request, response, or commit data crossing an internal or external boundary that carries an explicit or implicit maximum. Serialized, compressed, uncompressed, encoded, JSON/RPC, websocket, channel, database, gossip, batcher/blob/calldata, conductor payload-commit, and external-service payloads can all outgrow the downstream limit when the code lacks preflight bounds, backpressure, chunking, or deterministic rejection before production.
+**Triggers.** Block, payload, batch, frame, transaction, request, response, or commit data crossing an internal or external boundary that carries an explicit or implicit maximum. Serialized, compressed, uncompressed, encoded, JSON/RPC, websocket, channel, database, gossip, batcher/blob/calldata, conductor payload-commit, and external-service payloads can all outgrow the downstream limit when the code lacks preflight bounds, backpressure, chunking, or deterministic rejection before production.
 
-**Surfaces.** Payload and flashblock serialization and publishing, `payload_tx`, conductor and payload commit APIs, gossip and RPC request bodies, batch/channel/frame encoding, `max_uncompressed_block_size`, DA limits, txpool forwarding, storage and DB writes.
+**Surfaces.** Payload serialization and publishing, conductor and payload commit APIs, gossip and RPC request bodies, batch/channel/frame encoding, DA limits, txpool forwarding, storage and DB writes.
 
-**Symptoms.** Oversized message rejection, a closed connection or channel, a serialization or send failure, a downstream commit failure, retries that never progress, `BlockUncompressedSizeExceeded`.
+**Symptoms.** Oversized message rejection, a closed connection or channel, a serialization or send failure, a downstream commit failure, or retries that never progress.
 
 **Halt mode.** The builder produces a payload that is locally valid but rejected downstream, fails to commit or publish it, or keeps building payloads too large to move through the production path at all.
 
@@ -117,11 +103,11 @@ A **Critical** finding is warranted whenever such a change leaves the downstream
 
 **Triggers.** Metering data pending for every fresh transaction, DA/gas/uncompressed/state-root-gas/execution-time limits rejecting most candidates, a permanent rejection cache poisoning valid transactions, or `mark_invalid` and `mark_rejected` changes that exclude valid nonce chains.
 
-**Surfaces.** `TxnExecutionError`, `ResourceLimits::is_tx_over_limits`, metering wait logic, `NextBestFlashblocksTxs`, the rejection cache, txpool pruning.
+**Surfaces.** `ExecutionInfo::is_tx_over_limits`, metering wait logic, the rejection cache, txpool pruning.
 
-**Symptoms.** `MeteringDataPending`, `TransactionDASizeExceeded`, `BlockDASizeExceeded`, `DAFootprintLimitExceeded`, `TransactionGasLimitExceeded`, `BlockUncompressedSizeExceeded`, `ExecutionMeteringLimitExceeded`, or empty flashblocks despite valid transactions waiting.
+**Symptoms.** Empty blocks even though valid transactions are waiting.
 
-**Halt mode.** The builder turns out empty or underfilled flashblocks and blocks repeatedly, or valid transactions never get included.
+**Halt mode.** The builder turns out empty or underfilled blocks repeatedly, or valid transactions never get included.
 
 **Rule.** Changes that starve inclusion, permanently reject valid transactions, or convert a transient resource limit into a block-production stall are critical.
 
@@ -131,7 +117,7 @@ A **Critical** finding is warranted whenever such a change leaves the downstream
 
 **Triggers.** A new `unwrap`, `expect`, index, division, overflow, or `panic!` reachable from user input, chain data, database state, fork config, payload attributes, or runtime config.
 
-**Surfaces.** Precompiles, transaction execution, payload assembly, state-root and fork activation, flashblocks publishing, job timing.
+**Surfaces.** Precompiles, transaction execution, payload assembly, state-root and fork activation, job timing.
 
 **Symptoms.** A panic, a crashed task, process exit, or a finalized payload that never appears.
 

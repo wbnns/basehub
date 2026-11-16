@@ -140,7 +140,7 @@ No prover runs inside the devnet. To prove against it, start the separate [stand
 ## Snapshot Dev Chain (`base dev`)
 
 :::note
-`base dev` is on `main` only. No release ships it yet. The final `v1.5.0` (2026-10-14) does not include it, so build from a `main` checkout.
+`base dev` is on `main` only. No release ships it yet: every final tag up to `v1.5.5` (2026-11-12) leaves it out, so build from a `main` checkout.
 :::
 
 There is a second, lighter way to get a local chain. `base dev` takes a copy of a real snapshot and keeps producing blocks on top of it, with no L1 behind it. One process holds both an embedded execution node and a standalone sequencer, talking over Engine IPC. Contracts, balances, and storage start out exactly as they were on the network at the snapshot head.
