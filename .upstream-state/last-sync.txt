@@ -1,11 +1,11 @@
 ## Upstream snapshot
 
-Generated 2026-11-17T04:01:34Z
+Generated 2026-11-18T04:02:24Z
 
-### base/base @ f24bfc4
+### base/base @ 4c31d2f
 
 004f2a668dcd1fcc8b1cb833c4b531c0361b221b  docs/guides/GLAMSTERDAM.md
-1f6241ac20ad52e6109a65f8dc8656b8f776c670  docs/guides/GAS_LIMIT_BILLING.md
+08f25da78a163069cbcf6d6721ccfe4a1cfaa59c  docs/guides/GAS_LIMIT_BILLING.md
 343a393ad0907fd70bdc3c2b3e336c18306e0808  docs/guides/TESTING.md
 34b321370a504721f8c1e8a8c8f2a9f9489f2429  docs/guides/BLOCK_PRODUCTION_REVIEW.md
 3efd02cc878320fc6cc6d69097a06ba5df168479  docs/guides/HOT_PATH_PERFORMANCE_REVIEW.md
@@ -15,8 +15,8 @@ Generated 2026-11-17T04:01:34Z
 86de2c7490e956825fa954626191199bfdc7206e  docs/guides/DEVNET.md
 974aa5a440134c14f80f02fb7ee960ec35836351  docs/guides/RELEASE.md
 9cf11410b2e796dc695ccdc56352770c85268638  docs/guides/STANDALONE_PROVING.md
-a019c1abfa153889fb19b0628fb1df2dca4ee242  docs/transaction-events/README.md
 ba23e3763582e19e7db025ed401e161076e1cc7b  docs/guides/P2P.md
+efdb45533cda27b7ca42f30895fb508d94b8d17f  docs/transaction-events/README.md
 
 ### docs.base.org
 
@@ -287,6 +287,7 @@ Unm7vkJ9Mn9HUiAmMzA1	Flashblocks Deep Dive: How we made Base 10x faster	Tue, 09 
 
 ### base-l2.statuspage.io RSS
 
+https://base-l2.statuspage.io/incidents/jsf2p1dd999d	Base Sepolia testnet block production delays	Tue, 17 Nov 2026 20:30:53 +0000
 https://base-l2.statuspage.io/incidents/9jdt5jc1ylry	Delayed transaction inclusion on Base Mainnet	Mon, 09 Nov 2026 20:08:50 +0000
 https://base-l2.statuspage.io/incidents/js0n0438q6l4	Mainnet: Base Denim Upgrade - November 5th	Mon, 09 Nov 2026 19:45:11 +0000
 https://base-l2.statuspage.io/incidents/zmn7dfmyc862	v1.5.3 fixes potential Base state root mistmatch	Sat, 07 Nov 2026 16:19:07 +0000
@@ -311,4 +312,3 @@ https://base-l2.statuspage.io/incidents/lj9f7jhbb2ys	Base Mainnet Withdrawal Del
 https://base-l2.statuspage.io/incidents/64vlxm4l3lb2	Mainnet: Base Azul Upgrade - May 28th	Thu, 28 May 2026 20:00:10 +0000
 https://base-l2.statuspage.io/incidents/0h468wjw300f	Delayed Transactions	Thu, 14 May 2026 05:04:08 +0000
 https://base-l2.statuspage.io/incidents/xv19bh0l2dvp	Elevated latency on Sepolia RPC	Wed, 13 May 2026 16:52:41 +0000
-https://base-l2.statuspage.io/incidents/kd90bdz37xw5	Mainnet RPC Upgrade	Tue, 21 Apr 2026 17:36:02 +0000

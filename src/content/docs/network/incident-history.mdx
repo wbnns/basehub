@@ -9,6 +9,10 @@ A running log of substantive incidents and scheduled upgrades affecting Base Mai
 
 ## 2026
 
+### 2026-11-17 — Empty blocks slow Sepolia inclusion (resolved)
+
+At 19:53 UTC on November 17, the team reported that Base Sepolia was producing an unusually large share of empty blocks, so testnet transactions took longer than normal to land. The cause was identified and the incident was marked resolved at 20:30 UTC, roughly 40 minutes later. Mainnet was not part of the report. [Status page](https://base-l2.statuspage.io/incidents/jsf2p1dd999d)
+
 ### 2026-11-05 — v1.5.3 patches a state root risk (completed)
 
 On November 4, a bug turned up in Reth that could, in rare cases, lead a node to compute the wrong state root. The upstream fix is [paradigmxyz/reth#28264](https://github.com/paradigmxyz/reth/pull/28264). Because Base runs on Reth, the team applied the same mitigation to every block builder that day, so no new block was exposed. They also recomputed the chain's state root and found it correct, and noted that the proof system checks every state root with an independent implementation and would have flagged a mismatch. No user was affected. Base posted the notice on November 5 at 16:18 UTC and published [`v1.5.3`](https://github.com/base/base/releases/tag/v1.5.3) at 16:19 UTC. That release stops a validator from halting when it meets an invalid state root. Base recommends that every operator upgrade to it; no resync or other step is needed. The maintenance closed on November 7 at 16:19 UTC.
