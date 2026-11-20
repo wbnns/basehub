@@ -1,32 +1,51 @@
 ---
 title: Block Building
-description: How Base orders transactions inside blocks, including Flashblocks 200ms preconfirmations and the per-transaction gas cap enforced by the mempool.
+description: How Base orders transactions inside its 200ms canonical blocks, how the retired Flashblocks design worked, and the per-transaction gas cap enforced by the mempool.
 sources:
 - base/docs:docs/base-chain/network-information/block-building.mdx
+- docs.base.org:specifications/transactions/transaction-ordering
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Base block ordering is independent of the user-facing experience: the sequencer can build sub-block updates without exposing them, and the underlying ordering rules continue to apply.
+Since the [Denim](/specifications/denim-200ms-blocks/) hardfork, Base no longer previews blocks through Flashblocks. Every 200ms the sequencer produces a full canonical block, and the ordering rules below apply to each one.
 
 ## Current configuration
 
-| Network      | Active configuration                                                                  | Upcoming |
-|--------------|---------------------------------------------------------------------------------------|----------|
-| Base Mainnet | [Flashblocks](#flashblocks) and [per-transaction gas maximum](#per-transaction-gas-maximum) |          |
-| Base Sepolia | [Flashblocks](#flashblocks) and [per-transaction gas maximum](#per-transaction-gas-maximum) |          |
+| Network      | Active configuration                                                                                   | Upcoming |
+|--------------|--------------------------------------------------------------------------------------------------------|----------|
+| Base Mainnet | [200ms native blocks](#200ms-native-blocks) and [per-transaction gas maximum](#per-transaction-gas-maximum) |          |
+| Base Sepolia | [200ms native blocks](#200ms-native-blocks) and [per-transaction gas maximum](#per-transaction-gas-maximum) |          |
 
 The [configuration changelog](/network/configuration-changelog/) records every change to block building parameters and other network-level settings.
 
-## Flashblocks
+## 200ms native blocks
 
-Blocks are produced by [base-builder](https://github.com/base/base/tree/main/crates/builder), with a fresh priority fee auction running every **200ms**. The auction shortens effective block times from 2 seconds to 200 milliseconds via preconfirmations.
+`base-reth-node` builds a complete canonical block every 200ms. Each one carries its own hash, state root, and receipts, and its transactions are sorted by priority fee. The [Denim specification](/specifications/denim-200ms-blocks/) covers the protocol design.
+
+**The pool is frozen at build start.** When the builder begins a block, it takes a snapshot of the transaction pool and fills the block only from that snapshot. Standard transactions and validity transactions follow the same rule. A transaction that reaches the sequencer once a build is under way cannot join that block, however high its priority fee. It becomes eligible for the next block whose build starts after it arrived, and it competes on priority fee there.
+
+**Blocks go out as soon as they are ready.** The sequencer seals a block and broadcasts it the moment the build finishes, instead of waiting for a fixed deadline. Peers therefore see each block earlier and have more of the 200ms window before the next build begins. If the readiness signal never arrives, the sequencer seals at a 150ms deadline. Broadcasting early does not alter a block's contents or timestamps.
+
+<Aside type="note">
+Both behaviors went live on Base Mainnet on November 13, 2026. Before that date, only validity transactions used the build-start snapshot.
+</Aside>
+
+**Validity transactions** enter the competition for a slot only when all of their predicates match. A matching predicate does not hold any block space for the transaction. See [Validity Transactions](/api-reference/validity-transactions/).
+
+## Flashblocks (retired)
+
+<Aside type="caution">
+This section describes the design Base used before [Denim](/specifications/denim-200ms-blocks/). Base stopped producing Flashblocks at Denim activation (Sepolia October 21, 2026; Mainnet November 5, 2026) and turned off the public Flashblocks WebSocket endpoints on November 19, 2026. See [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/).
+</Aside>
+
+Blocks were produced by [base-builder](https://github.com/base/base/tree/main/crates/builder), with a fresh priority fee auction held every **200ms**. The auction cut effective block times from 2 seconds to 200 milliseconds via preconfirmations.
 
 <Aside type="note">
 For a deeper architectural walkthrough, see the [Flashblocks overview](/flashblocks/overview/).
 </Aside>
 
-Three properties distinguish Flashblocks from vanilla ordering:
+Three properties set Flashblocks apart from vanilla ordering:
 
 1. **Timing** — The builder emits one Flashblock every 200ms, sealing a slice of the eventual block. Once a Flashblock is broadcast, its ordering is final; later transactions with higher priority fees cannot displace transactions already committed to an earlier Flashblock.
 

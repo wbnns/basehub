@@ -12,6 +12,8 @@ The tables below track network parameter changes — block building, fees, and o
 
 | Date | Change | Documentation |
 |------|--------|---------------|
+| November 19, 2026 | Turned off the public Flashblocks WebSocket endpoint (`wss://mainnet.flashblocks.base.org/ws`) | [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) |
+| November 13, 2026 | The sequencer now broadcasts each block the moment it is built, falling back to the 150ms seal deadline, and the builder snapshots the transaction pool at build start for every transaction type rather than for validity transactions alone | [Block Building](/network/block-building/#200ms-native-blocks) |
 | November 5, 2026 | Denim: Switched to a canonical block every 200ms, retired Flashblocks, and raised the EIP-1559 Denominator from 100 to 1,000 so the fee moves at the same rate per second | [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/) |
 | May 28, 2026 | Azul: Reduced per-transaction gas maximum to 16,777,216 (2^24) via EIP-7825 | [Per-Transaction Gas Maximum](/network/block-building/#per-transaction-gas-maximum) |
 | March 25, 2026 | Decreased EIP-1559 Denominator to 100 and Elasticity to 5 | [EIP-1559 Fee Parameters](/network/network-fees/#eip-1559-fee-parameters) |
@@ -24,14 +26,15 @@ The tables below track network parameter changes — block building, fees, and o
 | September 17, 2025 | Enabled Per-Transaction Gas Maximum | [Per-Transaction Gas Maximum](/network/block-building/#per-transaction-gas-maximum) |
 | September 11, 2025 | Ended testing Per-Transaction Gas Maximum | [Per-Transaction Gas Maximum](/network/block-building/#per-transaction-gas-maximum) |
 | September 10, 2025 | Started testing Per-Transaction Gas Maximum | [Per-Transaction Gas Maximum](/network/block-building/#per-transaction-gas-maximum) |
-| July 7, 2025 | Enabled Flashblocks | [Flashblocks](/network/block-building/#flashblocks) |
-| May 15, 2025 | Ended testing Flashblocks | [Flashblocks](/network/block-building/#flashblocks) |
-| May 15, 2025 | Started testing Flashblocks | [Flashblocks](/network/block-building/#flashblocks) |
+| July 7, 2025 | Enabled Flashblocks | [Flashblocks](/network/block-building/#flashblocks-retired) |
+| May 15, 2025 | Ended testing Flashblocks | [Flashblocks](/network/block-building/#flashblocks-retired) |
+| May 15, 2025 | Started testing Flashblocks | [Flashblocks](/network/block-building/#flashblocks-retired) |
 
 ## Base Sepolia
 
 | Date | Change | Documentation |
 |------|--------|---------------|
+| November 19, 2026 | Turned off the public Flashblocks WebSocket endpoint (`wss://sepolia.flashblocks.base.org/ws`) | [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) |
 | October 21, 2026 | Denim: Switched to a canonical block every 200ms, retired Flashblocks, and raised the EIP-1559 Denominator from 100 to 1,000 so the fee moves at the same rate per second | [Denim 200ms Native Blocks](/specifications/denim-200ms-blocks/) |
 | April 20, 2026 | Azul: Reduced per-transaction gas maximum to 16,777,216 (2^24) via EIP-7825 | [Per-Transaction Gas Maximum](/network/block-building/#per-transaction-gas-maximum) |
 | February 19, 2026 | Increased Minimum Base Fee to 5,000,000 wei | [Minimum Base Fee](/network/network-fees/#minimum-base-fee) |
@@ -39,4 +42,4 @@ The tables below track network parameter changes — block building, fees, and o
 | February 10, 2026 | Increased Minimum Base Fee to 2,000,000 wei | [Minimum Base Fee](/network/network-fees/#minimum-base-fee) |
 | November 20, 2025 | Enabled Minimum Base Fee (200,000 wei) | [Minimum Base Fee](/network/network-fees/#minimum-base-fee) |
 | September 3, 2025 | Enabled Per-Transaction Gas Maximum | [Per-Transaction Gas Maximum](/network/block-building/#per-transaction-gas-maximum) |
-| February 25, 2025 | Enabled Flashblocks | [Flashblocks](/network/block-building/#flashblocks) |
+| February 25, 2025 | Enabled Flashblocks | [Flashblocks](/network/block-building/#flashblocks-retired) |

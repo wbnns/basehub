@@ -105,30 +105,18 @@ A typical invocation that enables both HTTP and WebSocket RPC, metrics, and stor
   -vv
 ```
 
-## Enabling Flashblocks
+## Flashblocks settings (retired)
 
-A synced node can serve ~200ms pre-confirmations to your applications once it is subscribed to the Flashblocks stream. Point the node at the Flashblocks WebSocket feed with `RETH_FB_WEBSOCKET_URL` when you launch it:
+Earlier guides told operators to subscribe the node to the Flashblocks WebSocket stream. Do not do this now. [Denim](/specifications/denim-200ms-blocks/) replaced Flashblocks with a canonical block every 200ms, and Base turned off the public Flashblocks endpoints on November 19, 2026, so a node pointed at them has nothing to read.
 
-```bash
-RETH_FB_WEBSOCKET_URL="wss://mainnet.flashblocks.base.org/ws" ./target/release/base-reth-node
-```
+Delete these settings from your node configuration if they are still there:
 
-| Network | URL |
-|---------|-----|
-| Mainnet | `wss://mainnet.flashblocks.base.org/ws` |
-| Sepolia | `wss://sepolia.flashblocks.base.org/ws` |
+- The `RETH_FB_WEBSOCKET_URL` environment variable
+- `--flashblocks-url` (alias `--websocket-url`)
+- `--max-pending-blocks-depth`
+- `--flashblocks.ping-interval`
 
-These WebSocket URLs are part of the node infrastructure and are not meant for direct use by applications — your own RPC endpoint is what apps should query for Flashblocks data. The binary tails this stream, caches the pre-confirmation data, and replies from that cache when a Flashblocks-aware RPC method is called. The full message schema is documented in the [Flashblocks API Overview](/api-reference/flashblocks/overview/).
-
-To confirm it is working, request a `pending` block:
-
-```bash
-curl -X POST \
-  --data '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["pending", false],"id":1}' \
-  http://localhost:8545
-```
-
-A working setup returns data from the most recent Flashblock; if the stream is briefly unavailable the node falls back to the latest finalized block.
+They are ignored today. A later base/base release will drop them from the command line, and a node that still passes them may refuse to start after that upgrade. Requests with the `"pending"` block tag still work, but they now resolve to the latest canonical block. [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/) lists the replacement for each Flashblocks feature.
 
 ## Historical Proofs RPCs
 

@@ -11,7 +11,7 @@ import { Aside } from '@astrojs/starlight/components';
 Read this page if your application consumes Flashblocks. The [Denim](/specifications/denim-200ms-blocks/) upgrade swapped Flashblocks for canonical 200ms blocks. It is live on both networks, so Flashblocks subscriptions and the pending state behind them are gone.
 
 <Aside type="caution">
-Denim activated on Base Sepolia on October 21, 2026 at 18:00 UTC and on Base Mainnet on November 5, 2026 at 18:00 UTC. Base stopped producing Flashblocks on each network at that moment. Flashblocks subscriptions, the Flashblocks WebSocket streams, and Flashblocks pending state return no data now. The endpoints `wss://mainnet.flashblocks.base.org/ws` and `wss://sepolia.flashblocks.base.org/ws` are being shut down, after which connections fail, so remove them from your configuration.
+Denim activated on Base Sepolia on October 21, 2026 at 18:00 UTC and on Base Mainnet on November 5, 2026 at 18:00 UTC. Base stopped producing Flashblocks on each network at that moment. Flashblocks subscriptions, the Flashblocks WebSocket streams, and Flashblocks pending state return no data now. Base turned off the endpoints `wss://mainnet.flashblocks.base.org/ws` and `wss://sepolia.flashblocks.base.org/ws` on November 19, 2026. Any connection to them now fails, so delete them from your configuration.
 
 Node operators: Mainnet needs [`v1.5.1`](https://github.com/base/base/releases/tag/v1.5.1) or later, and Sepolia needs [`v1.5.0`](https://github.com/base/base/releases/tag/v1.5.0) or later. Flashblocks settings on the node now do nothing. A future base/base release drops them from the command line, and a node that still passes them can fail to start after that upgrade.
 </Aside>

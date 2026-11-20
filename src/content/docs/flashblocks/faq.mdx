@@ -9,6 +9,10 @@ import { Aside } from '@astrojs/starlight/components';
 
 Common questions about Flashblocks block building, WebSocket access, RPC behavior, and node setup.
 
+<Aside type="caution">
+Flashblocks are retired. [Denim](/specifications/denim-200ms-blocks/) replaced them with 200ms canonical blocks (Sepolia October 21, 2026; Mainnet November 5, 2026), and Base turned off the public Flashblocks WebSocket endpoints on November 19, 2026. These answers describe the old design. For current behavior, see [Block Building](/network/block-building/#200ms-native-blocks) and [Migrate to 200ms Blocks](/flashblocks/migrate-to-200ms-blocks/).
+</Aside>
+
 <Aside>
 For an introduction to how Flashblocks work end to end, see the [Flashblocks Overview](/flashblocks/overview/).
 </Aside>
@@ -23,7 +27,7 @@ Every block on Base is built by the Flashblocks builder, so **Flashblocks are al
 
 Not in any meaningful way — both order transactions by fee. The difference is timing: Flashblocks arrive every 200ms instead of every 2 seconds.
 
-See [Block Building](/network/block-building/#flashblocks) for details.
+See [Block Building](/network/block-building/#flashblocks-retired) for details.
 
 ### Can the sequencer stop publishing Flashblocks?
 

@@ -153,6 +153,8 @@ The pipeline takes that scheduled timestamp, splits it into the header's seconds
 
 Each selected 200ms slot gets a full build and execution pass. What comes out is a whole block, not a fragment of one: its own state root and hash, its own receipts, its own Engine payload and forkchoice update, and its own walk from unsafe to safe to finalized.
 
+Block contents are fixed when the build starts: the builder freezes a snapshot of the transaction pool at that moment, so anything arriving later waits for a following block. The sequencer does not hold a finished block until a fixed deadline. It seals and broadcasts the block as soon as the build reports it is ready, and only falls back to a 150ms deadline when that signal never comes. Sending blocks out early leaves their contents and timestamps unchanged and needs no hardfork. [Block Building](/network/block-building/#200ms-native-blocks) covers the ordering rules.
+
 Two deposits lead the transaction list — L1 information first at `tx[0]`, BaseTime next at `tx[1]` — and user transactions, plus anything else that applies, follow them. By design the payload attribute, the deposit at `tx[1]`, and the value written into the predeploy all describe the same planned millisecond part.
 
 ## RPC
