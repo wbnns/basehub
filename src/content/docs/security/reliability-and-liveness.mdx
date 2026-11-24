@@ -1,8 +1,9 @@
 ---
 title: Reliability and Liveness
-description: Where Base reports outages and publishes postmortems and audits, how bug bounties are split, what you can do if the sequencer censors or halts, and which sequencer components are open source.
+description: Where Base reports outages, uptime, postmortems and audits, how bug bounties are split, what you can do if the sequencer censors or halts, how to spot a proposal stall, and which sequencer components are open source.
 sources:
 - base/docs:docs/specifications/security/reliability-and-liveness.mdx
+- docs.base.org:specifications/security/reliability-and-liveness
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -11,8 +12,9 @@ This page collects the places to look when you need to judge how dependable Base
 
 ## Status and incident history
 
-Live component health for Base Mainnet and Base Sepolia sits on [status.base.org](https://status.base.org). Covered components include producing blocks, posting batches to L1, the Flashblocks stream, the mempool, deposits and withdrawals, and the public RPC endpoints.
+Live component health for Base Mainnet and Base Sepolia sits on [status.base.org](https://status.base.org). Covered components include producing blocks, posting batches to L1, the mempool, deposits and withdrawals, and the public RPC endpoints.
 
+- **Uptime** is broken out month by month at [status.base.org/uptime](https://status.base.org/uptime), for Base Mainnet overall and for each component (for example [Mainnet block production](https://status.base.org/uptime/j4ln68pbzsmg)). Three months show at once, and you page back for older ones. The figure comes from how long a component was flagged as down on the status page: a major outage counts in full, a partial outage counts at 30%. There is no published yearly or 12-month number. The [main status page](https://status.base.org) shows a rolling 90 days instead.
 - **Past incidents** are listed with timelines and resolutions at [status.base.org/history](https://status.base.org/history). BaseHub keeps a paraphrased running record in [Incident History](/network/incident-history/).
 - **Alerts** are available by subscribing on [status.base.org](https://status.base.org).
 - **Postmortems** for major incidents go out on the [Base Engineering Blog](https://blog.base.dev/). The [June 25th block production outage postmortem](https://blog.base.dev/postmortem-june-25th-block-production-outage) is one example, and the [Engineering Blog index](/architecture/engineering-blog/) lists the rest.
@@ -22,8 +24,29 @@ Live component health for Base Mainnet and Base Sepolia sits on [status.base.org
 Each third-party audit report lives in the repository whose code it reviewed. A report states its scope, the commit it looked at, what it found, and how each finding was closed out.
 
 - **Smart contracts:** [base/contracts audits](https://github.com/base/contracts/tree/main/audits). These include the multiproof, proof, Cobalt, and dynamic upgrade contract reviews.
-- **Node and precompiles:** [base/base audits](https://github.com/base/base/tree/main/audits). These include the B20 precompile and the dynamic upgrade node reviews. The folder is organised by upgrade (`azul`, `beryl`, `cobalt`).
+- **Node and precompiles:** [base/base audits](https://github.com/base/base/tree/main/audits). These include the B20 precompile and the dynamic upgrade node reviews. The folder is organized by upgrade (`azul`, `beryl`, `cobalt`, `denim`).
 - **Audit competitions:** [Immunefi reports](https://reports.immunefi.com/base), including the contest held for the Azul hardfork.
+
+The reports published so far, as listed in those two repositories and on Immunefi. New reviews land in the repositories first, so check there for anything after this table. Each Cantina report counts its findings and marks every one fixed or acknowledged.
+
+| Date | Auditor or program | Scope | Report |
+|------|--------------------|-------|--------|
+| March 17, 2026 | Cantina | AggregateVerifier multiproof contracts | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_multiproof_mar2026.pdf) |
+| March 19, 2026 | Cantina | TEE multiproof contracts | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_nitro_enclave_mar2026.pdf) |
+| April 10, 2026 | Cantina | TEE multiproof contracts (second review) | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_nitro_enclave_apr2026.pdf) |
+| April 10, 2026 | Cantina | AggregateVerifier multiproof contracts (second review) | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_aggregateverifier_apr2026.pdf) |
+| April 21 to May 4, 2026 | Immunefi audit competition | Azul hardfork | [Immunefi](https://reports.immunefi.com/base) |
+| June 4, 2026 | Cantina | Proof contracts update | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_proof_contracts_update_jun2026.pdf) |
+| August 14, 2026 | Cantina | Precompiles, including B20 (Beryl) | [base/base](https://github.com/base/base/blob/main/audits/beryl/beryl-b20.pdf) |
+| August 14, 2026 | Cantina | Precompile macros and storage (Beryl) | [base/base](https://github.com/base/base/blob/main/audits/beryl/beryl-precompiles-storage.pdf) |
+| September 2, 2026 | Cantina | Cobalt contracts (v8.3.0, excluding dynamic upgrades) | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_cobalt_sep2026.pdf) |
+| September 10, 2026 | Cantina | Precompile changes, including B20 (Cobalt) | [base/base](https://github.com/base/base/blob/main/audits/cobalt/cobalt-b20.pdf) |
+| September 19, 2026 | Cantina | Dynamic upgrades contracts | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_dynamic_upgrades_sep2026.pdf) |
+| September 19, 2026 | Cantina | Dynamic upgrades node implementation (Cobalt) | [base/base](https://github.com/base/base/blob/main/audits/cobalt/cobalt-dynamic-upgrades.pdf) |
+| October 1, 2026 | Cantina | 200ms blocks node and contracts, including BaseTime and AggregateVerifier (Denim) | [base/contracts](https://github.com/base/contracts/blob/main/audits/cantina_coinbase_200ms_blocks_oct2026.pdf), [base/base](https://github.com/base/base/blob/main/audits/denim/denim-200ms-blocks.pdf) |
+| October 2, 2026 | Cantina | B20 precompile v3 (Denim) | [base/base](https://github.com/base/base/blob/main/audits/denim/denim-b20-v3.pdf) |
+
+The base/contracts dates come from that repo's [audit index](https://github.com/base/contracts/blob/main/audits/README.md), which also names the commit each report reviewed. The base/base dates are taken from each report's cover page.
 
 For the OP Stack pieces Base relied on up to and including OP Stack Upgrade 18, such as the bridge and the `OptimismPortal` contract, the reviews sit with Optimism in its [security reviews folder](https://github.com/ethereum-optimism/optimism/tree/develop/docs/security-reviews).
 
@@ -33,7 +56,7 @@ Two standing programs split the ground between them. HackerOne takes offchain co
 
 ## Censorship resistance and sequencer liveness
 
-Base has one active sequencer at a time. It runs as a high-availability cluster, and if the leader stops producing blocks, a follower takes over leadership. The [Flashblocks architecture](/flashblocks/architecture/) page shows the parts involved.
+Base has one active sequencer at a time. It runs as a high-availability cluster, and if the leader stops producing blocks, a follower takes over leadership. The [component table](#open-source-sequencer-components) below names the software involved.
 
 When the sequencer refuses your transaction, or stops altogether, you still have a route in. Send the transaction as a deposit through the `OptimismPortal` contract on Ethereum (see [Deposits to Base](/network/bridging-and-withdrawals/#deposits-to-base)). Two protocol rules make that route reliable:
 
@@ -44,7 +67,21 @@ When the sequencer refuses your transaction, or stops altogether, you still have
 The deposit route trades speed for certainty. Expect hours, not seconds, in the worst case. It is a guarantee that a transaction gets in, not a fast lane.
 </Aside>
 
-Halts and slow inclusion are announced on [status.base.org](https://status.base.org). If the sequencer has to stop streaming Flashblocks, preconfirmations switch off and confirmation falls back to whole blocks, which arrive every 2 seconds until [Denim](/specifications/denim-overview/) shortens them.
+Halts and slow inclusion are announced on [status.base.org](https://status.base.org).
+
+## Proposal liveness
+
+The [proposer](/specifications/proposer/) publishes Base state to Ethereum by opening dispute games through the `DisputeGameFactory` contract. If it stops, Base itself carries on: blocks, transactions, and deposits are unaffected. What stalls is the canonical withdrawal path. A withdrawal can only be proven against a dispute game that covers the L2 block where it started (see [Bridging and Withdrawals](/network/bridging-and-withdrawals/)). When new games appear again, the backlog of withdrawals can be proven against them.
+
+To see when the latest game was opened on Base Mainnet, read the last entry of the `DisputeGameFactoryProxy` on Ethereum. `gameAtIndex` hands back the game type, the creation timestamp, and the game address. Watching the factory's `DisputeGameCreated` events works too.
+
+```bash
+FACTORY=0x43edB88C4B80fDD2AdFF2412A7BebF9dF42cB40e
+COUNT=$(cast call $FACTORY "gameCount()(uint256)" --rpc-url $ETH_RPC_URL | awk '{print $1}')
+cast call $FACTORY "gameAtIndex(uint256)(uint32,uint64,address)" $((COUNT - 1)) --rpc-url $ETH_RPC_URL
+```
+
+In normal operation a new proposal lands every 20 to 60 minutes or so. A gap of several hours since the last game is a sign that proposals have stalled. Stalls can show up as incidents on [status.base.org](https://status.base.org); the October 8 to 9, 2026 halt is in BaseHub's [Incident History](/network/incident-history/).
 
 ## Open-source sequencer components
 
@@ -54,13 +91,11 @@ All the software that orders and sequences Base transactions is published:
 | --- | --- | --- |
 | base-consensus | Consensus client run both by the sequencer and by independent node operators | [base/base](https://github.com/base/base/tree/main/crates/consensus) |
 | base-reth-node | Execution layer client, transaction pool included | [base/base](https://github.com/base/base/tree/main/crates/execution) |
-| base-builder | Block builder that arranges transactions into Flashblocks | [base/base](https://github.com/base/base/tree/main/crates/builder) |
-| websocket-proxy | Fans the Flashblocks stream out to subscribers | [base/base](https://github.com/base/base/tree/main/bin/websocket-proxy) |
-| rollup-boost | Flashbots-maintained proxy that sits on the Engine API between consensus and execution | [flashbots/rollup-boost](https://github.com/flashbots/rollup-boost) |
+| base-builder | Block builder that arranges transactions into blocks | [base/base](https://github.com/base/base/tree/main/crates/builder) |
 | op-conductor | High-availability controller that picks the sequencer leader | [ethereum-optimism/optimism](https://github.com/ethereum-optimism/optimism/tree/develop/op-conductor) |
 
 [Block Building](/network/block-building/) covers the ordering rules these components carry out. You do not have to trust the sequencer's word for the result: node operators rebuild and check the canonical chain themselves from the batches and deposits posted to Ethereum.
 
 ## Planned upgrades
 
-Upcoming network upgrades and their target months are tracked on upstream's [Upgrades](https://docs.base.org/upgrades/overview) page. BaseHub covers the current ones in the [Cobalt](/specifications/cobalt-overview/) and [Denim](/specifications/denim-overview/) overviews.
+Upcoming network upgrades and their target months are tracked on upstream's [Upgrades](https://docs.base.org/upgrades/overview) page. BaseHub covers recent and planned ones in the [Cobalt](/specifications/cobalt-overview/), [Denim](/specifications/denim-overview/), and [Everest](/specifications/everest-overview/) overviews.

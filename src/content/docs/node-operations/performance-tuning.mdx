@@ -3,6 +3,7 @@ title: Performance Tuning
 description: Hardware, storage, and client recommendations for high-performance Base nodes, including production configurations and sync guidance.
 sources:
 - base/docs:docs/base-chain/node-operators/performance-tuning.mdx
+- docs.base.org:specifications/node-operators/performance-tuning
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -22,7 +23,9 @@ A performant Base node needs adequate hardware. Recommended minimums:
    (2 × [current chain size] + [snapshot size] + 20% buffer)
    ```
 
-   The formula reserves room for chain growth and snapshot restoration. See [Base Stats](https://base.org/stats) for the current chain size and [Base Snapshots](https://snapshots.base.org) for snapshot size.
+   The formula reserves room for chain growth and snapshot restoration. See [Base Stats](https://base.org/stats) for the current chain size and [Base Snapshots](https://chain.base.org/snapshots) for snapshot size.
+
+The same specs still hold up after the [Denim upgrade](/specifications/denim-200ms-blocks/) moved Base to native 200ms blocks. No extra hardware is needed for the faster cadence.
 
 <Aside type="note">
 On AWS Elastic Block Store, io2 Block Express volumes provide enough disk read throughput to avoid latency issues during initial sync. Even so, **locally attached NVMe SSDs are strongly preferred over networked storage**.

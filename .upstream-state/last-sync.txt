@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-11-23T04:00:45Z
+Generated 2026-11-24T04:00:54Z
 
-### base/base @ e0ece13
+### base/base @ a3ea243
 
 004f2a668dcd1fcc8b1cb833c4b531c0361b221b  docs/guides/GLAMSTERDAM.md
 08f25da78a163069cbcf6d6721ccfe4a1cfaa59c  docs/guides/GAS_LIMIT_BILLING.md
@@ -33,7 +33,7 @@ e1cd262f5883d8d1a6213748d5e7d2edfcc46759  base-chain/api-reference/ethereum-json
 e3d02063df6b843fa8c52bea1722a388f80d553f  base-chain/api-reference/ethereum-json-rpc-api/eth_getBalance
 c535c20f41cd2334b81abbe8740bf1f3a19d61b3  base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByHash
 5207c3b1fadf20c7d7810865619de052ae1b713e  base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockByNumber
-9d18c56e0866ac2d21e27d3f94d0e70f9728ad4e  base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockReceipts
+bce22d9d57892f720fb45551531d39784db3680d  base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockReceipts
 6a9c6db07abc68c0b4eb32bd3a6d7e008d06bd98  base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByHash
 222b7284185ec34207bffa92db793f74dcc5e493  base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockTransactionCountByNumber
 5320501bf4080d835cc03592710ea706361164f4  base-chain/api-reference/ethereum-json-rpc-api/eth_getCode
@@ -54,7 +54,7 @@ a900477e7a33ef283856dc2606558408fb3ac646  base-chain/api-reference/ethereum-json
 68ff2764e5ccdad19c21931f0ee0e059b4f783e5  base-chain/api-reference/ethereum-json-rpc-api/web3_clientVersion
 1b894f58befb11fa27f00f870e98d9e055dd99ec  base-chain/api-reference/rpc-overview
 8ac9eaba7e35973a70e620fb3582b42cc497d12d  base-chain/network-information/configuration-changelog
-a0c925a3b80eecf12fac80a5d49df8b508519d11  base-chain/network-information/ecosystem-bridges
+bc2ef486c8897f6ab0d00e48a0ef9bdd654e9a83  base-chain/network-information/ecosystem-bridges
 0f46e4fecfac02b7480470b11ce8d9a876393eb0  base-chain/specs/reference/b20/changelog/02-cobalt-b20-seize
 cb873a5506ffc464ec5346f42b3a565f4c52713f  base-chain/specs/reference/b20/changelog/02-cobalt-b20asset-multiplier
 35a2f24d18d5b47e93d4670ea3381040a4d25093  base-chain/specs/reference/b20/changelog/02-cobalt-policyregistry-composite-policy
@@ -146,14 +146,15 @@ b576733176867804789286721aa4c36a94016ccf  sdks/base-earn/morpho-borrow
 b9a0aa15f5e8d5e85d0122e6d52556d2c602a62f  sdks/base-verify/verify-users-onchain
 343cd61eefce095102f5a188e5865d33c940c3b7  sdks/migrated-products
 42ad598b5a3d69f349d4a2b72e7bb12d22c38c2d  sdks/overview
-da0087ace487b45d046477129ddd3d0daa3ef55e  sdks/tokenized-stocks/api-reference/get-corporate-action
+bad6fd1526dac2fbbde20bbfce510ea5c4333e49  sdks/tokenized-stocks/api-reference/get-corporate-action
 3c99696cf0ed8d81299606ee0fc424aa4a3a3495  sdks/tokenized-stocks/api-reference/get-token-icon
 27c5565697005238bc368f0260ea5ca6605f7292  sdks/tokenized-stocks/api-reference/get-token-metadata
 baf6769ee7766e9745fdd71f5c2cd64edc314c40  sdks/tokenized-stocks/api-reference/get-token-prospectus
 80fdb2023e1a0159190bac4ad754f9f6d959a022  sdks/tokenized-stocks/api-reference/get-token-total-supply
 fe5d0187108fdeb8a0159dd62cda94df77c37caa  sdks/tokenized-stocks/api-reference/list-cached-prospectuses
+d67692bdba644f1815bedfa7c1c79c32818782b0  sdks/tokenized-stocks/api-reference/list-nav-feed-addresses
 85e7a288901631aefcf6b419451c81be84951b97  sdks/tokenized-stocks/api-reference/list-protocol-contract-addresses
-00d48cc096ae0474998115b14af0e04c82f9d4c3  sdks/tokenized-stocks/api-reference/list-tokenized-stocks
+42fe31a8de54f213e7d28c86cd93b18b152ce8df  sdks/tokenized-stocks/api-reference/list-tokenized-stocks
 04ead3e9ba6373b17b8aec577413cb6fec78a6a9  sdks/tokenized-stocks/overview
 979b10e4e1142721e9aa418243eaf6044ccc697a  specifications/b20/changelog
 14e181eddbb092a5ea78bcf255d3c44955eab227  specifications/b20/concepts/multipliers
@@ -185,7 +186,7 @@ b7c673647044ac8185570a8551db66755207285f  specifications/base-protocol/execution
 5b4982c8e956c191a7633abc3d01bc15d0be2307  specifications/base-protocol/proofs/challenger
 dcd7bee231bdfd210736be7f4989b41b007e50bb  specifications/base-protocol/proofs/overview
 a51db8987b09bf9b485036abebfa8fcd09ba1aad  specifications/base-protocol/proofs/proof-contracts
-517cff7f4cbea937cad24786d2e906aaaf0ed2bf  specifications/base-protocol/proofs/proposer
+6fa086de98ca9ba9438ba32f8962627272ecbda2  specifications/base-protocol/proofs/proposer
 b9b92b7f203df7d85a08166fbf98a39128f07acd  specifications/base-protocol/proofs/registrar
 597bd49656377deb5ec958078206bb7bffc27948  specifications/base-protocol/proofs/tee-prover
 0951cb5bb62aa2b5d46030f87e24de7bea807309  specifications/base-protocol/proofs/zk-prover
@@ -199,23 +200,22 @@ b9b92b7f203df7d85a08166fbf98a39128f07acd  specifications/base-protocol/proofs/re
 f63d668f9379d305912f7a75b108136e4af94276  specifications/builder-codes/for-app-developers
 fa2b6262deba5522e8de22dfe6bf5a6807ca1282  specifications/builder-codes/for-wallet-developers
 a23f947c133f0eb33da9c815f1a8a25f86cd7a52  specifications/builder-codes/overview
-d97a4fa19628662702e0f24f36294abcd8e156e0  specifications/node-operators/performance-tuning
-ea18f2b5c4413c444e7f8c7fb09dbd6ec70de716  specifications/node-operators/run-a-node
-4759c791e848ef171f693f6584f54e760047d1b6  specifications/node-operators/snapshots
+c21a39a5a01dbf9fb5995782000219d5153d8ec9  specifications/node-operators/performance-tuning
+4d7c467d0237ccf5662177b6a8877d8c1cc4c116  specifications/node-operators/run-a-node
+69e48a56dc376037a20e69048b6ffa3a8927c6ab  specifications/node-operators/snapshots
 671b848f8ee1dadbce9ca9460e6e8105210c2190  specifications/node-operators/troubleshooting
 4051e3962e26efdc3fb1dc6ee48bc3ded77e6d1e  specifications/overview
 108d1f4ba1fea9c6863067468e05bee8777ca877  specifications/reference/base-contracts
-c562fbc8a74e82702e07eecdc0af41e46585a44c  specifications/reference/configuration
+9fd9dee09d70aa45aad1ab89627f47241622c366  specifications/reference/configuration
 abfb7826801820bfedd773cfcfc44940d89a3e6c  specifications/reference/glossary
-3995fbfc7b2e7eebbd7f6ec724554400488e2c86  specifications/reference/smart-contracts
 aeeab82ec16e2f5857f327f2c15510ceea2c3a48  specifications/security/avoid-malicious-flags
-f430b5006c8bf4f1907c8d8b3fe983b3320ba4e5  specifications/security/reliability-and-liveness
+667c976ecbb2ebc2189a50fac8cfddd977d79ca0  specifications/security/reliability-and-liveness
 448503ccda04a341aae8e48499d33bf84046d9de  specifications/security/report-a-vulnerability
 db87c306dc00e84ebff1da637e6cb480518266f2  specifications/security/security-council-for-base
-afd04453a3f4a22691b00717b8275bca9329c865  specifications/transactions/network-fees
+b2685e6c3817b118375b16dcb816eb461e1c6d0a  specifications/transactions/network-fees
 cdefc122e47caeda7b575d9615190fbd9827a7cf  specifications/transactions/throughput-and-limits
 f96135da3267de2557f141fac05de941490a1489  specifications/transactions/transaction-finality
-d97959fca98a972424d4d939415a288cc715fb23  specifications/transactions/transaction-ordering
+fe9f2c7ad750a7a1a8d786c675810e791566eea7  specifications/transactions/transaction-ordering
 b8a5f6690910682ef7c058ecbc53e3d1ce1daa0d  specifications/transactions/troubleshooting-transactions
 44a43dc3023f967df3e7587895a092244fc35124  upgrades/azul/exec-engine
 b0037b5f74bf7c87a47160977cab66a0c0357620  upgrades/azul/node-upgrade
@@ -224,7 +224,7 @@ b790e301e0c032ea9fe9a0ed0f3eb4ba10f8d505  upgrades/azul/proofs
 f7de5a45c64ae6da4c9ebd5875e6dbf2d3a6393c  upgrades/beryl/b20
 faeca53b4278fe4918b5492f076e4a1e804e7d82  upgrades/beryl/overview
 d1746dcbcae2231eb72ebdd5c46c74ebbe76a682  upgrades/beryl/reducing-canonical-withdrawal-delay
-bba974526ca3bfb711138c23dbfd501f8feeae63  upgrades/beryl/reth-v2
+4fe24f0a3476ee6ad8e0e6ccb516bcf47f5638b9  upgrades/beryl/reth-v2
 6f538ce750703ff9927cc760ddcc512b2cd3a1c2  upgrades/canyon/overview
 ecd130edc18d91ce332aed392fc15e5e7092ff14  upgrades/cobalt/dynamic-upgrades
 b19838885ffcea8918d6495d3fa1e0ba243c49d4  upgrades/cobalt/overview

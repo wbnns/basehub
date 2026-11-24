@@ -3,6 +3,7 @@ title: Proposer
 description: Offchain service that turns canonical L2 checkpoint ranges into AggregateVerifier dispute games on L1.
 sources:
 - base/docs:docs/base-chain/specs/protocol/proofs/proposer.mdx
+- docs.base.org:specifications/base-protocol/proofs/proposer
 ---
 
 The proposer is the offchain service that promotes a canonical L2 checkpoint range into an `AggregateVerifier` game on L1. Each cycle it reads the latest onchain parent state, picks the next checkpoint, asks a TEE prover for a proof over that range, revalidates the proof against canonical L2 state, and opens a new dispute game through `DisputeGameFactory`.
@@ -43,13 +44,14 @@ The game implementation address comes from:
 DisputeGameFactory.gameImpls(gameType)
 ```
 
-That address must be non-zero. From there the proposer reads:
+That address must be non-zero. Then, for every game it is about to create, the proposer reads the bond and that game's interval pair:
 
 ```text
-AggregateVerifier.BLOCK_INTERVAL()
-AggregateVerifier.INTERMEDIATE_BLOCK_INTERVAL()
 DisputeGameFactory.initBonds(gameType)
+AggregateVerifier.intervalsForStartingBlock(parentL2BlockNumber)
 ```
+
+`intervalsForStartingBlock` hands back the `(BLOCK_INTERVAL, INTERMEDIATE_BLOCK_INTERVAL)` pair that governs a game beginning at `parentL2BlockNumber`. Implementations older than version `0.3.0` only offer `BLOCK_INTERVAL()` and `INTERMEDIATE_BLOCK_INTERVAL()` (see [Proposal interval selection](#proposal-interval-selection)). Everywhere else on this page, `BLOCK_INTERVAL` and `INTERMEDIATE_BLOCK_INTERVAL` refer to that per-game pair.
 
 `BLOCK_INTERVAL` must be at least `2`, `INTERMEDIATE_BLOCK_INTERVAL` must be non-zero, and `BLOCK_INTERVAL % INTERMEDIATE_BLOCK_INTERVAL` must be `0`. The number of intermediate roots a proposal carries is:
 
@@ -58,6 +60,30 @@ BLOCK_INTERVAL / INTERMEDIATE_BLOCK_INTERVAL
 ```
 
 By default the proposer targets finalized L2 state. Operators may opt into safe-but-not-finalized proposals, in which case the rollup node's safe L2 head is used instead.
+
+## Proposal interval selection
+
+There is no single interval baked into the process. From `AggregateVerifier` version `0.3.0`, the contract holds two interval pairs and chooses between them based on where each game starts:
+
+```text
+SLOW_BLOCK_INTERVAL, SLOW_INTERMEDIATE_BLOCK_INTERVAL
+FAST_BLOCK_INTERVAL, FAST_INTERMEDIATE_BLOCK_INTERVAL
+```
+
+Games starting before the L2 block-time speedup in the `ProtocolVersions` schedule get the slow pair. Games starting at or after it get the fast pair. If no speedup is scheduled, every game stays on the slow pair. Both pairs produce the same count of intermediate roots, which keeps the `extraData` layout identical across the switch.
+
+The proposer looks the pair up fresh for every game it creates, rebuilds, or queries. It fetches the live implementation from `DisputeGameFactory.gameImpls(gameType)` and calls `intervalsForStartingBlock` on it each time. Caching the answer at startup would break as soon as the implementation is upgraded or the activation block passes. On implementations older than `0.3.0`, the single fixed pair comes from `BLOCK_INTERVAL()` and `INTERMEDIATE_BLOCK_INTERVAL()`, and the proposer checks `version()` to decide which call to make.
+
+So the interval for new games on a network is whatever `intervalsForStartingBlock(startingBlock)` returns on the implementation at `DisputeGameFactory.gameImpls(gameType)`, or `BLOCK_INTERVAL()` when that implementation predates `0.3.0`.
+
+| Base Mainnet games | `BLOCK_INTERVAL` | `INTERMEDIATE_BLOCK_INTERVAL` | Wall-clock span |
+|--------------------|------------------|-------------------------------|-----------------|
+| Starting before [Denim](/specifications/denim-overview/) (slow pair) | 600 | 30 | 20 minutes of 2-second blocks |
+| Starting at or after Denim (fast pair) | 6,000 | 300 | 20 minutes of 200ms blocks |
+
+The `0.3.0` implementation was already live before Denim and flipped to the fast pair on its own at the activation block, so no contract upgrade was required.
+
+How long it takes for an L2 block to reach an L1 checkpoint also depends on the block time, on how far the chosen safe or finalized head trails that block, and on proof generation and L1 inclusion times. The spec does not commit to any target proposal cadence.
 
 ## Parent recovery
 

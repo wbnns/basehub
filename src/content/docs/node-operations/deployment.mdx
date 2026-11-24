@@ -1,6 +1,8 @@
 ---
 title: Deployment
 description: Run base-reth-node in production via the official Docker image or a custom source build.
+sources:
+- docs.base.org:specifications/node-operators/run-a-node
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -10,6 +12,26 @@ Operator releases have moved to [base/base](https://github.com/base/base/release
 
 `base/node` **becomes read-only on September 4, 2026**. After that date it accepts no issues, no pull requests, and no releases, and it stays online only as a record of the pre-v1.3.0 tags. Point any new install or upgrade at `base/base`.
 </Aside>
+
+## Minimum Versions
+
+A Base Mainnet node needs base/base [v1.5.1](https://github.com/base/base/releases/tag/v1.5.1) or newer. A Base Sepolia node needs [v1.5.0](https://github.com/base/base/releases/tag/v1.5.0) or newer. The safest choice on either network is the [latest release](https://github.com/base/base/releases/latest). When you pin a tag with `NODE_TAG`, never pick one below your network's floor.
+
+<Aside type="caution">
+**v1.5.4 raised the engine persistence defaults.** The node now holds many more blocks in memory before it flushes them to disk:
+
+| Flag | Before v1.5.4 | v1.5.4 and later |
+|------|---------------|------------------|
+| `--engine.persistence-threshold` | `7` | `70` |
+| `--engine.memory-block-buffer-target` | `5` | `70` |
+| `--engine.persistence-backpressure-threshold` | `16` | `160` |
+
+Expect higher memory use, and a longer block replay after a crash or other unclean stop. Give the host more memory, or pass the old values on the command line if you want the previous behavior.
+</Aside>
+
+## L1 Beacon Blob Retention
+
+Base publishes its batches to Ethereum as [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844) blobs, and `base-consensus` fetches them from the `BASE_NODE_L1_BEACON` endpoint. A beacon node only has to keep blobs for `MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS` (4,096 epochs, roughly 18 days) and is free to prune anything older. There is no separate blob-archive setting in `base-consensus`. So if your node must derive from L1 data past that window (for example, a snapshot that is more than about 18 days old), the beacon endpoint has to be one that keeps historical blobs.
 
 ## Production Images
 

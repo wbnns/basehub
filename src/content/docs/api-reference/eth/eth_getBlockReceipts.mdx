@@ -1,20 +1,21 @@
 ---
 title: eth_getBlockReceipts
-description: Returns every transaction receipt for a block on Base in one call; pair with pending on Flashblocks for pre-confirmed receipts.
+description: Returns every transaction receipt for a block on Base in one call. Served by the public Base RPC endpoints (rate-limited).
 sources:
 - base/docs:docs/base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockReceipts.mdx
+- docs.base.org:base-chain/api-reference/ethereum-json-rpc-api/eth_getBlockReceipts
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
 
 Returns every transaction receipt for a given block in a single call.
 
-<Aside type="caution">
-The public Base RPC endpoints (`mainnet.base.org`, `sepolia.base.org`) reject this method with HTTP 403. It requires a dedicated or third-party RPC provider — see the [node providers](/node-operations/node-providers/) page.
+<Aside type="note">
+The public Base RPC endpoints (`mainnet.base.org`, `sepolia.base.org`) now serve this method. They are rate-limited, so treat them as a convenience for testing. Production traffic belongs on a dedicated or third-party provider; see the [node providers](/node-operations/node-providers/) page.
 </Aside>
 
-<Aside type="tip">
-**Flashblocks:** call `https://mainnet.base.org` with `"pending"` to fetch receipts for all pre-confirmed transactions in the current Flashblock.
+<Aside type="caution">
+**Flashblocks are retired.** Since [Denim](/specifications/denim-200ms-blocks/), Base seals a canonical block every 200ms. The `"pending"` tag is still accepted, but it no longer reflects Flashblocks pre-confirmation state. Ask for `"latest"` to get the newest canonical block. The [Flashblocks migration guide](/flashblocks/migrate-to-200ms-blocks/) covers the switch.
 </Aside>
 
 ## Parameters
@@ -29,30 +30,21 @@ The public Base RPC endpoints (`mainnet.base.org`, `sepolia.base.org`) reject th
 | --- | --- | --- |
 | `result` | array | Array of receipt objects, one per transaction in the block. See [`eth_getTransactionReceipt`](/api-reference/eth/eth_gettransactionreceipt/) for the receipt object shape. |
 
+## Millisecond timestamps (Denim)
+
+Denim is live on Base Mainnet and Base Sepolia. From Denim onward, every mined log inside a receipt can carry an optional `blockTimestampMs` field: the timestamp of the block that produced it, in milliseconds. The receipt object itself gets no new top-level millisecond field.
+
+The field is left out when the BaseTime metadata for that block is not available. The [200ms blocks spec](/specifications/denim-200ms-blocks/#rpc) lists every method that gains these fields.
+
 ## Example
 
 ### Request
-
-<Tabs>
-  <TabItem label="Standard (latest)">
 
 ```bash
 curl https://mainnet.base.org \
   -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_getBlockReceipts","params":["latest"],"id":1}'
 ```
-
-  </TabItem>
-  <TabItem label="Flashblocks (pending)">
-
-```bash
-curl https://mainnet.base.org \
-  -X POST -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_getBlockReceipts","params":["pending"],"id":1}'
-```
-
-  </TabItem>
-</Tabs>
 
 ### Response
 

@@ -4,6 +4,7 @@ description: Routes for moving assets between Base and Ethereum, other EVM chain
 sources:
 - base/docs:docs/base-chain/network-information/bridges.mdx
 - base/docs:docs/base-chain/network-information/ecosystem-bridges.mdx
+- docs.base.org:base-chain/network-information/ecosystem-bridges
 ---
 
 import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
@@ -23,6 +24,7 @@ Where your assets sit now decides which of the options below applies.
 | Another EVM chain | A [fast bridge](#fast-bridges) or a [bridge aggregator](#bridge-aggregators) | ETH, stablecoins, ERC-20s |
 | Solana | [Base-Solana bridge](/introduction/base-solana-bridge/) | SOL, SPL tokens |
 | Bitcoin | [Garden](https://app.garden.finance/?output-chain=base&output-asset=cbBTC) | BTC to cbBTC |
+| Native USDC on another chain | Circle [CCTP](#usdc-on-base) | USDC |
 
 Fast bridges and aggregators are run by third parties, and each one carries its own trust assumptions. [Bridge types compared](#bridge-types-compared) sets them side by side with the standard bridge.
 
@@ -164,6 +166,33 @@ Supported networks:
 
 - [Base Mainnet](https://app.garden.finance/?output-chain=base&output-asset=cbBTC)
 - [Base Sepolia (Testnet)](https://testnet.garden.finance/?output-chain=base_sepolia&output-asset=USDT)
+
+## USDC on Base
+
+USDC on Base is issued natively by Circle, and new integrations should use that native contract. Circle's [USDC contract addresses](https://developers.circle.com/stablecoins/usdc-contract-addresses) page is the canonical list for every network.
+
+| Token | Network | Address | Issuer |
+|---|---|---|---|
+| USDC | Base Mainnet | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` | Circle (native) |
+| USDC | Base Sepolia | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` | Circle (native) |
+| USDbC (USD Base Coin) | Base Mainnet | `0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA` | Bridged from Ethereum |
+
+<Aside type="caution">
+Match on the contract address, never the ticker, before you send or accept USDC on Base. USDbC is an older token minted by the standard bridge against Ethereum USDC. Circle does not issue it, and it is a different asset from native USDC. To get from USDbC to native USDC, swap onchain, or withdraw it back to Ethereum over the standard bridge. The [Superchain token list](https://github.com/ethereum-optimism/ethereum-optimism.github.io/blob/master/data/BridgedUSDC/data.json) pairs Ethereum USDC (`0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48`) with USDbC on Base.
+</Aside>
+
+Native USDC moves between Base and other chains through Circle's [Cross-Chain Transfer Protocol (CCTP)](https://developers.circle.com/cctp). CCTP burns the tokens on the source chain and mints fresh native USDC on the destination, so no wrapped copy is ever created. Base is CCTP domain `6` (see [supported chains and domains](https://developers.circle.com/cctp/concepts/supported-chains-and-domains)). The [CCTP technical guide](https://developers.circle.com/cctp/technical-guide) walks through an integration.
+
+### Other stablecoins
+
+Circle issues its euro stablecoin, EURC, natively on Base as well:
+
+| Token | Network | Address | Issuer |
+|---|---|---|---|
+| EURC | Base Mainnet | `0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1adb42` | Circle (native) |
+| EURC | Base Sepolia | `0x808456652fdb597867f38412077A9182bf77359F` | Circle (native) |
+
+Double-check these against the issuer's [EURC contract addresses](https://developers.circle.com/stablecoins/eurc-contract-addresses) page before you integrate. A stablecoin built on the [B20 Stablecoin variant](https://docs.base.org/get-started/issue-stablecoins) reports a `currency()` code that the issuer chose itself. B20 validates the shape of that code only. It says nothing about who the issuer is or what backs the token.
 
 ## Disclaimer
 

@@ -33,6 +33,19 @@ Both behaviors went live on Base Mainnet on November 13, 2026. Before that date,
 
 **Validity transactions** enter the competition for a slot only when all of their predicates match. A matching predicate does not hold any block space for the transaction. See [Validity Transactions](/api-reference/validity-transactions/).
 
+## Mempool visibility
+
+Base does not run a public peer-to-peer mempool. Nodes never gossip pending transactions to each other. A node that is not the sequencer passes what it receives straight on to the sequencer rather than sharing it with peers. Peer-to-peer spread is cut off, but the node you submit to does see your transaction.
+
+That narrows the audience for a pending transaction. It is not front-running or back-running protection:
+
+- **Whoever relays your transaction sees it.** Your RPC provider, wallet, or relayer gets the transaction before the sequencer does, and some of them pass or sell that order flow to searchers.
+- **`txpool` methods can expose it.** Any Base node that serves the `txpool` namespace (for example `txpool_content`) will list its pending transactions to whoever can call it. The public `https://mainnet.base.org` and `https://sepolia.base.org` endpoints do not serve that namespace, but other providers and self-hosted nodes are free to turn it on. See [Txpool](/integration-guides/txpool/).
+- **Priority fee decides placement.** Anyone who spots your transaction before inclusion can tune the priority fee on their own transaction to land just ahead of or just behind yours.
+- **Nothing is encrypted.** The sequencer reads every transaction in the clear and orders it by the rules on this page.
+
+If you want fewer eyes on your pending transactions, send them through an RPC endpoint you trust.
+
 ## Flashblocks (retired)
 
 <Aside type="caution">

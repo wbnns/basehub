@@ -88,3 +88,70 @@ The **GasPriceOracle** predeploy at `0x420000000000000000000000000000000000000F`
 | `blobBaseFeeScalar()` | Scalar applied to the blob base fee component |
 
 Use `getL1FeeUpperBound` for a quick estimate before the transaction is fully built. Use `getL1Fee` with the complete serialized transaction for an exact pre-sign value.
+
+## How the L1 fee reaches you
+
+The L1 security fee pays for writing your transaction's data to Ethereum. Base takes it from the sender's ETH balance when the transaction is included, as an extra charge next to the L2 execution fee. There is no second transaction and no later settlement.
+
+The amount is a formula-based estimate. It is not your share of the real cost of whichever batch your transaction ends up in. The inputs are:
+
+- The size of your signed transaction after FastLZ compression
+- Ethereum's base fee and blob base fee, as relayed to Base by the `L1Block` predeploy
+- The operator-set `baseFeeScalar` and `blobBaseFeeScalar`
+
+The exact math is the [Fjord L1 fee formula](https://docs.base.org/upgrades/fjord/exec-engine#fees). Since every input is either an Ethereum fee or your own transaction size, the L1 fee moves with Ethereum, not with how busy Base is. The receipt shows what was charged in `l1Fee`, together with `l1GasPrice`, `l1GasUsed`, `l1BaseFeeScalar`, and `l1BlobBaseFeeScalar`.
+
+## Where fees go
+
+Nothing is burned on Base. Ethereum burns the EIP-1559 base fee; Base instead routes each part of the fee into its own vault predeploy:
+
+| Fee component | Recipient | Address |
+| ------------- | --------- | ------- |
+| L2 base fee | `BaseFeeVault` | `0x4200000000000000000000000000000000000019` |
+| L2 priority fee | `SequencerFeeVault` (the block's `coinbase`) | `0x4200000000000000000000000000000000000011` |
+| L1 security fee | `L1FeeVault` | `0x420000000000000000000000000000000000001a` |
+| Operator fee | `OperatorFeeVault` | `0x420000000000000000000000000000000000001b` |
+
+While the operator fee parameters are zero, no operator fee is collected. `getOperatorFee(gasUsed)` on the `GasPriceOracle` reports the live amount. When a vault's balance passes its threshold, the ETH can be withdrawn to the fixed recipient set in that vault (see [Fees](https://docs.base.org/specifications/base-protocol/execution/l2-execution-engine#fees) in the execution engine spec).
+
+## Estimating what a transaction costs
+
+What a USDC or B20 transfer costs depends on three things: the gas it burns, the byte size of the signed transaction, and the going fee levels on Base and on Ethereum. Work it out for your own transaction like this:
+
+```text
+totalFee = gasUsed * (baseFee + priorityFee) + l1Fee + operatorFee
+```
+
+1. Get `gasUsed` from [`eth_estimateGas`](/api-reference/eth/eth_estimategas/).
+2. Take the base fee from the latest block, and a priority fee from [`eth_maxPriorityFeePerGas`](/api-reference/eth/eth_maxpriorityfeepergas/).
+3. Pass the serialized transaction to `getL1Fee` on the `GasPriceOracle` for `l1Fee`.
+4. Call `getOperatorFee(gasUsed)` on the `GasPriceOracle` for `operatorFee`. It is zero while the operator fee parameters are zero.
+
+For a fiat figure, multiply by an ETH price, and note which price and timestamp you used: fees and price both move.
+
+After the fact, the receipt from [`eth_getTransactionReceipt`](/api-reference/eth/eth_gettransactionreceipt/) tells you what was paid. `gasUsed * effectiveGasPrice` gives the L2 execution fee, and `l1Fee` gives the L1 security fee.
+
+### What moves the cost
+
+Three separate forces push costs around:
+
+- **Demand on Base.** Blocks that use more than the gas target push the L2 base fee above the [minimum base fee](#minimum-base-fee), by at most 0.4% per block on Base Mainnet. It drifts back down as load drops.
+- **DA throttling.** While [data availability throttling](/network/throughput-and-limits/#data-availability-throughput) is active, inclusion can be delayed no matter how high the priority fee is.
+- **Demand on Ethereum.** The L1 fee tracks Ethereum's base fee and blob base fee, as relayed by the `L1Block` predeploy.
+
+There are no volume discounts at the protocol level. Every transaction pays the rates in force at the moment it is included. For recent history, [`eth_feeHistory`](/api-reference/eth/eth_feehistory/) returns per-block base fees and priority fee percentiles.
+
+## Validity transactions
+
+[Validity transactions](/api-reference/validity-transactions/) follow the ordinary fee rules of their underlying transaction type, so an EIP-1559 one carries `maxFeePerGas` and `maxPriorityFeePerGas` as usual. If it never gets included, it pays no onchain execution fee. Once included, it pays normal execution fees, revert or not.
+
+## Paying gas without ETH
+
+At the protocol level every fee is charged in ETH, out of the sender's ETH balance. B20 does not change that, and there is no native fee token. Apps that want users to transact without holding ETH have these options:
+
+- **Paymaster sponsorship.** An [ERC-4337](https://eips.ethereum.org/EIPS/eip-4337) smart account can have a paymaster cover gas in ETH. [CDP Paymaster](https://docs.cdp.coinbase.com/paymaster/introduction/welcome) sponsors userOperations that fit your gas policy (contract and method allowlists included) and bills you for what it covered.
+- **Gas paid in an ERC-20.** A paymaster can take a token from the user and pay the ETH itself. CDP Paymaster only takes the tokens in its [ERC-20 gas payments guide](https://docs.cdp.coinbase.com/paymaster/guides/erc20-gas-payments), and `pm_getAcceptedPaymentTokens` lists what a given paymaster accepts. For any other token, use an [ERC-7677](https://www.erc7677.xyz/) paymaster that supports it.
+- **Relayed payments.** In x402, the facilitator sends the settlement transaction and pays its gas, while the payer just signs an authorization. That settlement is a plain transaction from the facilitator, not a userOperation through your paymaster, so it does not use up your sponsorship budget.
+- **Base Transactions (planned).** A [Base Transaction](/specifications/base-transactions/#token-gas-payments) can name a sponsor as `payer` and pay it back in a token inside the same transaction, with no paymaster contract at all. These arrive with [Everest](/specifications/everest-overview/), which has no activation date yet.
+
+When CDP Paymaster turns a request down, see [Troubleshooting Transactions](/network/troubleshooting-transactions/) and CDP's [error reference](https://docs.cdp.coinbase.com/paymaster/reference-troubleshooting/errors).

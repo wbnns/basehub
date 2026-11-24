@@ -3,6 +3,7 @@ title: Snapshots
 description: Restore Base nodes from official Reth and proofs snapshots for Base Mainnet and Base Sepolia to skip the initial sync window.
 sources:
 - base/docs:docs/base-chain/node-operators/snapshots.mdx
+- docs.base.org:specifications/node-operators/snapshots
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -57,11 +58,14 @@ The unified `base` binary did not register these defaults until recently. On an 
 
 3. **Download the snapshot.** V2 snapshots are no longer a single archive — they're broken into many small, segmented files. The CLI advertises just one `archive` snapshot because it holds every file; `full` and `minimal` simply pull progressively smaller subsets of it. Pick the configuration that fits your node from the table below.
 
-   | Config      | Flag        | What you get | Use when |
-   |-------------|-------------|--------------|----------|
-   | **Minimal** | `--minimal` | The leanest bootable set: current state and headers, carrying only the history that's strictly required. | Best when you want the quickest, lightest download and have no need for historical data. |
-   | **Full**    | `--full`    | Everything a default full node prunes down to — state, headers, and a capped span of recent transactions, receipts, and history. | Best for running an ordinary full node without holding the entire archive. |
-   | **Archive** | `--archive` | The complete dataset — every transaction, receipt, and account/storage record, with nothing pruned. | Best when you need the full history, such as for archive queries or indexing. |
+   | Config      | Flag        | Mainnet size | What you get | Use when |
+   |-------------|-------------|--------------|--------------|----------|
+   | **Minimal** | `--minimal` | ~782.5 GB | The leanest bootable set: current state and headers, carrying only the history that's strictly required. | Best when you want the quickest, lightest download and have no need for historical data. |
+   | **Full**    | `--full`    | ~792.7 GB | Everything a default full node prunes down to — state, headers, and a capped span of recent transactions, receipts, and history. | Best for running an ordinary full node without holding the entire archive. |
+   | **Archive** | `--archive` | ~4.3 TB | The complete dataset — every transaction, receipt, and account/storage record, with nothing pruned. | Best when you need the full history, such as for archive queries or indexing. |
+   | **Archive + Proofs** | `--archive --proofs` | ~4.9 TB | The Archive set plus the proofs database used by the historical proofs ExEx. | Best when you run that ExEx and want to skip its 24-48 hour backfill. |
+
+   The sizes are rough Base Mainnet numbers, and they only go up. [chain.base.org/snapshots](https://chain.base.org/snapshots) shows the current figures.
 
    These three presets are just the ready-made defaults published at [chain.base.org/snapshots](https://chain.base.org/snapshots). If none of them matches your retention needs, you can still supply custom pruning flags through the [`RETH_PRUNING_ARGS` variable](https://github.com/base/base/blob/main/.env.mainnet#L34) in `.env.mainnet` (or `.env.sepolia`) — but to do so you must pull the archival snapshot first and then apply your own pruning arguments on top of it.
 
@@ -75,6 +79,9 @@ The unified `base` binary did not register these defaults until recently. On an 
 
    # Full node on Base Sepolia
    base-reth-node download --full --datadir ./reth-data --chain base-sepolia --resumable
+
+   # Archive node with proofs on Base Mainnet
+   base-reth-node download --archive --proofs --datadir ./reth-data --chain base --resumable
    ```
 
    For archival nodes only, you can alternatively run `base-reth-node db migrate-v2` — but expect it to take **much** longer than a download, and note that `--resumable` is not supported by `migrate-v2`.
@@ -103,54 +110,19 @@ The unified `base` binary did not register these defaults until recently. On an 
 
 ## Proofs snapshots
 
-<Aside type="note">
-V2 proofs snapshots are coming soon.
-</Aside>
-
-If you run the [historical proofs ExEx](/getting-started/running/), proof database snapshots are available so you can skip the 24-48 hour backfill.
-
-Because proofs snapshots are still packaged as archives, grab `aria2c` first — it's a resumable downloader that gracefully recovers from the periodic connection drops Cloudflare imposes on long transfers. If it isn't already installed:
+Proofs data now ships as part of the V2 snapshot set, so the old `aria2c` archive downloads and manual `tar` extraction are gone. If you run the [historical proofs ExEx](/getting-started/running/), pick the **Archive + Proofs** preset. It carries the proofs database next to the full Archive data and lets you skip the 24-48 hour backfill:
 
 ```bash
-# macOS
-brew install aria2
-
-# Ubuntu / Debian
-sudo apt-get install aria2
+base-reth-node download --archive --proofs --datadir ./reth-data --chain base --resumable
 ```
 
-| Network | Download command |
-| ------- | ---------------- |
-| Testnet | `aria2c -c -x 16 -s 16 "https://sepolia-reth-proofs-snapshots.base.org/$(curl -s https://sepolia-reth-proofs-snapshots.base.org/latest)"` |
-| Mainnet | `aria2c -c -x 16 -s 16 "https://mainnet-reth-proofs-snapshots.base.org/$(curl -s https://mainnet-reth-proofs-snapshots.base.org/latest)"` |
-
-<Aside type="note">
-Make sure you have enough free disk space for both the archive (`.tar.gz` / `.tar.zst`) and the extracted contents — extraction yields significantly more data than the archive itself.
-</Aside>
-
-With the download complete, unpack the archive — swap `snapshot-filename` for the file you actually pulled:
-
-```bash
-tar -xzvf <snapshot-filename.tar.gz>
-
-# For .tar.zst
-tar -I zstd -xvf <snapshot-filename.tar.zst>
-```
-
-Extraction typically produces a `reth/` directory. Move its contents into the data directory you created back in **Prepare the data directory**:
-
-```bash
-mv ./reth/* ./reth-data/
-rm -rf ./reth    # remove the now-empty extracted folder
-```
-
-The chain data subdirectories (`chaindata`, `nodes`, `segments`, etc.) must sit directly under `./reth-data`, not in a nested folder. Once that's confirmed, you can delete the downloaded archive (`.tar.gz`) to reclaim disk space, then pick back up from **Start the node** above.
+The proofs database lands in the same data directory as everything else, so there is nothing to unpack or move. Carry on from **Start the node** above.
 
 ## FAQ
 
 **What actually separates a Full node from a Minimal one?**
 
-In Reth, "full" is not a separate node type — it is just a pruned node configured with a specific preset. Reth's `--full` preset keeps the most recent **10,064 blocks**, which is roughly 1.4 days on Ethereum but only about 5-6 hours on Base because of the faster block cadence.
+In Reth, "full" is not a separate node type — it is just a pruned node configured with a specific preset. Reth's `--full` preset keeps the most recent **10,064 blocks**, which is roughly 1.4 days on Ethereum at 12-second blocks. On Base, with 200ms blocks since Denim, the same count covers only about 34 minutes (10,064 × 0.2 s ≈ 2,013 s).
 
 For a tier-by-tier breakdown of exactly what each one holds on disk, Reth's own [storage documentation](https://reth.rs/run/storage/minimal) is the reference to work from.
 

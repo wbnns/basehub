@@ -3,6 +3,7 @@ title: Reth V2
 description: The Reth V2 node release — up to 50% smaller on disk, with a rebuilt state-root pipeline that raises throughput and lowers per-block execution latency.
 sources:
 - base/docs:docs/base-chain/specs/upgrades/beryl/reth-v2.mdx
+- docs.base.org:upgrades/beryl/reth-v2
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -24,6 +25,8 @@ Storage V2 reworks the on-disk layout to bring node storage requirements down sh
 | Archive | ~23% |
 
 That lifts a disk-growth ceiling that would otherwise cap how far Base can push block throughput.
+
+V2 storage is now required, not optional. Base has stopped publishing V1 node snapshots, so the way onto V2 is either a fresh V2 snapshot download or, on archival nodes only, an in-place conversion with `base-reth-node db migrate-v2`. [Snapshots](/node-operations/snapshots/) covers both routes.
 
 ## State root computation
 
