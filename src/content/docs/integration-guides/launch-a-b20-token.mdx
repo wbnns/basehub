@@ -24,7 +24,11 @@ The steps below use `ASSET`. A stablecoin swaps two lines, shown at the end of t
 
 ## Install Base's Foundry build
 
-Stock Foundry cannot do this work. B20 precompiles sit at fixed addresses that hold no bytecode, so `forge` refuses the call with `call to non-contract address`. Base ships `base-forge`, `base-cast`, and [`base-anvil`](https://github.com/base/base-anvil), which register those addresses into the EVM. They install beside your existing Foundry rather than over it.
+B20 precompiles sit at fixed addresses that hold no bytecode, so a Foundry that does not know about them refuses the call with `call to non-contract address`. Foundry before v1.8.4 has this problem. This walkthrough uses Base's fork, which ships `base-forge`, `base-cast`, and [`base-anvil`](https://github.com/base/base-anvil), registers those addresses into the EVM, and installs beside your existing Foundry rather than over it.
+
+<Aside type="note">
+Stock Foundry v1.8.4 and later also implements Base's precompiles, and v1.9.0 adds Denim. Base now recommends it for new projects: `forge` with `hardfork = "base:Denim"`, `cast`, and `anvil --hardfork base:Denim` replace the prefixed commands. [Deploy on Base](/introduction/deploy-on-base/#coming-from-base-anvil) has the mapping. The samples below still target base-anvil `v1.1.1`.
+</Aside>
 
 Pin the Beryl-compatible release:
 

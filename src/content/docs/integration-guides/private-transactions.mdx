@@ -6,12 +6,13 @@ sources:
 - base/docs:docs/build-on-base/ledgers/deposit.mdx
 - base/docs:docs/build-on-base/ledgers/transfer.mdx
 - base/docs:docs/build-on-base/ledgers/withdraw.mdx
+- docs.base.org:get-started/private-transactions
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 <Aside type="caution">
-Base Ledgers is early access. To run a ledger of your own, [request access](https://www.coinbase.com/developer-platform/developer-interest). If you would rather not operate one, [Coinbase Managed](https://docs.cdp.coinbase.com/payments/overview) is a hosted service built on top of it.
+Base Ledgers is early access. To run a ledger of your own, [request access](https://www.coinbase.com/developer-platform/developer-interest). If you would rather not operate one, [Coinbase Managed](https://docs.cdp.coinbase.com/payments/overview) is a hosted service built on top of it. To watch real onchain flows rather than mockups, Base runs live demos on Vibenet at [chain.base.org/demos](https://chain.base.org/demos).
 </Aside>
 
 A Base ledger is a private accounting layer that sits beside Base and settles through it. Money enters and leaves through a single `Portal` contract on Base. Everything that happens between those two calls stays off public block explorers: who holds what, who paid whom, and how much.

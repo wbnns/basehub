@@ -1,9 +1,11 @@
 ---
 title: Deploy on Base
-description: Set up Base's Foundry build, configure RPC and key management, and deploy a smart contract to Base Sepolia in a single workflow.
+description: Set up Foundry v1.9.0+ with a Base hardfork, configure RPC and key management, and deploy a smart contract to Base Sepolia in a single workflow.
 sources:
 - base/docs:docs/base-chain/quickstart/deploy-on-base.mdx
 - base/docs:docs/base-chain/network-information/smart-contracts.mdx
+- docs.base.org:build-on-base/deploy-a-smart-contract
+- docs.base.org:sdks/base-anvil
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -12,15 +14,21 @@ Set up a Foundry project, point it at Base, and deploy a contract to Base Sepoli
 
 Base is EVM-equivalent, so Solidity and Vyper contracts carry over from Ethereum unchanged — same bytecode, same ABIs, same tooling. The one place that equivalence stops is the precompiles.
 
+Base adds **native precompiles** at fixed addresses — the [B20 token standard](/specifications/b20/), the PolicyRegistry, and the B20 Factory among them. They are built into the node, so those addresses hold no bytecode, and a local EVM that does not know about them reverts the moment a contract calls one.
+
+Stock [Foundry](https://getfoundry.sh/) now handles this. From v1.8.4, `forge`, `cast`, `anvil`, and `chisel` implement Base's precompiles, and from v1.9.0 they also run the [Denim](/specifications/denim-overview/) rules that are live on Base Mainnet and Base Sepolia. Base support is switched on by choosing a Base hardfork, which this guide does below.
+
 <Aside type="caution">
-**Use Base's Foundry build, not stock Foundry.** Base exposes native precompiles at fixed addresses — the [B20 token standard](/specifications/b20/), the PolicyRegistry, and the B20 Factory among them. Those addresses carry no bytecode, so `forge`, `cast`, and `anvil` cannot simulate a call into them and give up with `call to non-contract address`. Any contract that touches one of them — minting a B20 token, say, or reading its supply — breaks under stock Foundry. [base-anvil](https://github.com/base/base-anvil) is Base's fork, and it teaches the EVM about those addresses.
+Anything older than Foundry v1.8.4 has no Base precompiles. A contract that touches one, for example by deploying or calling a [B20 token](/specifications/b20/), will fail in local tests and simulations. Check with `forge --version` and upgrade if needed.
 </Aside>
+
+Ordinary token standards need none of this. ERC-20, ERC-721, ERC-1155, ERC-4626 vaults, and permissioned designs such as ERC-3643 are plain contracts and deploy on Base exactly as they do on Ethereum. B20 is the exception because it lives in the node: its method and event signatures are part of consensus, they keep parity with the core ERC-20 surface, and any B20 change ships with a network upgrade.
 
 ## What you build
 
 By the end of this guide you will have:
 
-- A development environment running Base's Foundry build
+- A Foundry v1.9.0+ environment with Base's precompiles enabled
 - A smart contract deployed to Base Sepolia
 - A connection pattern your frontend can reuse against your contracts
 
@@ -36,26 +44,63 @@ Base is a fast, low-cost, builder-friendly Ethereum L2 designed to bring the nex
 mkdir my-base-project && cd my-base-project
 ```
 
-2. Install Base's Foundry build, used throughout this guide.
+2. Install Foundry v1.9.0 or later.
 
 ```bash
-curl -L https://raw.githubusercontent.com/base/base-anvil/HEAD/foundryup/install | bash
-base-foundryup
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
 ```
 
-This lands `base-forge`, `base-cast`, `base-anvil`, and the `base-chisel` REPL next to whatever Foundry you already have. To target a specific Base release, pin it with `base-foundryup --install <version>`; releases are named for the Base chain release they support. Nothing is overwritten, and the two toolchains coexist.
+Confirm what you got with `forge --version`. To pin a release, use `foundryup --install <version>`, for example `foundryup --install v1.9.0`.
 
 3. Initialize a Solidity project.
 
 ```bash
-base-forge init
+forge init
+```
+
+4. Turn on Base's precompiles for local tests. Add a Base hardfork to the `[profile.default]` section of `foundry.toml`; `base:Denim` matches what Base Mainnet and Base Sepolia run today.
+
+```toml
+hardfork = "base:Denim"
 ```
 
 The project is ready. The starter contract sits at `src/Counter.sol` — this guide uses that contract as the deployment target.
 
-<Aside type="tip">
-The Base build mirrors stock Foundry one for one, with the precompiles registered: `base-forge` builds and tests, `base-cast` talks to the chain, and `base-anvil` runs a local Base node. See [base-anvil](https://github.com/base/base-anvil) for the fork itself and [the Foundry Book](https://book.getfoundry.sh/) for the underlying tooling.
+### Choosing where Base is enabled
+
+Foundry behaves like Ethereum unless told otherwise, and the switch differs by context:
+
+| Where it runs | How to enable Base |
+|---|---|
+| `forge test` and `forge script` locally | Set `hardfork = "base:Denim"` in `foundry.toml`, or pass `--hardfork base:Denim` |
+| A local `anvil` node | `anvil --hardfork base:Denim` |
+| A fork of Base Mainnet or Base Sepolia | Pass `--fork-url`; Foundry detects Base from the chain ID. Also pass `--hardfork base:Denim` (see below) |
+| `cast` against a live Base RPC | Nothing; the Base node executes the precompiles |
+
+<Aside type="caution">
+Always name the hardfork. With `--network base` and no `--hardfork`, `forge` falls back to Azul, which has none of the B20 or PolicyRegistry precompiles, so calls into them revert. Foundry v1.9.0's built-in Base schedule also stops at Beryl, which is why a Mainnet fork still needs `--hardfork base:Denim`.
 </Aside>
+
+The hardfork value picks which upgrade's rules and precompiles Foundry applies. Match it to the upgrade live on your target network:
+
+| Value | Base precompiles |
+|---|---|
+| `base:Azul` | None |
+| `base:Beryl` | B20 factory, B20 tokens, PolicyRegistry, ActivationRegistry |
+| `base:Cobalt` | Beryl's precompiles with Cobalt's B20 changes |
+| `base:Denim` | Cobalt's precompiles with Denim's B20 and PolicyRegistry changes (requires Foundry v1.9.0 or later) |
+
+### Coming from base-anvil
+
+[base-anvil](https://github.com/base/base-anvil) is Base's own Foundry fork. It installs prefixed binaries next to stock Foundry, with the precompiles on by default, and earlier versions of this guide used it. New projects should use Foundry v1.9.0 or later instead. Some B20 issuance samples still call `base-cast` (pinned to base-anvil `v1.1.1`); since those hit a live RPC, plain `cast` from v1.8.4 onward runs them unchanged.
+
+| Command | Foundry v1.9.0+ equivalent |
+|---|---|
+| `base-forge` | `forge` with `hardfork = "base:Denim"` |
+| `base-cast` | `cast` |
+| `base-anvil` | `anvil --hardfork base:Denim` |
+| `base-chisel` | `chisel` |
 
 ## Configure the toolchain for Base
 
@@ -89,7 +134,7 @@ Base Sepolia serves as the Base test network, and the rest of this guide runs ag
 1. Import your private key into the encrypted keystore.
 
 ```bash
-base-cast wallet import deployer --interactive
+cast wallet import deployer --interactive
 ```
 
 2. Paste the key when prompted and set a password.
@@ -107,7 +152,7 @@ With the environment configured, deploy to Base Sepolia.
 1. (Optional) Run a dry run first to confirm the deployment is well-formed.
 
 ```bash
-base-forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer
+forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer
 ```
 
 This simulates the deploy without broadcasting. You will see the transaction details and ABI; nothing is written onchain.
@@ -115,7 +160,7 @@ This simulates the deploy without broadcasting. You will see the transaction det
 2. Add `--broadcast` to actually deploy.
 
 ```bash
-base-forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer --broadcast
+forge create ./src/Counter.sol:Counter --rpc-url $BASE_SEPOLIA_RPC_URL --account deployer --broadcast
 ```
 
 <Aside type="tip">
@@ -155,10 +200,10 @@ Re-run `source .env` after every change to load new variables into the current s
 To confirm the contract is live:
 
 1. Look up the transaction hash on [Sepolia Basescan](https://sepolia.basescan.org/).
-2. Read the contract directly with `base-cast`:
+2. Read the contract directly with `cast`:
 
 ```bash
-base-cast call $COUNTER_CONTRACT_ADDRESS "number()(uint256)" --rpc-url $BASE_SEPOLIA_RPC_URL
+cast call $COUNTER_CONTRACT_ADDRESS "number()(uint256)" --rpc-url $BASE_SEPOLIA_RPC_URL
 ```
 
 <Aside type="tip">

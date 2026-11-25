@@ -6,11 +6,21 @@ sources:
 - base/docs:docs/base-chain/specs/reference/builder-codes/app-developers.mdx
 - base/docs:docs/base-chain/specs/reference/builder-codes/wallet-developers.mdx
 - base/docs:docs/base-chain/specs/reference/builder-codes/agent-developers.mdx
+- docs.base.org:specifications/builder-codes/overview
+- docs.base.org:specifications/builder-codes/for-agent-developers
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-A Builder Code ties onchain activity back to whoever built the thing that caused it. Codes live as an ERC-721 collection, one NFT per code, each holding a short identifier such as `abc123`. The onchain metadata carries a payout address — where rewards would go if the program pays out. Name, site, and similar details sit offchain.
+A Builder Code ties onchain activity back to whoever built the thing that caused it. Each code is a short unique identifier such as `bc_b7k3p9da`, and it travels inside transaction calldata, where indexers read it to credit the activity. Name, site, and similar details sit offchain, and you manage them in Base Dashboard.
+
+<Aside type="caution" title="The onchain registry is not a source of truth">
+Treat codes as an attribution and analytics signal, nothing more. Minting new codes into the onchain Builder Codes registry is paused, so a code issued through Base Dashboard or the agent API may never have been minted. Attribution reads calldata, not the registry, so unminted codes are still credited in full.
+
+No code has a payout address set, minted or not, and the field goes unused. Do not route fees, revenue splits, or any other app logic through it: for an unminted code `payoutAddress` reverts with `Unregistered` rather than returning an address, which can break a split or quietly send funds somewhere else.
+
+To see whether a given code was minted, call `isRegistered` on the registry at `0x000000BC7E6457e610fe52Dcc0ca5b3ce59C8E80` on Base Mainnet (Basescan's **Read Contract** tab works). A `false` there says nothing about whether the code is valid or whether its activity is tracked.
+</Aside>
 
 Register a project on [Base Dashboard](https://dashboard.base.org/) to get a code. Base Dashboard is the new name for base.dev, and `base.dev` now redirects there. The code sits under **Settings** → **Project Settings** → **Builder Code**. Switch the format to **Encoded String** there to copy the whole ERC-8021 suffix. It is the same hex that `Attribution.toDataSuffix` returns.
 
@@ -256,7 +266,7 @@ Putting the suffix on the wrong field is the failure mode worth guarding against
 
 ## For agent developers
 
-Agents transact on their own schedule, with no human pressing a button per transaction. Without a code that activity is anonymous; with one it rolls up under your identity in the Base registry, where anyone can measure it from chain data, and making the agent eligible for discovery surfaces such as the App Leaderboard.
+Agents transact on their own schedule, with no human pressing a button per transaction. Without a code that activity is anonymous; with one it is credited to your agent on Base, every attributed transaction carries the code so its volume and reach can be measured from chain data, and it makes the agent eligible for discovery surfaces such as the App Leaderboard.
 
 The mechanics are the ones described above — an ERC-8021 suffix, ignored by contracts, recovered by indexers, 16 gas per non-zero byte.
 

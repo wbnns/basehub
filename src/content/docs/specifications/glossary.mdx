@@ -3,6 +3,7 @@ title: Glossary
 description: Definitions for the terms used throughout the Base Chain protocol specification — from L1/L2 basics to sequencing, deposits, withdrawals, batch submission, derivation, and the execution engine.
 sources:
 - base/docs:docs/base-chain/specs/reference/glossary.mdx
+- docs.base.org:specifications/reference/glossary
 ---
 
 This page collects the vocabulary used across the Base Chain protocol specs. Terms are grouped by topic; many definitions cross-reference each other, so the same word may appear in more than one section.
@@ -394,13 +395,13 @@ An on-chain, *interactive* proof that [validators](#validator) run to show that 
 
 ### Time slot
 
-L2 produces a block every 2 seconds — this interval is the [block time](#block-time). A "time slot" occurs at every 2-second multiple after the [L2 genesis block's](#l2-genesis-block) timestamp.
+L2 produces a block every 200ms — this interval is the [block time](#block-time). A "time slot" falls on each 200ms step counted from the [L2 genesis block's](#l2-genesis-block) timestamp.
 
 On post-[merge](https://ethereum.org/en/eth2/merge/) L1, time slots come every 12 seconds, though an L1 block need not be produced for every slot, even under benign consensus hiccups.
 
 ### Block time
 
-The L2 block time is 2 seconds, so there is an L2 block at each 2-second [time slot](#time-slot).
+On L2 the block time is 200ms, so each 200ms [time slot](#time-slot) carries one L2 block.
 
 Post-merge, the L1 block time can be described as 12 seconds — its [time slot](#time-slot) length — but it is effectively variable because some slots are skipped. Pre-merge, L1 block time was variable too, averaging around 13 seconds.
 

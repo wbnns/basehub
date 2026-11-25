@@ -3,6 +3,7 @@ title: Network Faucets
 description: Testnet ETH faucets for Base Sepolia from Coinbase Developer Platform, Alchemy, QuickNode, Chainstack, and other providers.
 sources:
 - base/docs:docs/base-chain/network-information/network-faucets.mdx
+- docs.base.org:get-started/get-funds
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -11,10 +12,10 @@ Multiple providers dispense free Base Sepolia testnet ETH (and a few support mai
 
 ## Coinbase Developer Platform
 
-The [Coinbase Developer Platform Faucet](https://portal.cdp.coinbase.com/products/faucet) hands out up to 0.1 testnet ETH per 24 hours on Base Sepolia, and also drips USDC, EURC, and cbBTC.
+The [Coinbase Developer Platform Faucet](https://portal.cdp.coinbase.com/onchain-tools/faucet) hands out up to 0.1 testnet ETH per 24 hours on Base Sepolia, and also drips USDC, EURC, and cbBTC.
 
 <Aside type="note">
-Use the [Portal UI](https://portal.cdp.coinbase.com/products/faucet) or call the faucet [programmatically](https://docs.cdp.coinbase.com/faucets/introduction/quickstart) with the `@coinbase/cdp-sdk`. The [CDP Faucet docs](https://docs.cdp.coinbase.com/faucets/introduction/welcome#evm-compatible) cover claim limits and supported assets.
+Use the [Portal UI](https://portal.cdp.coinbase.com/onchain-tools/faucet) or call the faucet [programmatically](https://docs.cdp.coinbase.com/faucets/introduction/quickstart) with the `@coinbase/cdp-sdk`. The [CDP Faucet docs](https://docs.cdp.coinbase.com/faucets/introduction/welcome#evm-compatible) cover claim limits and supported assets.
 </Aside>
 
 ## thirdweb
@@ -27,7 +28,7 @@ Connect via EOA or social login to claim Base Sepolia funds.
 
 ## Alchemy
 
-The [Alchemy Faucet](https://basefaucet.com/) requires a free Alchemy account and dispenses Base Sepolia testnet ETH.
+The [Alchemy Faucet](https://www.alchemy.com/faucets/base-sepolia) requires a free Alchemy account and dispenses Base Sepolia testnet ETH.
 
 <Aside type="note">
 Limited to one claim per 24 hours.
@@ -59,7 +60,7 @@ Sepolia drips are rate-limited per 24 hours; mainnet ETH can only be claimed onc
 
 ## QuickNode
 
-The [QuickNode Faucet](https://faucet.quicknode.com/drip) is a multi-chain faucet that dispenses Base Sepolia testnet ETH.
+The [QuickNode Faucet](https://faucet.quicknode.com/base/sepolia) is a multi-chain faucet that dispenses Base Sepolia testnet ETH.
 
 <Aside type="note">
 Limited to one drip per network every 12 hours.
@@ -79,4 +80,16 @@ The [Base Sepolia Faucet](https://www.ethereum-ecosystem.com/faucets/base-sepoli
 
 <Aside type="note">
 Each wallet can claim up to 0.5 ETH every 24 hours.
+</Aside>
+
+## Test USDC from Circle
+
+For test USDC rather than ETH, use the [Circle faucet](https://faucet.circle.com) and pick **Base Sepolia** as the network.
+
+## Vibenet faucet
+
+[Vibenet](/introduction/connecting-to-base/#base-vibenet-preview) is Base's experimental preview network, where new chain-level features land before Base Sepolia or Base Mainnet. Free Vibenet ETH comes from the [Vibenet faucet](https://chain.base.org/vibenet/faucet) on chain.base.org, which also shows what is live on Vibenet and hosts its block explorer.
+
+<Aside type="caution">
+Vibenet can be reset at any time without warning. Do not count on contracts, balances, or history surviving there.
 </Aside>

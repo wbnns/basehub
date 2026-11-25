@@ -16,7 +16,7 @@ From a wallet or indexer's point of view these behave like any ERC-20. Name, sym
 
 - Read metadata onchain through [`name`](/api-reference/b20-precompiles/), `symbol`, `decimals`, and `contractURI` — the last being [ERC-7572](https://eips.ethereum.org/EIPS/eip-7572) collection metadata. Logos are also carried in the canonical token list and by the usual market-data aggregators.
 - Watch the `B20Created` event to pick up new tokens as they appear.
-- Or skip the onchain reads: the public [Tokenized Stocks API](/api-reference/tokenized-stocks-api/) returns each token's address, symbol, name, decimals, icon URL, and ISIN in one request, with no key needed.
+- Or skip the onchain reads: the public [Tokenized Stocks API](/api-reference/tokenized-stocks-api/) returns each token's address, symbol, name, decimals, icon URL, stock ISIN, and (where available) the token's own ADGM ISIN in one request, with no key needed.
 
 <Aside type="caution">
 Key your records on the token address, never on the ticker or symbol. B20 metadata is mutable onchain — `updateName` and `updateSymbol` let an issuer track a change in the underlying without redeploying — so a symbol you cached last month is not a stable identifier. Index accordingly.

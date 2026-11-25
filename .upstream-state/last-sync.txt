@@ -1,8 +1,8 @@
 ## Upstream snapshot
 
-Generated 2026-11-24T04:00:54Z
+Generated 2026-11-25T04:06:34Z
 
-### base/base @ a3ea243
+### base/base @ d7e4cc2
 
 004f2a668dcd1fcc8b1cb833c4b531c0361b221b  docs/guides/GLAMSTERDAM.md
 08f25da78a163069cbcf6d6721ccfe4a1cfaa59c  docs/guides/GAS_LIMIT_BILLING.md
@@ -78,14 +78,15 @@ a2f3067bb6b8603bfd8b371e19b25aea730a460c  build-on-base/accept-payments/split-a-
 af0750b77d23c13938a5fe68e9d344699a8745f5  build-on-base/accept-payments/void-an-authorization
 798597fa62232e094602201590bbc0c6e33a42d4  build-on-base/accept-payments/watch-for-payments
 7c6d202b0ef2a0e044bb086cbf33871613910227  build-on-base/assign-user-attributes
+1a50302c397ba10bafe887cb4f1297e7775b5740  build-on-base/deploy-a-smart-contract
 167fbe08da34094225de97428e04983400b6885d  build-on-base/integrate-defi/integrate-borrowing
 d0efa89787dbc71a73de19771fcf848cbd30d066  build-on-base/integrate-defi/integrate-earn-product
 4f7c18cbd38d52593654f746368e548b76b14f23  build-on-base/integrate-defi/integrate-lending
 7e866a37aba3356302513355c4292862d740f482  build-on-base/integrate-defi/integrate-trading
-95a280cde248fc62a6627c1716717c39a22e2d12  build-on-base/integrate-defi/list-tokenized-stocks
+e594ee9eeb897e155c610e5eab5263bbe6e22caf  build-on-base/integrate-defi/list-tokenized-stocks
 69f8ae5042cd173e3ac7546241994dfbabfb45f1  build-on-base/issue-rwa/announce-a-distribution
 8b2a50bbad434abfd65659e24cf0c1878dd1363e  build-on-base/issue-rwa/apply-a-multiplier
-191fd770e028521cb10e159b86077d3dcaa83573  build-on-base/issue-rwa/create-an-asset-token
+f01d5ab1255fddce6a28b0b2dbfc1ce04f4433a3  build-on-base/issue-rwa/create-an-asset-token
 c3cff417b1d13fca8a9b966f67ceaa6926273f2a  build-on-base/issue-rwa/issue-units
 5c3bf85be9ca704337d1013a9c1bcb614be53e4a  build-on-base/issue-rwa/pause-transfers
 b581babf7a2388a1966b1aa73cbd18ea4fd0da57  build-on-base/issue-rwa/restrict-eligible-holders
@@ -99,32 +100,33 @@ d053f66516429ce08cfcde1726e331b9e4dc2f26  build-on-base/issue-stablecoins/pause-
 63b23aa0a311e9a7814218cac5b223996f0b0a65  build-on-base/issue-stablecoins/reconcile-with-memos
 fe300ae5318f05f3a12cb456a1ccd0b62229d0b9  build-on-base/issue-stablecoins/recover-funds
 b5290df4e585e680a76ab4c9d6a8148c691f8c2a  build-on-base/issue-stablecoins/restrict-who-can-hold
-a99db4e1e298decb23604c935cf8d29eb3a1cce9  build-on-base/ledgers/deposit
-d8c9d3b2773c25a1f839eafbd56c07dd51177323  build-on-base/ledgers/transfer
-ab1868c07976e14a309bf616b4f5b252c2dae2a1  build-on-base/ledgers/withdraw
-5118e64ebb6186f0051f519cb0c17e0a4db6687c  build-on-base/overview
+9fa870f37fed0924f77a323c281c52e71a703755  build-on-base/ledgers/deposit
+9c45a44f2627b02f280c79ec9b81a4ab6d61a607  build-on-base/ledgers/transfer
+b8891d8b24cfb7ac01f5eac31f75fb0d7f9365fa  build-on-base/ledgers/withdraw
+1ca02a48d26cf544f788998efcce7789fa47d8cf  build-on-base/overview
 89bf4f883a6151730773bdbe700276e6fb51fcef  build-on-base/run-a-local-devnet
-93b1e8459076e54d747b1f1c9b6a21b8e8b31d5a  build-on-base/test-on-vibenet
+3782cd7b660aece9827880c68dfbf6c839af3dea  build-on-base/test-on-vibenet
 f1d58876423c392e35a9a0c3848259d70373889f  get-started/accept-payments
 36ea1353026051531ab4cb076edab781ff2e5d4e  get-started/base
 fa8b18b27d5b2803a7f3199494c80fd4cc09b03c  get-started/base-batches
 6dcc31a5424953fff69642dc30d0f5584d3b1e80  get-started/base-chain
 d9bba62b18a3766619f5a63407b7965ed92c77cd  get-started/base-ecosystem-fund
-d08fb3e006710031d165e3f5ebc34cde8984d848  get-started/builder-stack
+338da69b1871d5582c540f9e88556238741be99b  get-started/builder-stack
 afe29a7dd3cb691819b78adfb7205f1178b25d4c  get-started/builders
-8bf620e0c610a6fbfba4a46406bb75304befd62e  get-started/connect-to-base
+0119aee4b4a6842b3bdf9305ab012af36696b221  get-started/connect-to-base
 19bab72294102a57e8be11f41ca72cb363d72a71  get-started/creators
 a127bdca9c2f0f191c729411a4dc1de63c2acea9  get-started/docs-llms
 f7b993f0cc67d0dfcd4958a0c2cdfb3a75893970  get-started/docs-mcp
-ad56fcbd16cc3ac0dea5a9b1aa0e4226d3f3a1ba  get-started/get-funds
+b1e8a2de0731415f403bce742651012802288aac  get-started/get-funds
 215b02b53bb4b8259453ae5cb300027c1dfd1eda  get-started/integrate-defi
 452962222801928e078bb64593a140f8ca4c0c71  get-started/issue-rwa
-ca76f5d2801242d4abe6b3b8fa807b5814a7b619  get-started/issue-stablecoins
+77c8feb68cf629ca1e0bdb248aac666874511b0e  get-started/issue-stablecoins
 816f804164e7bd34771a41ae6e92555fb98e990a  get-started/make-a-transaction
-e793fe668ba0fb20663e7e8c20c06b43c55edd39  get-started/private-transactions
+511a0bb96d7fc67a94d5bcbb20520804b7a28dbf  get-started/private-transactions
 5285b5e66c10be4adf02bdd7a013cfc1a60d6b10  get-started/resources-for-ai-agents
 7f38acc263aedb17629d5f7b86b6359c8eefe927  get-started/sdks-and-apis
-acd3cbb28c98200facae3537e82ee9e3fc4f9ef5  sdks/base-anvil
+ef42a1bf3169fd3afc1f799b8e2cba6f0a618817  index
+cee0fcd69459481c3371f5886c8b7e0d2104bc63  sdks/base-anvil
 254b1061c78b900449c222ec0e29983863f00948  sdks/base-earn/api-reference/borrow
 86ec5200f563e5812acc4208505f148308b8b47d  sdks/base-earn/api-reference/claim
 9f1065b1c4d1cf262956e2ed63da7a2a9b42009a  sdks/base-earn/api-reference/deposit
@@ -137,7 +139,7 @@ ef2c7cbc9973ac0205ed9a9a452b4e9b07dd6900  sdks/base-earn/call-the-api
 0cc312e1aab69bc33749bb85343446060a7c8adb  sdks/base-earn/concepts
 58768dea6cdbf4ebb1aa144b98ab2fe5aa024231  sdks/base-earn/errors
 59084791a9b7eed079a5d1ba0cb87977fdbbee93  sdks/base-earn/execute-calls
-e2361443faaad300fc02edbbff7096c2c52b9f51  sdks/base-earn/faq
+5e0afccf110967231b8a69ea3fa4a116f9ae42aa  sdks/base-earn/faq
 bde061ae77b2db909089b0f260eac167e5966e92  sdks/base-earn/lend-example
 b576733176867804789286721aa4c36a94016ccf  sdks/base-earn/morpho-borrow
 81860e7d4484a468bba85ff69d34109dc1ff1624  sdks/base-earn/overview
@@ -155,7 +157,7 @@ fe5d0187108fdeb8a0159dd62cda94df77c37caa  sdks/tokenized-stocks/api-reference/li
 d67692bdba644f1815bedfa7c1c79c32818782b0  sdks/tokenized-stocks/api-reference/list-nav-feed-addresses
 85e7a288901631aefcf6b419451c81be84951b97  sdks/tokenized-stocks/api-reference/list-protocol-contract-addresses
 42fe31a8de54f213e7d28c86cd93b18b152ce8df  sdks/tokenized-stocks/api-reference/list-tokenized-stocks
-04ead3e9ba6373b17b8aec577413cb6fec78a6a9  sdks/tokenized-stocks/overview
+f2721368041ad527f4c87b3cbeb917c0bb06786d  sdks/tokenized-stocks/overview
 979b10e4e1142721e9aa418243eaf6044ccc697a  specifications/b20/changelog
 14e181eddbb092a5ea78bcf255d3c44955eab227  specifications/b20/concepts/multipliers
 8318fd5b6769919ee36e8facd94df57bb6d9989f  specifications/b20/concepts/policies
@@ -172,7 +174,7 @@ d629938102d05027657a186d9d8b03c19ed6aa4e  specifications/base-protocol/bridging/
 8d8e70fbd77936edbf02bf14bc8da84c82b5fbe4  specifications/base-protocol/bridging/cross-domain-messengers
 1dd3150af56dacc7eebf3f2c29654fac2feff7e0  specifications/base-protocol/bridging/deposits
 89b4c230f5629b5ef2944c980d4fb312966dcfca  specifications/base-protocol/bridging/standard-bridges
-ed455041abf9ab2c17080152e91238558faf8a2b  specifications/base-protocol/bridging/withdrawals
+def2b5899cce0d44451f76552a4ec43baee6e344  specifications/base-protocol/bridging/withdrawals
 532f7fc95118ad4ff4226492137285d94410ee19  specifications/base-protocol/consensus/derivation
 09b2d7346b89f41e8d687658020706c0fb86808f  specifications/base-protocol/consensus/p2p
 73f8ae208367920ce6a3696ee01626d4c93db16b  specifications/base-protocol/consensus/rpc
@@ -196,10 +198,10 @@ b9b92b7f203df7d85a08166fbf98a39128f07acd  specifications/base-protocol/proofs/re
 850057ff986bdd95049ee9fdaeed628f740c8b70  specifications/build-transaction/predicates-and-safety
 168c1812a5a2ba78c7dd6f78938a824761c67d5d  specifications/build-transaction/troubleshooting
 0d43ff3ef6ee59a20d2fa61f0f82fac375b04091  specifications/build-transaction/validity-transactions
-0b351d19366f5e95fd0d7cf7bbdb6039aa3031b6  specifications/builder-codes/for-agent-developers
+5f6d880769c7e47950a18bcbc8e789372d604589  specifications/builder-codes/for-agent-developers
 f63d668f9379d305912f7a75b108136e4af94276  specifications/builder-codes/for-app-developers
 fa2b6262deba5522e8de22dfe6bf5a6807ca1282  specifications/builder-codes/for-wallet-developers
-a23f947c133f0eb33da9c815f1a8a25f86cd7a52  specifications/builder-codes/overview
+96b60fdf4b9db9d75926ab91f852ab210efa3d1d  specifications/builder-codes/overview
 c21a39a5a01dbf9fb5995782000219d5153d8ec9  specifications/node-operators/performance-tuning
 4d7c467d0237ccf5662177b6a8877d8c1cc4c116  specifications/node-operators/run-a-node
 69e48a56dc376037a20e69048b6ffa3a8927c6ab  specifications/node-operators/snapshots
@@ -207,7 +209,7 @@ c21a39a5a01dbf9fb5995782000219d5153d8ec9  specifications/node-operators/performa
 4051e3962e26efdc3fb1dc6ee48bc3ded77e6d1e  specifications/overview
 108d1f4ba1fea9c6863067468e05bee8777ca877  specifications/reference/base-contracts
 9fd9dee09d70aa45aad1ab89627f47241622c366  specifications/reference/configuration
-abfb7826801820bfedd773cfcfc44940d89a3e6c  specifications/reference/glossary
+9f33589715316392ae5712c1f61a0987c8e734be  specifications/reference/glossary
 aeeab82ec16e2f5857f327f2c15510ceea2c3a48  specifications/security/avoid-malicious-flags
 667c976ecbb2ebc2189a50fac8cfddd977d79ca0  specifications/security/reliability-and-liveness
 448503ccda04a341aae8e48499d33bf84046d9de  specifications/security/report-a-vulnerability

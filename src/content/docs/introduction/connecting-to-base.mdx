@@ -2,6 +2,7 @@
 title: Connecting to Base
 description: Network parameters, RPC endpoints, and wallet setup for connecting to Base Mainnet and Base Sepolia testnet.
 sources:
+- docs.base.org:get-started/connect-to-base
 - base/docs:docs/base-chain/quickstart/connecting-to-base.mdx
 ---
 
@@ -15,11 +16,11 @@ Connect to Base Mainnet or the Sepolia testnet using the public RPC endpoints, t
 | :--- | :--- |
 | Network Name | Base Mainnet |
 | Description | The public mainnet for Base. |
-| RPC Endpoint | [https://mainnet.base.org](https://mainnet.base.org) — Flashblocks-enabled; rate limited, not for production. |
+| RPC Endpoint | [https://mainnet.base.org](https://mainnet.base.org) — free and best effort; rate limited, not for production. |
 | Transaction Submission | `https://mainnet-sequencer.base.org` — send transactions only; use the RPC endpoint for everything else. |
 | Chain ID | 8453 |
 | Currency Symbol | ETH |
-| Block Explorer | [https://base.blockscout.com/](https://base.blockscout.com/) |
+| Block Explorer | [https://basescan.org](https://basescan.org) (also [Blockscout](https://base.blockscout.com/)) |
 
 ## Base Testnet (Sepolia)
 
@@ -27,11 +28,11 @@ Connect to Base Mainnet or the Sepolia testnet using the public RPC endpoints, t
 | :--- | :--- |
 | Network Name | Base Sepolia |
 | Description | The public testnet for Base. |
-| RPC Endpoint | [https://sepolia.base.org](https://sepolia.base.org) — Flashblocks-enabled; rate limited, not for production. |
+| RPC Endpoint | [https://sepolia.base.org](https://sepolia.base.org) — free and best effort; rate limited, not for production. |
 | Transaction Submission | `https://sepolia-sequencer.base.org` — send transactions only; use the RPC endpoint for everything else. |
 | Chain ID | 84532 |
 | Currency Symbol | ETH |
-| Block Explorer | [https://sepolia-explorer.base.org](https://sepolia-explorer.base.org) |
+| Block Explorer | [https://sepolia.basescan.org](https://sepolia.basescan.org) (also [sepolia-explorer.base.org](https://sepolia-explorer.base.org)) |
 
 ## Base Vibenet (preview)
 
@@ -53,7 +54,7 @@ Protocol and network smart contract deployments for L1 and L2 are catalogued on 
 </Aside>
 
 <Aside type="tip">
-Production workloads should connect through one of the [node providers](/node-operations/node-providers/) or [run a Base node](/node-operations/run-a-base-node/) directly. From October 8, 2026, the Mainnet public endpoint also drops the `debug`, `trace`, and `txpool` namespaces and lowers its read rate limit.
+Production workloads should connect through one of the [node providers](/node-operations/node-providers/) or [run a Base node](/node-operations/run-a-base-node/) directly. Neither `mainnet.base.org` nor `sepolia.base.org` serves the `debug`, `trace`, or `txpool` namespaces. Mainnet dropped them, and lowered its read rate limit, on October 8, 2026.
 </Aside>
 
 <Aside type="caution">
@@ -129,7 +130,7 @@ To add Base as a custom network in MetaMask:
    | RPC Endpoint | [https://mainnet.base.org](https://mainnet.base.org) |
    | Chain ID | 8453 |
    | Currency Symbol | ETH |
-   | Block Explorer | [https://base.blockscout.com/](https://base.blockscout.com/) |
+   | Block Explorer | [https://basescan.org](https://basescan.org) (also [Blockscout](https://base.blockscout.com/)) |
 
 6. Click **Save**.
 
@@ -170,7 +171,7 @@ To add Base Sepolia in MetaMask:
    | RPC Endpoint | [https://sepolia.base.org](https://sepolia.base.org) |
    | Chain ID | 84532 |
    | Currency Symbol | ETH |
-   | Block Explorer | [https://sepolia-explorer.base.org](https://sepolia-explorer.base.org) |
+   | Block Explorer | [https://sepolia.basescan.org](https://sepolia.basescan.org) (also [sepolia-explorer.base.org](https://sepolia-explorer.base.org)) |
 
 6. Click **Save**.
 

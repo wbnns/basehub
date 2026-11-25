@@ -2,6 +2,7 @@
 title: RPC overview
 description: Full reference for the JSON-RPC and Flashblocks methods exposed by Base nodes across the eth, net, web3, debug, txpool, and base namespaces.
 sources:
+- docs.base.org:base-chain/api-reference/rpc-overview
 - base/docs:docs/base-chain/api-reference/rpc-overview.mdx
 ---
 
@@ -39,11 +40,9 @@ The public endpoints are rate-limited and not suitable for production traffic. C
 The public Base endpoints are **HTTP only**. WebSocket RPC — `eth_subscribe` and the `newHeads`, `logs`, and Flashblocks streams — is not served on the public endpoints. For WebSocket support, use a node provider such as Alchemy or QuickNode.
 </Aside>
 
-## Flashblocks
+## Flashblocks (retired) and the `pending` tag
 
-Every public Base endpoint is Flashblocks-enabled, so all standard `eth_` methods behave identically and the `pending` block tag resolves against the **pre-confirmed block currently being built**, refreshed every ~200ms with new batches of sequencer-ordered transactions.
-
-Methods such as `eth_getBalance`, `eth_getStorageAt`, and `eth_call` execute against real sequencer state up to 1.8 seconds before a block seals, with sub-second latency.
+Flashblocks preconfirmations are gone. Since [Denim](/specifications/denim-200ms-blocks/), the sequencer seals a full canonical block every 200ms, so the freshest state is simply the newest block. Endpoints still accept the `pending` block tag, but it now resolves to the latest canonical block rather than a pre-confirmed block in progress. Ask for `latest` instead; `eth_getBalance`, `eth_getStorageAt`, `eth_call`, and the rest all read it. The [Flashblocks migration guide](/flashblocks/migrate-to-200ms-blocks/) covers the switch.
 
 ## Namespaces
 
